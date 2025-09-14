@@ -4,14 +4,15 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.lerp
 import androidx.compose.ui.geometry.Rect
@@ -98,24 +99,30 @@ fun NumberBricks(
         if (isFirstVisible.value) isFirstVisible.value = false
     }
     
-    Canvas(modifier = modifier.size(width, height)) {
-        for (i in 0 until 13) {
-            val animatedOffset = lerp(startOffsets[i], endOffsets[i], progress.value)
-            val currentOffset = Offset(
-                x = animatedOffset.x.roundToInt().toFloat(),
-                y = animatedOffset.y.roundToInt().toFloat()
-            )
-            val currentSize = Size(
-                width = brickSizePx.roundToInt().toFloat(),
-                height = brickSizePx.roundToInt().toFloat()
-            )
-            drawRect(
-                color = brickColor,
-                topLeft = currentOffset,
-                size = currentSize
-            )
-        }
-    } 
+    Spacer(
+        modifier = modifier
+            .size(width, height)
+            .drawWithCache {
+                val currentSize = Size(
+                    width = brickSizePx.roundToInt().toFloat(),
+                    height = brickSizePx.roundToInt().toFloat()
+                )
+                val animatedOffsets = Array(13) { i ->
+                    val o = lerp(startOffsets[i], endOffsets[i], progress.value)
+                    Offset(o.x.roundToInt().toFloat(), o.y.roundToInt().toFloat())
+                }
+                
+                onDrawBehind {
+                    for (i in 0 until 13) {
+                        drawRect(
+                            color = brickColor,
+                            topLeft = animatedOffsets[i],
+                            size = currentSize
+                        )
+                    }
+                }
+            }
+    )
 }
 
 internal val defaultAnimationSpec: AnimationSpec<Float> = tween(
