@@ -41,3 +41,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "NumberBricks"
 include(":app")
+include(":numberbricks")
