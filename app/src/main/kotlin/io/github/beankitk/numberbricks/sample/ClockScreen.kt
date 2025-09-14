@@ -6,6 +6,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -17,7 +18,7 @@ fun ClockScreen() {
     var animate by remember { mutableStateOf(false) }
     var isDecrease by remember { mutableStateOf(false) }
     var isRunning by remember { mutableStateOf(true) }
-    var digit by remember { mutableStateOf(0) }
+    var digit by rememberSaveable { mutableIntStateOf(0) }
     
     LaunchedEffect(isRunning, isDecrease) {
         while (isRunning) {
@@ -40,9 +41,9 @@ fun ClockScreen() {
         NumberBricks(
             digit = digit,
             modifier = Modifier,
-            color = MaterialTheme.colorScheme.primary,
-            sizeMultiplier = 45,
-            animateChanges = animate,
+            brickColor = MaterialTheme.colorScheme.primary,
+            brickSizeMultiplier = 40,
+            animateDigits = animate
         )
 
         Spacer(modifier = Modifier.height(24.dp))

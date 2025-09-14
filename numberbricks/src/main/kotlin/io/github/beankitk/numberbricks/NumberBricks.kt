@@ -1,108 +1,105 @@
 package io.github.beankitk.numberbricks
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.VectorConverter
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.lerp
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.joinAll
+import androidx.compose.ui.platform.LocalDensity
 import kotlinx.coroutines.delay
-import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 @Composable
 fun NumberBricks(
     digit: Int,
     modifier: Modifier = Modifier,
-    color: Color = Color.White,
-    sizeMultiplier: Int = 2,
-    startDelayMs: Long = 0L,
-    animateChanges: Boolean = false,
-    animationDurationMs: Int = 300
+    brickColor: Color = Color.White,
+    brickSizeMultiplier: Int = 2,
+    animateDigits: Boolean = false,
+    animationSpec: AnimationSpec<Float> = defaultAnimationSpec,
+    delayInMillis: Long = 0L
 ) {
-    val baseCellDp: Dp = 1.dp
-    val density = LocalDensity.current
-
-    val cellSizeDp = baseCellDp * sizeMultiplier
-    val widthDp = cellSizeDp * 3
-    val heightDp = cellSizeDp * 5
+	require(digit in 0..9) {
+		"The digit parameter accept only positive value from 0 to 9, but the value was $digit"
+	}
+	
+	val density = LocalDensity.current
+    val baseBrickSize: Dp = 1.dp
+	val brickSizeDp = baseBrickSize * brickSizeMultiplier
+	val brickSizePx = remember(density, brickSizeDp) { density.run { brickSizeDp.toPx() } }
+	val width = brickSizeDp * 3
+	val height = brickSizeDp * 5
+	
+	val initialOffset = Offset(brickSizePx * 1f, brickSizePx * 2f)
+	
+    val startOffsets = remember { Array(13) { initialOffset } }
+	val endOffsets = remember { Array(13) { initialOffset } }
+	
+    val progress = remember { Animatable(0f) }
     
-    val cellSizePx = remember(density, cellSizeDp) { density.run { cellSizeDp.toPx() } }
-    val widthPx = cellSizePx * 3f
-    val heightPx = cellSizePx * 5f
+    LaunchedEffect(digit, animateDigits, brickSizePx, delayInMillis) {
+	    val targetOffsets = computeTargetOffsetsFor(digit, brickSizePx)
+	    if (animateDigits) {
+            val currentProgress = progress.value
+	        if (currentProgress > 0f && currentProgress < 1f) {
+	            for (i in 0 until 13) {
+	                val currentPosition = lerp(startOffsets[i], endOffsets[i], currentProgress)
+	                startOffsets[i] = currentPosition
+	                endOffsets[i] = targetOffsets[i]
+	            }
+	        } else {
+	            for (i in 0 until 13) {
+	                startOffsets[i] = endOffsets[i]
+	                endOffsets[i] = targetOffsets[i]
+	            }
+	        }
+	
+	        if (delayInMillis > 0) delay(delayInMillis)
+	        progress.snapTo(0f)
+	        progress.animateTo(1f, animationSpec = animationSpec)
+	    } else {
+            for (i in 0 until 13) {
+	            startOffsets[i] = endOffsets[i]
+	            endOffsets[i] = targetOffsets[i]
+	        }
+            progress.snapTo(0f)
+	        progress.snapTo(1f)
+	    }
+	}
     
-    val targetsPx = remember(digit, cellSizePx) {
-        computeTargetsForDigitPx((digit % 10 + 10) % 10, cellSizePx)
-    }
-
-    val bricks = remember(sizeMultiplier, cellSizePx) {
-        List(13) { index ->
-            Animatable(targetsPx.getOrElse(index) { Offset(cellSizePx, cellSizePx * 2f) }, Offset.VectorConverter)
-        }
-    }
-
-    // Pre-rendered bitmap cache for static digits (when not animating)
-    val cachedBitmap: ImageBitmap? = remember(digit, sizeMultiplier, color, cellSizePx) {
-        // create bitmap only when animateChanges is false (we still create it regardless,
-        // so it's ready to use; caller can decide to use or ignore it)
-        createBitmapForDigit(
-            widthPx = ceil(widthPx).toInt(),
-            heightPx = ceil(heightPx).toInt(),
-            targets = computeTargetsForDigitPx((digit % 10 + 10) % 10, cellSizePx),
-            cellSize = cellSizePx,
-            color = color,
-            density = density
-        )
-    }
-    
-    LaunchedEffect(digit, animateChanges, cellSizePx, startDelayMs, animationDurationMs) {
-        val scope = this
-        if (animateChanges) {
-            if (startDelayMs > 0) delay(startDelayMs)
-            val tweenSpec = tween<Offset>(durationMillis = animationDurationMs, easing = androidx.compose.animation.core.CubicBezierEasing(0.2f, 0.0f, 0.0f, 1.0f))
-            val jobs = bricks.mapIndexed { index, anim ->
-                scope.launch {
-                    val target = targetsPx.getOrElse(index) { Offset(cellSizePx, cellSizePx * 2f) }
-                    anim.animateTo(target, animationSpec = tweenSpec)
-                }
-            }
-            jobs.joinAll()
-        } else {
-            for (i in bricks.indices) {
-                val target = targetsPx.getOrElse(i) { Offset(cellSizePx, cellSizePx * 2f) }
-                bricks[i].snapTo(target)
-            }
-        }
-    }
-
-    Box(modifier = modifier.size(widthDp, heightDp)) {
-        Canvas(modifier = Modifier.matchParentSize()) {
-            // If not animating and cached bitmap exists — draw the bitmap (fast)
-            if (!animateChanges && cachedBitmap != null) {
-                drawImageCached(cachedBitmap)
-            } else {
-                // animate or live-draw: read each Animatable value (in px) and draw rect
-                for (i in 0 until bricks.size) {
-                    val off = bricks[i].value // Offset in px (Animatable updates will invalidate composition/draw)
-                    drawRect(
-                        color = color,
-                        topLeft = Offset(off.x, off.y),
-                        size = Size(cellSizePx, cellSizePx)
-                    )
-                }
-            }
-        }
-    }
+    Canvas(modifier = modifier.size(width, height)) {
+	    for (i in 0 until 13) {
+            val animatedOffset = lerp(startOffsets[i], endOffsets[i], progress.value)
+            val currentOffset = Offset(
+                x = animatedOffset.x.roundToInt().toFloat(),
+                y = animatedOffset.y.roundToInt().toFloat()
+            )
+            val currentSize = Size(
+                width = brickSizePx.roundToInt().toFloat(),
+                height = brickSizePx.roundToInt().toFloat()
+            )
+        
+	        drawRect(
+	            color = brickColor,
+	            topLeft = currentOffset,
+	            size = currentSize
+	        )
+	    }
+	}
 }
+
+internal val defaultAnimationSpec: AnimationSpec<Float> = tween(
+	durationMillis = 300,
+	easing = CubicBezierEasing(0.2f, 0.0f, 0.0f, 1.0f)
+)
