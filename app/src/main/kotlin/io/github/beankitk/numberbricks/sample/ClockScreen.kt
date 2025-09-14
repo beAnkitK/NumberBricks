@@ -15,7 +15,8 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun ClockScreen() {
-    var animate by remember { mutableStateOf(false) }
+    var animateDigit by remember { mutableStateOf(true) }
+    var animateOnFirstShown by remember { mutableStateOf(true) }
     var isDecrease by remember { mutableStateOf(false) }
     var isRunning by remember { mutableStateOf(true) }
     var digit by rememberSaveable { mutableIntStateOf(0) }
@@ -43,7 +44,8 @@ fun ClockScreen() {
             modifier = Modifier,
             brickColor = MaterialTheme.colorScheme.primary,
             brickSizeMultiplier = 40,
-            animateDigits = animate
+            animateDigits = animateDigit,
+            animateOnFirstVisible = animateOnFirstShown
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -66,8 +68,8 @@ fun ClockScreen() {
                 style = MaterialTheme.typography.bodyLarge
             )
             Switch(
-                checked = animate,
-                onCheckedChange = { animate = it }
+                checked = animateDigit,
+                onCheckedChange = { animateDigit = it }
             )
         }
 

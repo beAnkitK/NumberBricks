@@ -9,9 +9,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.lerp
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
@@ -28,7 +31,8 @@ fun NumberBricks(
     brickSizeMultiplier: Int = 2,
     animateDigits: Boolean = false,
     animationSpec: AnimationSpec<Float> = defaultAnimationSpec,
-    delayInMillis: Long = 0L
+    delayInMillis: Long = 0L,
+    animateOnFirstVisible: Boolean = false,
 ) {
 	require(digit in 0..9) {
 		"The digit parameter accept only positive value from 0 to 9, but the value was $digit"
@@ -48,6 +52,7 @@ fun NumberBricks(
     val targetOffsets = remember { Array(13) { Offset.Unspecified } }
 
     val progress = remember { Animatable(0f) }
+    var isFirstVisible =  rememberSaveable { mutableStateOf(true) }
     
     LaunchedEffect(digit, animateDigits, brickSizePx, delayInMillis) {
         targetOffsets.computeOffsetsFor(digit, brickSizePx)
@@ -68,7 +73,17 @@ fun NumberBricks(
 	
 	        if (delayInMillis > 0) delay(delayInMillis)
 	        progress.snapTo(0f)
+            
+            if (isFirstVisible.value) {
+                if (animateOnFirstVisible)
+                    progress.animateTo(1f, animationSpec = animationSpec)
+                else 
+                    progress.snapTo(1f)        
+                return@LaunchedEffect    
+            }
+            
 	        progress.animateTo(1f, animationSpec = animationSpec)
+            
 	    } else {
             for (i in 0 until 13) {
 	            startOffsets[i] = endOffsets[i]
@@ -78,9 +93,13 @@ fun NumberBricks(
 	        progress.snapTo(1f)
 	    }
 	}
+     
+    LaunchedEffect(Unit) {
+        if (isFirstVisible.value) isFirstVisible.value = false
+    }
     
     Canvas(modifier = modifier.size(width, height)) {
-	    for (i in 0 until 13) {
+        for (i in 0 until 13) {
             val animatedOffset = lerp(startOffsets[i], endOffsets[i], progress.value)
             val currentOffset = Offset(
                 x = animatedOffset.x.roundToInt().toFloat(),
@@ -90,14 +109,13 @@ fun NumberBricks(
                 width = brickSizePx.roundToInt().toFloat(),
                 height = brickSizePx.roundToInt().toFloat()
             )
-        
-	        drawRect(
-	            color = brickColor,
-	            topLeft = currentOffset,
-	            size = currentSize
-	        )
-	    }
-	}
+            drawRect(
+                color = brickColor,
+                topLeft = currentOffset,
+                size = currentSize
+            )
+        }
+    } 
 }
 
 internal val defaultAnimationSpec: AnimationSpec<Float> = tween(
