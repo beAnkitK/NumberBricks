@@ -2,12 +2,12 @@ package io.github.beankitk.numberbricks
 
 import androidx.compose.ui.geometry.Offset
 
-internal fun computeTargetOffsetsFor(digit: Int, cellPx: Float): Array<Offset> {
+internal inline fun Array<Offset>.computeOffsetsFor(digit: Int, cellPx: Float) {
     val layout = DIGIT_LAYOUTS.getOrElse(digit) { DIGIT_LAYOUTS[10] }
-    return Array(13) { i ->
+    for (i in indices) {
         val xIndex = layout[i * 2].toInt()
         val yIndex = layout[i * 2 + 1].toInt()
-        Offset(xIndex * cellPx, yIndex * cellPx)
+        this[i] = Offset(xIndex * cellPx, yIndex * cellPx)
     }
 }
 

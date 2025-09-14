@@ -44,12 +44,13 @@ fun NumberBricks(
 	val initialOffset = Offset(brickSizePx * 1f, brickSizePx * 2f)
 	
     val startOffsets = remember { Array(13) { initialOffset } }
-	val endOffsets = remember { Array(13) { initialOffset } }
-	
+    val endOffsets = remember { Array(13) { initialOffset } }
+    val targetOffsets = remember { Array(13) { Offset.Unspecified } }
+
     val progress = remember { Animatable(0f) }
     
     LaunchedEffect(digit, animateDigits, brickSizePx, delayInMillis) {
-	    val targetOffsets = computeTargetOffsetsFor(digit, brickSizePx)
+        targetOffsets.computeOffsetsFor(digit, brickSizePx)
 	    if (animateDigits) {
             val currentProgress = progress.value
 	        if (currentProgress > 0f && currentProgress < 1f) {
