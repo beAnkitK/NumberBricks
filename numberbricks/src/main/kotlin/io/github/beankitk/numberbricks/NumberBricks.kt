@@ -18,6 +18,7 @@ import androidx.compose.ui.geometry.lerp
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalDensity
@@ -101,24 +102,25 @@ fun NumberBricks(
             height = brickSizePx.roundToInt().toFloat()
         )
     }
+    
+    val path = remember(digit, brickSizePx) { Path() }
                 
     Spacer(
         modifier = modifier
             .size(width, height)
             .drawBehind {
+                path.reset()
                 for (i in 0 until 13) {
-                    val animatedOffsets = lerp(startOffsets[i], endOffsets[i], progress.value)
-                    
-                    drawRect(
-                        color = brickColor,
-                        topLeft = animatedOffsets,
-                        size = brickSize
-                    )
+                    val animatedOffset = lerp(startOffsets[i], endOffsets[i], progress.value)
+                    path.addRect(Rect(animatedOffset, brickSize))
                 }
+                drawPath(path, brickColor)
             }
     )
 }
 
+
+        
 internal val defaultAnimationSpec: AnimationSpec<Float> = tween(
 	durationMillis = 300,
 	easing = CubicBezierEasing(0.2f, 0.0f, 0.0f, 1.0f)
