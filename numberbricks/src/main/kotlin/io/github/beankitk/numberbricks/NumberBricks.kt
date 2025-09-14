@@ -12,7 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.lerp
 import androidx.compose.ui.geometry.Rect
@@ -45,7 +45,7 @@ fun NumberBricks(
 	val brickSizePx = remember(density, brickSizeDp) { density.run { brickSizeDp.toPx() } }
 	val width = brickSizeDp * 3
 	val height = brickSizeDp * 5
-	
+    
 	val initialOffset = Offset(brickSizePx * 1f, brickSizePx * 2f)
 	
     val startOffsets = remember { Array(13) { initialOffset } }
@@ -66,10 +66,8 @@ fun NumberBricks(
 	                endOffsets[i] = targetOffsets[i]
 	            }
 	        } else {
-	            for (i in 0 until 13) {
-	                startOffsets[i] = endOffsets[i]
-	                endOffsets[i] = targetOffsets[i]
-	            }
+                endOffsets.copyInto(startOffsets)
+                targetOffsets.copyInto(endOffsets)
 	        }
 	
 	        if (delayInMillis > 0) delay(delayInMillis)
@@ -86,10 +84,8 @@ fun NumberBricks(
 	        progress.animateTo(1f, animationSpec = animationSpec)
             
 	    } else {
-            for (i in 0 until 13) {
-	            startOffsets[i] = endOffsets[i]
-	            endOffsets[i] = targetOffsets[i]
-	        }
+            endOffsets.copyInto(startOffsets)
+            targetOffsets.copyInto(endOffsets)
             progress.snapTo(0f)
 	        progress.snapTo(1f)
 	    }
@@ -99,27 +95,25 @@ fun NumberBricks(
         if (isFirstVisible.value) isFirstVisible.value = false
     }
     
+    val brickSize = remember(brickSizePx) {
+        Size(
+            width = brickSizePx.roundToInt().toFloat(),
+            height = brickSizePx.roundToInt().toFloat()
+        )
+    }
+                
     Spacer(
         modifier = modifier
             .size(width, height)
-            .drawWithCache {
-                val currentSize = Size(
-                    width = brickSizePx.roundToInt().toFloat(),
-                    height = brickSizePx.roundToInt().toFloat()
-                )
-                val animatedOffsets = Array(13) { i ->
-                    val o = lerp(startOffsets[i], endOffsets[i], progress.value)
-                    Offset(o.x.roundToInt().toFloat(), o.y.roundToInt().toFloat())
-                }
-                
-                onDrawBehind {
-                    for (i in 0 until 13) {
-                        drawRect(
-                            color = brickColor,
-                            topLeft = animatedOffsets[i],
-                            size = currentSize
-                        )
-                    }
+            .drawBehind {
+                for (i in 0 until 13) {
+                    val animatedOffsets = lerp(startOffsets[i], endOffsets[i], progress.value)
+                    
+                    drawRect(
+                        color = brickColor,
+                        topLeft = animatedOffsets,
+                        size = brickSize
+                    )
                 }
             }
     )
