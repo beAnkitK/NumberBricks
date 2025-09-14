@@ -1,0 +1,9 @@
+[versions]
+java-jvmTarget = "21"
+java-source = "21"
+java-target = "21"
+sdk-compile = "35"
+sdk-min = "26"
+sdk-target = "35"
+version-code = "1"
+version-name = "1.0.0"
