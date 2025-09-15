@@ -1,8 +1,20 @@
 package io.github.beankitk.numberbricks
 
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.ui.geometry.Offset
 
-internal inline fun Array<Offset>.computeOffsetsFor(digit: Int, cellPx: Float) {
+fun defaultAnimationSpec(
+    delayMillis: Int = 0,
+    durationMillis: Int = 300
+): AnimationSpec<Float> = tween(
+    durationMillis = durationMillis,
+    delayMillis = delayMillis,
+    easing = CubicBezierEasing(0.2f, 0.0f, 0.0f, 1.0f)
+)
+
+internal fun Array<Offset>.computeOffsetsFor(digit: Int, cellPx: Float) {
     val layout = DIGIT_LAYOUTS.getOrElse(digit) { DIGIT_LAYOUTS[10] }
     for (i in indices) {
         val xIndex = layout[i * 2].toInt()
@@ -22,11 +34,11 @@ private val DIGIT_LAYOUTS: Array<ByteArray> = arrayOf(
     ),
     // digit 1
     byteArrayOf(
-        2,0, 2,0, 2,0,
-        2,1, 2,1,
-        2,2, 2,2, 2,2,
-        2,3, 2,3,
-        2,4, 2,4, 2,4
+        0,0, 1,0, 1,0,
+        1,1, 1,1,
+        1,2, 1,2, 1,2,
+        1,3, 1,3,
+        0,4, 1,4, 2,4
     ),
     // digit 2
     byteArrayOf(
@@ -102,3 +114,14 @@ private val DIGIT_LAYOUTS: Array<ByteArray> = arrayOf(
     )
     
 )
+
+/**
+old 1
+byteArrayOf(
+    2,0, 2,0, 2,0,
+    2,1, 2,1,
+    2,2, 2,2, 2,2,
+    2,3, 2,3,
+    2,4, 2,4, 2,4
+),
+*/

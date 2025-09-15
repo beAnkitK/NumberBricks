@@ -43,7 +43,7 @@ fun ClockScreen() {
             digit = digit,
             modifier = Modifier,
             brickColor = MaterialTheme.colorScheme.primary,
-            brickSizeMultiplier = 40,
+            brickSizeMultiplier = 20f,
             animateDigits = animateDigit,
             animateOnFirstVisible = animateOnFirstShown
         )
