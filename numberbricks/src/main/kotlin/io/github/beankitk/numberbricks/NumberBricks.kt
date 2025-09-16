@@ -26,7 +26,6 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import kotlin.math.roundToInt
 
 @Composable
 fun NumberBricks(
@@ -114,13 +113,7 @@ private fun NumberBricksImpl(
     val brickSizePx = remember(density, brickSizeDp) { with(density) { brickSizeDp.toPx() } }
     val width = brickSizeDp * 3f
     val height = brickSizeDp * 5f
-
-    val brickSize = remember(brickSizePx) {
-        Size(
-            width = brickSizePx.roundToInt().toFloat(),
-            height = brickSizePx.roundToInt().toFloat()
-        )
-    }
+    val brickSize = remember(brickSizePx) { Size(width = brickSizePx, height = brickSizePx) }
     
     val initialOffset = Offset(brickSizePx, brickSizePx * 2f)
     val startOffsets = remember { Array(13) { initialOffset } }
