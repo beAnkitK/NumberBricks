@@ -36,7 +36,9 @@ android {
     
     kotlinOptions {
        jvmTarget = build.versions.java.jvmTarget.get()
-       freeCompilerArgs += listOf()
+       freeCompilerArgs += listOf(
+           "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api"
+       )
     }
 
     buildTypes {

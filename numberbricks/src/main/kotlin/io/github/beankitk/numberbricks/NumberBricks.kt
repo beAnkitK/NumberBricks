@@ -10,15 +10,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.lerp
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.drawscope.DrawStyle
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -28,16 +32,28 @@ import kotlin.math.roundToInt
 fun NumberBricks(
     digit: Int,
     modifier: Modifier = Modifier,
-    brickColor: Color = Color.White,
+    digitColor: Color = Color.White,
+    digitAlpha: Float = 1f,
+    digitDrawStyle: DrawStyle = Fill,
+    digitColorFilter: ColorFilter? = null,
+    digitBlendMode: BlendMode = BlendMode.SrcOver,
     brickSizeMultiplier: Float = 5f,
     animateDigits: Boolean = false,
     animationSpec: AnimationSpec<Float> = defaultAnimationSpec(),
     animateOnFirstVisible: Boolean = false,
 ) {
+    val digitStyle = DigitStyle(
+        brush = SolidColor(digitColor),
+        alpha = digitAlpha,
+        drawStyle = digitDrawStyle,
+        colorFilter = digitColorFilter,
+        blendMode = digitBlendMode
+    )
+
     NumberBricksImpl(
         digit = digit,
         modifier = modifier,
-        brickFillStyle = SolidColor(brickColor),
+        digitStyle = digitStyle,
         brickSizeMultiplier = brickSizeMultiplier,
         animateDigits = animateDigits,
         animationSpec = animationSpec,
@@ -49,16 +65,28 @@ fun NumberBricks(
 fun NumberBricks(
     digit: Int,
     modifier: Modifier = Modifier,
-    brickBrush: Brush = SolidColor(Color.White),
+    digitBrush: Brush = SolidColor(Color.White),
+    digitAlpha: Float = 1f,
+    digitDrawStyle: DrawStyle = Fill,
+    digitColorFilter: ColorFilter? = null,
+    digitBlendMode: BlendMode = BlendMode.SrcOver,
     brickSizeMultiplier: Float = 5f,
     animateDigits: Boolean = false,
     animationSpec: AnimationSpec<Float> = defaultAnimationSpec(),
     animateOnFirstVisible: Boolean = false,
 ) {
+    val digitStyle = DigitStyle(
+        brush = digitBrush,
+        alpha = digitAlpha,
+        drawStyle = digitDrawStyle,
+        colorFilter = digitColorFilter,
+        blendMode = digitBlendMode
+    )
+
     NumberBricksImpl(
         digit = digit,
         modifier = modifier,
-        brickFillStyle = brickBrush,
+        digitStyle = digitStyle,
         brickSizeMultiplier = brickSizeMultiplier,
         animateDigits = animateDigits,
         animationSpec = animationSpec,
@@ -70,7 +98,7 @@ fun NumberBricks(
 private fun NumberBricksImpl(
     digit: Int,
     modifier: Modifier,
-    brickFillStyle: Brush,
+    digitStyle: DigitStyle,
     brickSizeMultiplier: Float,
     animateDigits: Boolean,
     animationSpec: AnimationSpec<Float>,
@@ -135,21 +163,32 @@ private fun NumberBricksImpl(
         if (isFirstVisible.value) isFirstVisible.value = false
     }
     
-    val digitPath = remember(digit, brickSize) { Path() }
-    
     Spacer(
         modifier = modifier
             .size(width, height)
-            .drawBehind {
-                digitPath.reset()
-                for (i in 0 until 13) {
-                    val animatedOffset = lerp(startOffsets[i], endOffsets[i], progress.value)
-                    digitPath.addRect(Rect(animatedOffset, brickSize))
+            .drawWithCache {
+                val digitPath = Path()
+                val brush = digitStyle.brush
+                val alpha = digitStyle.alpha
+                val drawStyle = digitStyle.drawStyle
+                val colorFilter = digitStyle.colorFilter
+                val blendMode = digitStyle.blendMode
+                
+                onDrawBehind {
+                    digitPath.reset()
+                    for (i in 0 until 13) {
+                        val animatedOffset = lerp(startOffsets[i], endOffsets[i], progress.value)
+                        digitPath.addRect(Rect(animatedOffset, brickSize))
+                    }
+                    drawPath(
+                        path = digitPath,
+                        brush = brush,
+                        alpha = alpha,
+                        style = drawStyle,
+                        colorFilter = colorFilter,
+                        blendMode = blendMode
+                    )
                 }
-                drawPath(
-                    path = digitPath,
-                    brush = brickFillStyle
-                )
             }
     )
 }

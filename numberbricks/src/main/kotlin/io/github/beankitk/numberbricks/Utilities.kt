@@ -84,7 +84,7 @@ private val DIGIT_LAYOUTS: Array<ByteArray> = arrayOf(
     byteArrayOf(
         0,0, 1,0, 2,0,
         2,1, 2,1,
-        2,2, 2,2, 2,2,
+        1,2, 1,2, 2,2,
         2,3, 2,3,
         2,4, 2,4, 2,4
     ),
@@ -119,6 +119,14 @@ private val DIGIT_LAYOUTS: Array<ByteArray> = arrayOf(
 old 1
 byteArrayOf(
     2,0, 2,0, 2,0,
+    2,1, 2,1,
+    2,2, 2,2, 2,2,
+    2,3, 2,3,
+    2,4, 2,4, 2,4
+),
+old 7
+byteArrayOf(
+    0,0, 1,0, 2,0,
     2,1, 2,1,
     2,2, 2,2, 2,2,
     2,3, 2,3,
