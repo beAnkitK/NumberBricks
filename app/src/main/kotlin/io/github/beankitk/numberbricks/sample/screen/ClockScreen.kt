@@ -2,9 +2,10 @@ package io.github.beankitk.numberbricks.sample.screen
 
 import android.app.Activity
 import android.view.WindowManager
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -46,11 +48,17 @@ fun ClockScreen(
     val insetsController = remember(activity) { activity?.window?.let { WindowInsetsControllerCompat(it, it.decorView) }}
     
     var now by remember { mutableStateOf(LocalTime.now(ZoneId.systemDefault())) }
-    var isAmbient by rememberSaveable { mutableStateOf(false) }
+    var largeClock by remember { mutableStateOf(false) }
+    var isAmbient by remember { mutableStateOf(false) }
     
     val brightnessAnim = remember { Animatable(1f) }
-   
-    val brickSizeMultiplier = 23f
+    val clockScale by animateFloatAsState(
+        targetValue = if(largeClock) 2f else 1f,
+        animationSpec = defaultAnimationSpec(),
+        label = "brickSize"
+    )
+    
+    val brickSizeMultiplier = 25f
     val animateDigits = true
     
     val hoursColor = Color(0xFFFFFFFF)
@@ -111,16 +119,17 @@ fun ClockScreen(
             isAmbient = true
         }
     }
-
+    
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(Color.Black)
             .systemBarsPadding()
-            .clickable(
+            .combinedClickable(
                 interactionSource = null,
                 indication = null,
-                onClick = { isAmbient = !isAmbient }
+                onClick = { isAmbient = !isAmbient },
+                onDoubleClick = { largeClock = !largeClock}
             )
             .padding(16.dp),
         contentAlignment = Alignment.Center
@@ -130,6 +139,7 @@ fun ClockScreen(
             verticalArrangement = Arrangement.spacedBy(15.dp),
             modifier = Modifier
                 .wrapContentSize()
+                .scale(clockScale)
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(15.dp)) {
                 NumberBricks(
