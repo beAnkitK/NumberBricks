@@ -70,6 +70,7 @@ android {
 dependencies {  
     implementation(platform(libs.androidx.compose.bom))
     implementation(project(":numberbricks"))
+    implementation(libs.bundles.androidx.lifecycle)
     implementation(libs.bundles.compose.core)
     
     implementation(libs.androidx.activity.compose)

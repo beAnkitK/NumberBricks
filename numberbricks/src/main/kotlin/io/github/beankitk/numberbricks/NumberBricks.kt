@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
@@ -115,45 +117,57 @@ private fun NumberBricksImpl(
     val height = brickSizeDp * 5f
     val brickSize = remember(brickSizePx) { Size(width = brickSizePx, height = brickSizePx) }
     
-    val initialOffset = Offset(brickSizePx, brickSizePx * 2f)
-    val startOffsets = remember { Array(13) { initialOffset } }
-    val endOffsets = remember { Array(13) { initialOffset } }
+    var previousDigit by rememberSaveable { mutableStateOf<Int?>(null) }
+    var wasFirstVisible by rememberSaveable { mutableStateOf(false) }
+    var progress = rememberSaveable(saver = animatableSaver) { Animatable(0f) }
+    
+    val initialOffsets = remember(wasFirstVisible, digit, brickSizePx) {
+        if (!wasFirstVisible) {
+            Array(13) { Offset(brickSizePx, brickSizePx * 2f) }
+        } else {
+            Array(13) { Offset.Unspecified }.also { it.computeOffsetsFor(digit, brickSizePx) }
+        }
+    }
+    
+    val startOffsets = remember(brickSizePx) { Array(13) { i -> initialOffsets[i] } }
+    val endOffsets   = remember(brickSizePx) { Array(13) { i -> initialOffsets[i] } }
     val targetOffsets = remember { Array(13) { Offset.Unspecified } }
     
-    val progress = remember { Animatable(0f) }
-    val isFirstVisible = rememberSaveable { mutableStateOf(true) }
+    LaunchedEffect(digit, animateDigits) {
+        val isDigitChange = previousDigit != digit
+        if (wasFirstVisible && !isDigitChange && progress.value == 1f) return@LaunchedEffect
     
-    LaunchedEffect(digit, animateDigits, brickSizePx) {
         targetOffsets.computeOffsetsFor(digit, brickSizePx)
-
-        if (animateDigits) {
-            val currentProgress = progress.value
-            if (currentProgress in 0f..1f && currentProgress != 0f && currentProgress != 1f) {
-                for (i in 0 until 13) {
-                    startOffsets[i] = lerp(startOffsets[i], endOffsets[i], currentProgress)
-                    endOffsets[i] = targetOffsets[i]
-                }
-            } else {
-                endOffsets.copyInto(startOffsets)
-                targetOffsets.copyInto(endOffsets)
-            }
-
-            progress.snapTo(0f)
-            if (isFirstVisible.value) {
-                if (animateOnFirstVisible) progress.animateTo(1f, animationSpec) else progress.snapTo(1f)
-                return@LaunchedEffect
-            }
-            progress.animateTo(1f, animationSpec = animationSpec)
-        } else {
+    
+        if (!animateDigits) {
             endOffsets.copyInto(startOffsets)
             targetOffsets.copyInto(endOffsets)
             progress.snapTo(0f)
             progress.snapTo(1f)
+            previousDigit = digit
+            return@LaunchedEffect
         }
-    }
+        
+        val inMiddleOfAnimation = progress.value > 0f && progress.value < 1f
     
-    LaunchedEffect(Unit) {
-        if (isFirstVisible.value) isFirstVisible.value = false
+        if (inMiddleOfAnimation) {
+            for (i in 0 until 13) {
+                startOffsets[i] = lerp(startOffsets[i], endOffsets[i], progress.value)
+                endOffsets[i] = targetOffsets[i]
+            }
+        } else {
+            endOffsets.copyInto(startOffsets)
+            targetOffsets.copyInto(endOffsets)
+        }
+    
+        progress.snapTo(0f)
+        if (!wasFirstVisible) {
+            if (animateOnFirstVisible) progress.animateTo(1f, animationSpec) else progress.snapTo(1f)
+            wasFirstVisible = true
+        } else {
+            progress.animateTo(1f,animationSpec)
+        }
+        previousDigit = digit
     }
     
     Spacer(

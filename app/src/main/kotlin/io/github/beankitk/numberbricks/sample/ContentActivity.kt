@@ -22,11 +22,11 @@ class ContentActivity : ComponentActivity() {
         setupActivity()
         super.onCreate(savedInstanceState)
         setContent {
-        	AppTheme {
+            AppTheme(dynamicColor = false) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.background),
+                        .background(MaterialTheme.colorScheme.surface),
                     contentAlignment = Alignment.Center
                 ) {
                     ClockScreen()

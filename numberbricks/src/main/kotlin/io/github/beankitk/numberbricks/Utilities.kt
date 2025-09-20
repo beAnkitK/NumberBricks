@@ -1,8 +1,11 @@
 package io.github.beankitk.numberbricks
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.ui.geometry.Offset
 
 fun defaultAnimationSpec(
@@ -13,6 +16,12 @@ fun defaultAnimationSpec(
     delayMillis = delayMillis,
     easing = CubicBezierEasing(0.2f, 0.0f, 0.0f, 1.0f)
 )
+
+val animatableSaver: Saver<Animatable<Float, AnimationVector1D>, Float> =
+    Saver(
+        save = { it.value },
+        restore = { value -> Animatable(value) }
+    )
 
 internal fun Array<Offset>.computeOffsetsFor(digit: Int, cellPx: Float) {
     val layout = DIGIT_LAYOUTS.getOrElse(digit) { DIGIT_LAYOUTS[10] }
