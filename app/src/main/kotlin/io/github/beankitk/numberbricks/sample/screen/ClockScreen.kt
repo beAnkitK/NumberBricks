@@ -1,11 +1,15 @@
 package io.github.beankitk.numberbricks.sample.screen
 
 import android.app.Activity
+import android.content.res.Configuration
 import android.view.WindowManager
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,13 +24,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -35,23 +45,32 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.beankitk.numberbricks.NumberBricks
 import io.github.beankitk.numberbricks.defaultAnimationSpec
 import io.github.beankitk.numberbricks.sample.viewmodel.ClockScreenVM
+import io.github.beankitk.numberbricks.sample.ui.widget.Axis
+import io.github.beankitk.numberbricks.sample.ui.widget.AxisLayout
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.math.hypot
+import kotlin.random.Random
 
 @Composable
 fun ClockScreen(
     modifier: Modifier = Modifier,
     animateDigits: Boolean = true,
     animationSpec: AnimationSpec<Float> = defaultAnimationSpec(),
-    animateOnFirstVisible: Boolean = false
+    animateOnFirstVisible: Boolean = true
 ) {
     val activity = LocalActivity.current
-    val insetsController = remember(activity) { activity?.window?.let { WindowInsetsControllerCompat(it, it.decorView) } }
+    val configuration = LocalConfiguration.current
     val viewModel: ClockScreenVM = viewModel()
     
     val currentTime by viewModel.currentTimeAsList.collectAsStateWithLifecycle()
     val isAmbientMode by viewModel.isAmbientMode.collectAsStateWithLifecycle()
     val isLargeClock by viewModel.isLargeClock.collectAsStateWithLifecycle()
+    val isVertical = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
     
+    val height = configuration.screenHeightDp.toFloat()
+    val width = configuration.screenWidthDp.toFloat()
     val h1 = currentTime[0]
     val h2 = currentTime[1]
     val m1 = currentTime[2]
@@ -59,8 +78,21 @@ fun ClockScreen(
     val s1 = currentTime[4]
     val s2 = currentTime[5]
 
+    val insetsController = remember(activity) { activity?.window?.let { WindowInsetsControllerCompat(it, it.decorView) } }
+    var parentSize = remember { mutableStateOf(IntSize(0, 0)) }
+    var contentSize = remember { mutableStateOf(IntSize(0, 0)) }
+    
+    val targetBrickSize = when {
+        isLargeClock && isVertical -> height / 16f
+        isLargeClock && !isVertical -> width / 21f
+        !isLargeClock && isVertical -> height / 35f
+        else -> width / 35f
+    }
+    
+    val clockLayoutAnimatable = remember { Animatable(Offset.Zero, Offset.VectorConverter) }
+    
     val brickSizeMultiplier by animateFloatAsState(
-        targetValue = if (isLargeClock) 50f else 25f,
+        targetValue = targetBrickSize,
         animationSpec = defaultAnimationSpec(),
         label = "large-clock-transition"
     )
@@ -110,9 +142,44 @@ fun ClockScreen(
         viewModel.scheduleAmbientMode()
     }
     
+    LaunchedEffect(isAmbientMode, isLargeClock) {
+        if (parentSize.value.width == 0 || parentSize.value.height == 0 ||
+            contentSize.value.width == 0 || contentSize.value.height == 0) {
+            delay(200)
+        }
+        
+        if (!isAmbientMode && isLargeClock) {
+            clockLayoutAnimatable.animateTo(Offset.Zero, animationSpec = defaultAnimationSpec())
+            return@LaunchedEffect
+        }
+    
+        val maxAllowedX = maxOf(0f, (parentSize.value.width - contentSize.value.width) / 2f)
+        val maxAllowedY = maxOf(0f, (parentSize.value.height - contentSize.value.height) / 2f)
+        
+        if (maxAllowedX <= 0f && maxAllowedY <= 0f) {
+            clockLayoutAnimatable.animateTo(Offset.Zero, animationSpec = defaultAnimationSpec())
+            return@LaunchedEffect
+        }
+        
+        while (isActive && isAmbientMode && !isLargeClock) {
+            val targetX = (Random.nextFloat() * 2f - 1f) * maxAllowedX
+            val targetY = (Random.nextFloat() * 2f - 1f) * maxAllowedY
+            
+            val dx = targetX - clockLayoutAnimatable.value.x
+            val dy = targetY - clockLayoutAnimatable.value.y
+            val distance = hypot(dx.toDouble(), dy.toDouble()).toFloat()
+            val speedPxPerSec = 60f
+            val duration = ((distance / speedPxPerSec) * 1000).toInt().coerceIn(1500, 8000)
+            
+            clockLayoutAnimatable.animateTo(Offset(targetX, targetY), animationSpec = tween(durationMillis = duration, easing = LinearOutSlowInEasing))
+        }
+        clockLayoutAnimatable.animateTo(Offset.Zero, animationSpec = defaultAnimationSpec())
+    }
+    
     Box(
         modifier = modifier
             .fillMaxSize()
+            .onSizeChanged { parentSize.value = it }
             .background(Color.Black)
             .systemBarsPadding()
             .combinedClickable(
@@ -121,14 +188,22 @@ fun ClockScreen(
                 onClick = { viewModel.toggleAmbient() },
                 onDoubleClick = { viewModel.toggleLargeClock() }
             )
-            .padding(16.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(15.dp),
+        AxisLayout(
+            axis = if (isVertical) Axis.Vertical else Axis.Horizontal,
             modifier = Modifier
-                .wrapContentSize()
+                .onGloballyPositioned { coords ->
+                    contentSize.value = coords.size
+                }
+                .graphicsLayer {
+                    translationX = clockLayoutAnimatable.value.x
+                    translationY = clockLayoutAnimatable.value.y
+                }
+                .wrapContentSize(),
+            alignment = Alignment.Center,
+            arrangement = Arrangement.spacedBy(15.dp)
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(15.dp)) {
                 NumberBricks(

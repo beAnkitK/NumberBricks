@@ -65,8 +65,16 @@ class ClockScreenVM : ViewModel() {
 }
 
 fun LocalTime.toDigitList(is24Hour: Boolean = false): List<Int> {
-    val h = if (is24Hour) this.hour else this.hour % 12
+    val hourIn24 = this.hour
+    val h = if (is24Hour) hourIn24 else {
+        if (hourIn24 % 12 == 0) 12 else hourIn24 % 12
+    }
     val m = this.minute
     val s = this.second
-    return listOf(h / 10, h % 10, m / 10, m % 10, s / 10, s % 10)
+
+    return listOf(
+        h / 10, h % 10,
+        m / 10, m % 10,
+        s / 10, s % 10
+    )
 }

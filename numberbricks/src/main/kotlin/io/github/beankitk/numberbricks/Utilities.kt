@@ -8,10 +8,10 @@ import androidx.compose.animation.core.tween
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.ui.geometry.Offset
 
-fun defaultAnimationSpec(
+fun <T> defaultAnimationSpec(
     delayMillis: Int = 0,
     durationMillis: Int = 300
-): AnimationSpec<Float> = tween(
+): AnimationSpec<T> = tween(
     durationMillis = durationMillis,
     delayMillis = delayMillis,
     easing = CubicBezierEasing(0.2f, 0.0f, 0.0f, 1.0f)
