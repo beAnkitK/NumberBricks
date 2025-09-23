@@ -55,11 +55,9 @@ class ClockScreenVM : ViewModel() {
     }  
     
     fun scheduleAmbientMode() {
-        if (!_isAmbientMode.value) {
-            viewModelScope.launch {
-                delay(3000)
-                _isAmbientMode.value = true
-            }
+        viewModelScope.launch {
+            delay(3000)
+            _isAmbientMode.value = true
         }
     } 
 }
