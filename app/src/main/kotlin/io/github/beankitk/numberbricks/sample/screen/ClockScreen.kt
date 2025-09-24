@@ -14,7 +14,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
@@ -26,8 +25,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -42,13 +41,13 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import io.github.beankitk.numberbricks.NumberBricks
 import io.github.beankitk.numberbricks.defaultAnimationSpec
 import io.github.beankitk.numberbricks.sample.viewmodel.ClockScreenVM
 import io.github.beankitk.numberbricks.sample.ui.widget.Axis
 import io.github.beankitk.numberbricks.sample.ui.widget.AxisLayout
+import io.github.beankitk.numberbricks.sample.ui.widget.DigitRow
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.math.hypot
@@ -69,29 +68,25 @@ fun ClockScreen(
     val isAmbientMode by viewModel.isAmbientMode.collectAsStateWithLifecycle()
     val isLargeClock by viewModel.isLargeClock.collectAsStateWithLifecycle()
     
-    val animateDigitsState = rememberUpdatedState(animateDigits)
-    val animationSpecState = rememberUpdatedState(animationSpec)
-    val animateOnFirstVisibleState = rememberUpdatedState(animateOnFirstVisible)
-
     val isVertical = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
     val height = configuration.screenHeightDp.toFloat()
     val width = configuration.screenWidthDp.toFloat()
-    
-    val targetBrickSize = calculateTargetBrickSize(isLargeClock, isVertical, width, height)
+    val (targetLargeClockSize, targetSmallClockSize) = calculateTargetBrickSize(isVertical, width, height)
     
     val parentSize = remember { mutableStateOf(IntSize(0, 0)) }
     val contentSize = remember { mutableStateOf(IntSize(0, 0)) }
-    var brightnessWatcher: Job? = remember { null }
     val insetsController = remember(activity) { 
         activity?.window?.let { WindowInsetsControllerCompat(it, it.decorView) }?.apply {
             systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
     }
     
+    var brightnessWatcher: Job? = remember { null }
+    
     val animatedDrift = remember { Animatable(Offset.Zero, Offset.VectorConverter) }
 
     val brickSizeMultiplier by animateFloatAsState(
-        targetValue = targetBrickSize,
+        targetValue = if (isLargeClock) targetLargeClockSize else targetSmallClockSize,
         animationSpec = defaultAnimationSpec(),
         label = "large-clock-transition"
     )
@@ -137,13 +132,13 @@ fun ClockScreen(
     }
     
     LaunchedEffect(isAmbientMode, isLargeClock, parentSize.value, contentSize.value) {
-        if (parentSize.value.width == 0 || parentSize.value.height == 0 ||
-            contentSize.value.width == 0 || contentSize.value.height == 0
-        ) {
-            delay(100)
-        }
         
-        if (!isAmbientMode && isLargeClock) {
+        snapshotFlow { Pair(parentSize.value, contentSize.value) }
+            .first { (p, c) ->
+                p.width != 0 && p.height != 0 && c.width != 0 && c.height != 0
+            }
+        
+        if (!isAmbientMode || isLargeClock) {
             animatedDrift.animateTo(Offset.Zero, animationSpec = defaultAnimationSpec())
             return@LaunchedEffect
         }
@@ -156,7 +151,7 @@ fun ClockScreen(
             return@LaunchedEffect
         }
         
-        while (isActive && isAmbientMode && !isLargeClock) {
+        while (isAmbientMode && !isLargeClock && isActive) {
             val targetX = (Random.nextFloat() * 2f - 1f) * maxAllowedX
             val targetY = (Random.nextFloat() * 2f - 1f) * maxAllowedY
 
@@ -166,13 +161,11 @@ fun ClockScreen(
 
             val duration = ((distance / AMBIENT_SPEED_PX_PER_SEC) * 1000f).toInt().coerceIn(1500, 8000)
             
-            delay(2000)
             animatedDrift.animateTo(
                 Offset(targetX, targetY),
-                animationSpec = tween(durationMillis = duration, easing = LinearOutSlowInEasing)
+                animationSpec = tween(durationMillis = duration, delayMillis = 2000, easing = LinearOutSlowInEasing)
             )
         }
-        animatedDrift.animateTo(Offset.Zero, animationSpec = defaultAnimationSpec())
     }
 
     Box(
@@ -200,77 +193,42 @@ fun ClockScreen(
                 }
                 .wrapContentSize(),
             alignment = Alignment.Center,
-            arrangement = Arrangement.spacedBy(DEFAULT_DIGIT_SPACING.dp)
+            arrangement = Arrangement.spacedBy(15.dp)
         ) {
             DigitRow(
                 digits = currentTime.subList(0, 2),
                 digitAlpha = 1f,
                 brickSizeMultiplier = brickSizeMultiplier,
-                animateDigits = animateDigitsState.value,
-                animationSpec = animationSpecState.value,
-                animateOnFirstVisible = animateOnFirstVisibleState.value
+                animateDigits = animateDigits,
+                animationSpec = animationSpec,
+                animateOnFirstVisible = animateOnFirstVisible
             )
             
             DigitRow(
                 digits = currentTime.subList(2, 4),
                 digitAlpha = 0.7f,
                 brickSizeMultiplier = brickSizeMultiplier,
-                animateDigits = animateDigitsState.value,
-                animationSpec = animationSpecState.value,
-                animateOnFirstVisible = animateOnFirstVisibleState.value
+                animateDigits = animateDigits,
+                animationSpec = animationSpec,
+                animateOnFirstVisible = animateOnFirstVisible
             )
             
             DigitRow(
                 digits = currentTime.subList(4, 6),
                 digitAlpha = 0.35f,
                 brickSizeMultiplier = brickSizeMultiplier,
-                animateDigits = animateDigitsState.value,
-                animationSpec = animationSpecState.value,
-                animateOnFirstVisible = animateOnFirstVisibleState.value
+                animateDigits = animateDigits,
+                animationSpec = animationSpec,
+                animateOnFirstVisible = animateOnFirstVisible
             )
         }
     }
 }
 
-@Composable
-private fun DigitRow(
-    digits: List<Int>,
-    digitAlpha: Float,
-    brickSizeMultiplier: Float,
-    animateDigits: Boolean,
-    animationSpec: AnimationSpec<Float>,
-    animateOnFirstVisible: Boolean
-) {
-    Row(horizontalArrangement = Arrangement.spacedBy(DEFAULT_DIGIT_SPACING.dp)) {
-        require(digits.size == 2) { "DigitRow expects exactly two digits" }
-        NumberBricks(
-            digit = digits[0],
-            digitColor = Color.White,
-            digitAlpha = digitAlpha,
-            brickSizeMultiplier = brickSizeMultiplier,
-            animateDigits = animateDigits,
-            animationSpec = animationSpec,
-            animateOnFirstVisible = animateOnFirstVisible
-        )
-        NumberBricks(
-            digit = digits[1],
-            digitColor = Color.White,
-            digitAlpha = digitAlpha,
-            brickSizeMultiplier = brickSizeMultiplier,
-            animateDigits = animateDigits,
-            animationSpec = animationSpec,
-            animateOnFirstVisible = animateOnFirstVisible
-        )
-    }
+private fun calculateTargetBrickSize(isVertical: Boolean, widthDp: Float, heightDp: Float): Pair<Float, Float> {
+    val largeSize = if (isVertical) heightDp / 16f else widthDp / 21f
+    val smallSize = if (isVertical) heightDp / 35f else widthDp / 35f
+    return Pair(largeSize, smallSize)
 }
 
-private fun calculateTargetBrickSize(isLargeClock: Boolean, isVertical: Boolean, widthDp: Float, heightDp: Float) =
-    when {
-        isLargeClock && isVertical -> heightDp / 16f
-        isLargeClock && !isVertical -> widthDp / 21f
-        !isLargeClock && isVertical -> heightDp / 35f
-        else -> widthDp / 35f
-    }
-
-private const val DEFAULT_DIGIT_SPACING = 15
 private const val AMBIENT_SPEED_PX_PER_SEC = 60f
