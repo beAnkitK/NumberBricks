@@ -29,6 +29,63 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
+/**
+ * A composable that renders a single digit using 13 rectangular bricks arranged in a 3×5 grid.
+ * Each brick is drawn as part of a single [Path] for efficiency. The positions of the
+ * bricks can be animated smoothly when the digit changes.
+ *
+ * @sample io.github.beankitk.numberbricks.sample
+ * @param digit the digit to display. Must be in the range 0..9
+ * @param modifier modifier applied to the root drawing surface
+ * @param digitStyle styling information for the digit bricks. See [DigitStyle] for details
+ * @param brickSizeMultiplier multiplier applied to the base brick size (1.dp). The
+ *   composable measures itself as `width = 3 * brickSizeMultiplier` and `height = 5 * brickSizeMultiplier`
+ * @param animateDigits if true, transitions between different digits are animated. Default to `false`
+ * @param animationSpec the animation spec controlling easing and duration . Supports all compose animation spec
+ * @param animateOnFirstVisible if true, the first appearance of the composable
+ *   animates appearing as growing from center to target digit. Has no effect if [animateDigits] is `false`
+ * @throws IllegalArgumentException if [digit] is not between 0 and 9 inclusive
+ */
+@Composable
+fun NumberBricks(
+    digit: Int,
+    modifier: Modifier,
+    digitStyle: DigitStyle,
+    brickSizeMultiplier: Float,
+    animateDigits: Boolean,
+    animationSpec: AnimationSpec<Float>,
+    animateOnFirstVisible: Boolean,
+) = NumberBricksImpl(
+        digit = digit,
+        modifier = modifier,
+        digitStyle = digitStyle,
+        brickSizeMultiplier = brickSizeMultiplier,
+        animateDigits = animateDigits,
+        animationSpec = animationSpec,
+        animateOnFirstVisible = animateOnFirstVisible
+    )
+
+/**
+ * A composable that renders a single digit using 13 rectangular bricks arranged in a 3×5 grid.
+ * Each brick is drawn as part of a single [Path] for efficiency. The positions of the
+ * bricks can be animated smoothly when the digit changes.
+ *
+ * @sample io.github.beankitk.numberbricks.sample
+ * @param digit the digit to display. Must be in the range 0..9
+ * @param modifier modifier applied to the root drawing surface
+ * @param digitColor folor used to fill/stroke the bricks
+ * @param digitAlpha alpha applied to the drawn path (0f..1f)
+ * @param digitDrawStyle [DrawStyle] used when drawing the path (Fill, Stroke, etc.)
+ * @param digitColorFilter optional [ColorFilter] to apply
+ * @param digitBlendMode blend mode used when drawing the digitPath
+ * @param brickSizeMultiplier multiplier applied to the base brick size (1.dp). The
+ *   composable measures itself as `width = 3 * brickSizeMultiplier` and `height = 5 * brickSizeMultiplier`
+ * @param animateDigits if true, transitions between different digits are animated. Default to `false`
+ * @param animationSpec the animation spec controlling easing and duration. Supports all compose animation spec
+ * @param animateOnFirstVisible if true, the first appearance of the composable
+ *   animates appearing as growing from center to target digit. Has no effect if [animateDigits] is `false`
+ * @throws IllegalArgumentException if [digit] is not between 0 and 9 inclusive
+ */
 @Composable
 fun NumberBricks(
     digit: Int,
@@ -62,6 +119,27 @@ fun NumberBricks(
     )
 }
 
+/**
+ * A composable that renders a single digit using 13 rectangular bricks arranged in a 3×5 grid.
+ * Each brick is drawn as part of a single [Path] for efficiency. The positions of the
+ * bricks can be animated smoothly when the digit changes.
+ *
+ * @sample io.github.beankitk.numberbricks.sample
+ * @param digit the digit to display. Must be in the range 0..9
+ * @param modifier modifier applied to the root drawing surface
+ * @param digitBrush brush by used to fill/stroke the brickspath
+ * @param digitAlpha alpha applied to the drawn path (0f..1f)
+ * @param digitDrawStyle [DrawStyle] used when drawing the path (Fill, Stroke, etc.)
+ * @param digitColorFilter optional [ColorFilter] to apply
+ * @param digitBlendMode blend mode used when drawing the digitPath
+ * @param brickSizeMultiplier multiplier applied to the base brick size (1.dp). The
+ *   composable measures itself as `width = 3 * brickSizeMultiplier` and `height = 5 * brickSizeMultiplier`
+ * @param animateDigits if true, transitions between different digits are animated. Default to `false`
+ * @param animationSpec the animation spec controlling easing and duration. Supports all compose animation spec
+ * @param animateOnFirstVisible if true, the first appearance of the composable
+ *   animates appearing as growing from center to target digit. Has no effect if [animateDigits] is `false`
+ * @throws IllegalArgumentException if [digit] is not between 0 and 9 inclusive
+ */
 @Composable
 fun NumberBricks(
     digit: Int,

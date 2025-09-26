@@ -9,8 +9,17 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Fill
 
+/**
+ * Styling container used to control how the digit path is drawn.
+ *
+ * @property brush A [Brush] used to paint the bricks path (solidcolor, gradient brushes etc).
+ * @property alpha Alpha applied to the final draw (0f..1f).
+ * @property drawStyle The [DrawStyle] used to render the path (Fill, Stroke, ...).
+ * @property colorFilter Optional [ColorFilter] applied at draw-time.
+ * @property blendMode Blend mode used when compositing the digitPath.
+ */
 @Immutable
-internal data class DigitStyle(
+data class DigitStyle(
     val brush: Brush,
     val alpha: Float = 1f,
     val drawStyle: DrawStyle = Fill,
