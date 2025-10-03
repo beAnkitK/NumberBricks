@@ -2,6 +2,10 @@ package io.github.beankitk.numberbricks.sample.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.github.beankitk.numberbricks.sample.utils.toDigitList
+import java.time.Instant
+import java.time.LocalTime
+import java.time.ZoneId
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,9 +15,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
-import java.time.Instant
-import java.time.LocalTime
-import java.time.ZoneId
 
 class ClockScreenVM : ViewModel() {
 
@@ -46,7 +47,7 @@ class ClockScreenVM : ViewModel() {
         }
     }
     
-    fun toggleAmbient() {
+    fun toggleAmbientMode() {
         _isAmbientMode.value = !_isAmbientMode.value
     }
 
@@ -59,20 +60,5 @@ class ClockScreenVM : ViewModel() {
             delay(3000)
             _isAmbientMode.value = true
         }
-    } 
-}
-
-fun LocalTime.toDigitList(is24Hour: Boolean = false): List<Int> {
-    val hourIn24 = this.hour
-    val h = if (is24Hour) hourIn24 else {
-        if (hourIn24 % 12 == 0) 12 else hourIn24 % 12
     }
-    val m = this.minute
-    val s = this.second
-
-    return listOf(
-        h / 10, h % 10,
-        m / 10, m % 10,
-        s / 10, s % 10
-    )
 }

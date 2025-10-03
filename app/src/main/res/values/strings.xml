@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">NumberBricks</string>
+    <string name="subheadline">Building Beauty with Numbers</string>
+    <string name="pause">Pause</string>
+    <string name="play">Play</string>
 </resources>

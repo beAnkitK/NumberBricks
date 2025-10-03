@@ -49,12 +49,12 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun NumberBricks(
     digit: Int,
-    modifier: Modifier,
-    digitStyle: DigitStyle,
-    brickSizeMultiplier: Float,
-    animateDigits: Boolean,
-    animationSpec: AnimationSpec<Float>,
-    animateOnFirstVisible: Boolean,
+    modifier: Modifier = Modifier,
+    digitStyle: DigitStyle = DigitStyle.Default,
+    brickSizeMultiplier: Float = 5f,
+    animateDigits: Boolean = false,
+    animationSpec: AnimationSpec<Float> = defaultAnimationSpec(),
+    animateOnFirstVisible: Boolean = false
 ) = NumberBricksImpl(
         digit = digit,
         modifier = modifier,

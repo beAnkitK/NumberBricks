@@ -13,7 +13,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import io.github.beankitk.numberbricks.sample.screen.ClockScreen
 import io.github.beankitk.numberbricks.sample.ui.theme.AppTheme
 
 class ContentActivity : ComponentActivity() {
@@ -29,7 +28,7 @@ class ContentActivity : ComponentActivity() {
                         .background(MaterialTheme.colorScheme.surface),
                     contentAlignment = Alignment.Center
                 ) {
-                    ClockScreen()
+                    HomeScreen()
                 }
             }
         }

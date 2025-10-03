@@ -1,7 +1,8 @@
 package io.github.beankitk.numberbricks.sample.ui.theme
 
 import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
+import android.content.res.Configuration
+import android.content.res.Resources
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -39,6 +40,9 @@ fun AppTheme(
     )
 }
 
+fun isSystemInDarkTheme() = 
+    (Resources.getSystem().configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+    
 private val lightScheme = lightColorScheme(
     primary = primaryLight,
     onPrimary = onPrimaryLight,

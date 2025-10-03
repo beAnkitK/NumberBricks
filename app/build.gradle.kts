@@ -6,6 +6,7 @@ plugins {
     alias(plugin.plugins.android.application)
     alias(plugin.plugins.kotlin.android)
     alias(plugin.plugins.kotlin.compose)
+    alias(plugin.plugins.kotlin.serialization)
 }
 
 android {
@@ -76,5 +77,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.androidx.navigation)
 	implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.serialization.core)
 }
