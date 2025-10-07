@@ -61,22 +61,20 @@ import kotlin.random.Random
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun SharedTransitionScope.ClockScreen(
-    clockId: String,
+    styleId: String,
     modifier: Modifier = Modifier,
     visibilityScope: AnimatedContentScope,
     boundsTransition: BoundsTransform,
     currentTime: List<Int>,
-    isAmbientMode: Boolean,
-    isLargeClock: Boolean,
-    isVerticalClock: Boolean? = null,
-    showSeconds: Boolean = true,
-    onBack: () -> Unit,
     toggleAmbientMode: () -> Unit,
     toggleLargeClock: () -> Unit,
     scheduleAmbientMode: () -> Unit,
+    isAmbientMode: Boolean = false,
+    isLargeClock: Boolean = false,
+    isVerticalClock: Boolean? = null,
     animateDigits: Boolean = true,
     animationSpec: AnimationSpec<Float> = defaultAnimationSpec(),
-    animateOnFirstVisible: Boolean = true
+    animateOnFirstVisible: Boolean = false
 ) {
     val activity = LocalActivity.current
     val configuration = LocalConfiguration.current
@@ -92,7 +90,7 @@ fun SharedTransitionScope.ClockScreen(
     var brightnessWatcher: Job? = remember { null }
     
     val insetsController = remember(activity) { activity?.window?.let { WindowInsetsControllerCompat(it, it.decorView) } }
-    val clockStyle by remember(clockId) { mutableStateOf(ClockStyles.styleFor(clockId)) }
+    val clockStyle by remember(styleId) { mutableStateOf(ClockStyles.styleFor(styleId)) }
     
     val animatedDrift = remember { Animatable(Offset.Zero, Offset.VectorConverter) }
     val brickSizeMultiplier by animateFloatAsState(
@@ -134,6 +132,7 @@ fun SharedTransitionScope.ClockScreen(
         
         hideSystemBars(isAmbientMode, insetsController)
         
+        /**
         brightnessWatcher?.cancel()
         brightnessWatcher = launch {
             snapshotFlow { brightness }.collect { value ->
@@ -144,6 +143,7 @@ fun SharedTransitionScope.ClockScreen(
                 }
             }
         }
+        */
     }
     
     LaunchedEffect(isAmbientMode, isLargeClock, parentSize.value, contentSize.value) {
@@ -186,7 +186,7 @@ fun SharedTransitionScope.ClockScreen(
     Box(
         modifier = modifier
             .sharedBounds(
-                rememberSharedContentState(clockId + "bounds"),
+                rememberSharedContentState(styleId + "bounds"),
                 visibilityScope,
                 boundsTransform = boundsTransition,
                 clipInOverlayDuringTransition = OverlayClip(MaterialTheme.shapes.medium)
@@ -219,11 +219,11 @@ fun SharedTransitionScope.ClockScreen(
             DigitRow(
                 modifier = Modifier
                     .sharedElement(
-                        rememberSharedContentState(clockId),
+                        rememberSharedContentState(styleId),
                         visibilityScope
                     ),
                 digits = currentTime.subList(0, 2),
-                digitStyle = clockStyle.digitStyle,
+                digitStyle = clockStyle.hourStyle,
                 brickSizeMultiplier = brickSizeMultiplier,
                 animateDigits = animateDigits,
                 animationSpec = animationSpec,
@@ -232,17 +232,17 @@ fun SharedTransitionScope.ClockScreen(
             
             DigitRow(
                 digits = currentTime.subList(2, 4),
-                digitStyle = clockStyle.digitStyle,
+                digitStyle = clockStyle.minuteStyle,
                 brickSizeMultiplier = brickSizeMultiplier,
                 animateDigits = animateDigits,
                 animationSpec = animationSpec,
                 animateOnFirstVisible = animateOnFirstVisible
             )
             
-            if (showSeconds) {
+            if (clockStyle.showSeconds) {
                 DigitRow(
                     digits = currentTime.subList(4, 6),
-                    digitStyle = clockStyle.digitStyle,
+                    digitStyle = clockStyle.secondStyle,
                     brickSizeMultiplier = brickSizeMultiplier,
                     animateDigits = animateDigits,
                     animationSpec = animationSpec,

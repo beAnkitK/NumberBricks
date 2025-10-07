@@ -6,7 +6,9 @@ import androidx.compose.animation.BoundsTransform
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -32,17 +34,19 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         activity?.finish()
     }
     
-    SharedTransitionLayout(modifier.fillMaxSize()) {
+    SharedTransitionLayout {
         NavHost(
             navController = navController,
             startDestination = StylesPage,
-            modifier = modifier.fillMaxSize()
+            modifier = modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface)
         ) {
             composable<StylesPage> {
                 StylesScreen(
-                    navController = navController,
                     visibilityScope = this,
-                    boundsTransition = boundsTransition
+                    boundsTransition = boundsTransition,
+                    onClockStyleClick = { navController.navigate(ClockPage(it)) }
                 )
             }
             composable<ClockPage> {
@@ -53,13 +57,12 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                 val isLargeClock by clockScreenVM.isLargeClock.collectAsStateWithLifecycle()
     
                 ClockScreen(
-                    clockId = args.clockId,
+                    styleId = args.styleId,
                     visibilityScope = this,
                     boundsTransition = boundsTransition,
                     currentTime = currentTime,
                     isAmbientMode = isAmbientMode,
                     isLargeClock = isLargeClock,
-                    onBack = navController::popBackStack,
                     toggleAmbientMode = clockScreenVM::toggleAmbientMode,
                     toggleLargeClock = clockScreenVM::toggleLargeClock,
                     scheduleAmbientMode = clockScreenVM::scheduleAmbientMode
@@ -73,7 +76,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
 data object StylesPage
 
 @Serializable
-data class ClockPage(val clockId: String)
+data class ClockPage(val styleId: String)
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 private val boundsTransition = BoundsTransform { _, _ -> tween(300) }

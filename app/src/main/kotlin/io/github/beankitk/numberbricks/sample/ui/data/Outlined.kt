@@ -16,7 +16,7 @@ import io.github.beankitk.numberbricks.sample.utils.getWoodenPath
 import io.github.beankitk.numberbricks.sample.utils.getZigZagPath
 
 open class OutlinedStyle(
-    clockId: String,
+    clockId: Int,
     displayName: String,
     showSeconds: Boolean = true,
     background: Brush = SolidColor(Color.Black),
@@ -44,6 +44,9 @@ open class OutlinedStyle(
     )
 )
 
+private var nextId: Int = 1
+private fun nextId(): Int = nextId.also { nextId += 1 }
+
 object Outlined : ClockCategory {
     override val id: String = "outlined"
     override val displayName: String = "Outlined"
@@ -54,18 +57,18 @@ object Outlined : ClockCategory {
     )
     
     data object SimpleBlocks: OutlinedStyle(
-        clockId = "1",
+        clockId = nextId(),
         displayName = "Simple Blocks",
     )
     
     data object RoundedBlocks: OutlinedStyle(
-        clockId = "2",
+        clockId = nextId(),
         displayName = "Rounded Blocks",
         pathEffect = PathEffect.cornerPathEffect(30f)
     )
     
     data object MorseLined: OutlinedStyle(
-        clockId = "3",
+        clockId = nextId(),
         displayName = "Morse Lined",
         strokeCap = StrokeCap.Round,
         pathEffect = PathEffect
@@ -76,7 +79,7 @@ object Outlined : ClockCategory {
     )
     
     data object DottedCircle: OutlinedStyle(
-        clockId = "4",
+        clockId = nextId(),
         displayName = "Dotted Circle",
         pathEffect = PathEffect.stampedPathEffect(
             shape = getCirclePath(strokeWidth / 2),
@@ -87,7 +90,7 @@ object Outlined : ClockCategory {
     )
     
     data object SquareBlocks: OutlinedStyle(
-        clockId = "5",
+        clockId = nextId(),
         displayName = "Square Block",
         pathEffect = PathEffect.stampedPathEffect(
             shape = getSquarePath(strokeWidth * 2, strokeWidth / 3),
@@ -98,7 +101,7 @@ object Outlined : ClockCategory {
     )
     
     data object ZigZagged: OutlinedStyle(
-        clockId = "6",
+        clockId = nextId(),
         displayName = "Zig Zagged",
         pathEffect = PathEffect.stampedPathEffect(
             shape = getZigZagPath(strokeWidth * 2, strokeWidth * 4, strokeWidth),
@@ -109,7 +112,7 @@ object Outlined : ClockCategory {
     )
     
     data object DoubleDashed: OutlinedStyle(
-        clockId = "7",
+        clockId = nextId(),
         displayName = "Double Dashed",
         pathEffect = PathEffect.stampedPathEffect(
             shape = getDoubleDashPath(strokeWidth, strokeWidth, strokeWidth / 2),
@@ -120,7 +123,7 @@ object Outlined : ClockCategory {
     )
     
     data object LinedDashed: OutlinedStyle(
-        clockId = "8",
+        clockId = nextId(),
         displayName = "Lined Dashed",
         pathEffect = PathEffect.stampedPathEffect(
             shape = getDoubleDashPath(strokeWidth * 2, strokeWidth, strokeWidth / 2),
@@ -131,7 +134,7 @@ object Outlined : ClockCategory {
     )
     
     data object WoodenDashed: OutlinedStyle(
-        clockId = "outline9",
+        clockId = nextId(),
         displayName = "Wooden Dashed",
         pathEffect = PathEffect.stampedPathEffect(
             shape = getWoodenPath(strokeWidth * 3, strokeWidth, strokeWidth),

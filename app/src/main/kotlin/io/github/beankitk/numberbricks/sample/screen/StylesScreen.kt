@@ -59,7 +59,6 @@ import androidx.compose.ui.text.lerp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
-import androidx.navigation.NavController
 import io.github.beankitk.numberbricks.sample.ClockPage
 import io.github.beankitk.numberbricks.sample.R
 import io.github.beankitk.numberbricks.sample.ui.animation.elasticIn
@@ -75,9 +74,9 @@ import kotlinx.coroutines.delay
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun SharedTransitionScope.StylesScreen(
-    navController: NavController,
     visibilityScope: AnimatedContentScope,
     boundsTransition: BoundsTransform,
+    onClockStyleClick: (String) -> Unit,
 ) {
     val displaySmall = MaterialTheme.typography.displaySmall.copy(fontFamily = AntonFont)
     val headlineLarge = MaterialTheme.typography.headlineLarge.copy(fontFamily = AntonFont)
@@ -109,7 +108,6 @@ fun SharedTransitionScope.StylesScreen(
 
     Scaffold(
         modifier = Modifier
-            .background(MaterialTheme.colorScheme.surface)
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
@@ -188,8 +186,6 @@ fun SharedTransitionScope.StylesScreen(
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
-                    start = 16.dp,
-                    end = 16.dp,
                     top = innerPadding.calculateTopPadding() + 16.dp,
                     bottom = innerPadding.calculateBottomPadding() + 16.dp
                 ),
@@ -197,16 +193,15 @@ fun SharedTransitionScope.StylesScreen(
             ) {
                 items(
                     items = ClockStyles.categories,
-                    key = { category -> category.id }
+                    key = { it.id }
                 ) { category -> 
+                    val rows = if(category.styles.size > 4) 2 else 1
                     GridSection(
                         sectionTitle = category.displayName,
                         sectionItems = category.styles,
-                        sectionRows = 2,
+                        sectionRows = rows,
                         digit = digit,
-                        onClick = { style ->
-                            navController.navigate(ClockPage(style.clockId))
-                        },
+                        onClick = { onClockStyleClick(it.styleId) },
                         visibilityScope = visibilityScope,
                         boundsTransition = boundsTransition
                     )
@@ -234,28 +229,33 @@ fun SharedTransitionScope.GridSection(
             text = sectionTitle,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
         )
         
         LazyHorizontalGrid(
             rows = GridCells.Fixed(sectionRows),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp),
             modifier = Modifier
                 .height(sectionItemHeight * sectionRows)
                 .clipToBounds()
         ) {
-            items(sectionItems) { style ->
+            items(
+                items = sectionItems,
+                key = { it.styleId }
+            ) { style ->
                 val currentDigitStyle = if (style.useThemeColor)
-                    style.digitStyle.copy(brush = SolidColor(MaterialTheme.colorScheme.onSurfaceVariant))
-                else style.digitStyle
+                    style.hourStyle.copy(brush = SolidColor(MaterialTheme.colorScheme.onSurfaceVariant))
+                else style.hourStyle
 
                 Surface(
                     modifier = Modifier
                         .sharedBounds(
-                            rememberSharedContentState(style.clockId + "bounds"),
+                            rememberSharedContentState(style.styleId + "bounds"),
                             visibilityScope,
                             boundsTransform = boundsTransition,
+                            clipInOverlayDuringTransition = OverlayClip(MaterialTheme.shapes.medium)
                         )
                         .width(sectionItemWidth),
                     shape = MaterialTheme.shapes.medium,
@@ -269,7 +269,7 @@ fun SharedTransitionScope.GridSection(
                         DigitRow(
                             modifier = Modifier
                                 .sharedElement(
-                                    rememberSharedContentState(style.clockId),
+                                    rememberSharedContentState(style.styleId),
                                     visibilityScope
                                 ),
                             digits = digit,
