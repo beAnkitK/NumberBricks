@@ -38,6 +38,8 @@ android {
     kotlinOptions {
        jvmTarget = build.versions.java.jvmTarget.get()
        freeCompilerArgs += listOf(
+           "-opt-in=androidx.compose.animation.ExperimentalSharedTransitionApi",
+           "-opt-in=androidx.compose.foundation.layout.ExperimentalLayoutApi",
            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api"
        )
     }

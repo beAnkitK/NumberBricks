@@ -3,7 +3,6 @@ package io.github.beankitk.numberbricks.sample
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.BoundsTransform
-import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -22,9 +21,9 @@ import androidx.navigation.toRoute
 import io.github.beankitk.numberbricks.sample.screen.ClockScreen
 import io.github.beankitk.numberbricks.sample.screen.StylesScreen
 import io.github.beankitk.numberbricks.sample.viewmodel.ClockScreenVM
+import io.github.beankitk.numberbricks.sample.viewmodel.TimeVM
 import kotlinx.serialization.Serializable
 
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier) {
     val activity = LocalActivity.current
@@ -43,9 +42,16 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                 .background(MaterialTheme.colorScheme.surface)
         ) {
             composable<StylesPage> {
+                val timeVM: TimeVM = viewModel()
+                val currentTime by timeVM.currentTimeAsList.collectAsStateWithLifecycle()
+                val isClockRunning by timeVM.isClockRunning.collectAsStateWithLifecycle()
+                
                 StylesScreen(
                     visibilityScope = this,
                     boundsTransition = boundsTransition,
+                    currentTime = currentTime,
+                    isClockRunning = isClockRunning,
+                    toggleClockRunning = timeVM::toggleClockRunning,
                     onClockStyleClick = { navController.navigate(ClockPage(it)) }
                 )
             }
@@ -78,5 +84,4 @@ data object StylesPage
 @Serializable
 data class ClockPage(val styleId: String)
 
-@OptIn(ExperimentalSharedTransitionApi::class)
 private val boundsTransition = BoundsTransform { _, _ -> tween(300) }

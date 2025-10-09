@@ -1,4 +1,4 @@
-package io.github.beankitk.numberbricks.sample.ui.data
+package io.github.beankitk.numberbricks.sample.data
 
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color

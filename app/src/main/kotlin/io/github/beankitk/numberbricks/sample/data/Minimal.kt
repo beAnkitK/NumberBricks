@@ -1,4 +1,4 @@
-package io.github.beankitk.numberbricks.sample.ui.data
+package io.github.beankitk.numberbricks.sample.data
 
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -42,6 +42,6 @@ object Minimal : ClockCategory {
         hourStyle = DigitStyle.Default,
         minuteStyle = DigitStyle.Default.copy(alpha = 0.7f),
         secondStyle = DigitStyle.Default.copy(alpha = 0.35f),
-        useThemeColor = false
+        useThemeColor = true
     )
 }

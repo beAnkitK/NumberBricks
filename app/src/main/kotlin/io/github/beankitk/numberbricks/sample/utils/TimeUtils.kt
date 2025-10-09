@@ -1,9 +1,16 @@
 package io.github.beankitk.numberbricks.sample.utils
 
+import java.time.Instant
 import java.time.LocalTime
 import java.time.ZoneId
 
 fun getTime() = LocalTime.now(ZoneId.systemDefault())
+
+fun delayUntilNextSecond(): Long {
+    val instant = Instant.now()
+    val millis = instant.toEpochMilli()
+    return (1000 - (millis % 1000))
+}
 
 fun LocalTime.toDigitList(is24Hour: Boolean = false): List<Int> {
     val hourIn24 = this.hour

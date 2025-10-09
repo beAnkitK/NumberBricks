@@ -1,6 +1,31 @@
 package io.github.beankitk.numberbricks.sample.utils
 
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
+
+@Composable
+fun PaddingValues.startPadding(): Dp {
+    val layoutDir = LocalLayoutDirection.current
+    return if (layoutDir == LayoutDirection.Ltr) {
+        calculateLeftPadding(layoutDir)
+    } else {
+        calculateRightPadding(layoutDir)
+    }
+}
+
+@Composable
+fun PaddingValues.endPadding(): Dp {
+    val layoutDir = LocalLayoutDirection.current
+    return if (layoutDir == LayoutDirection.Ltr) {
+        calculateRightPadding(layoutDir)
+    } else {
+        calculateLeftPadding(layoutDir)
+    }
+}
 
 internal fun getTargetBrickSize(isScreenVertical: Boolean, widthDp: Float, heightDp: Float): Pair<Float, Float> {
     val largeSize = if (isScreenVertical) heightDp / 16f else widthDp / 21f
