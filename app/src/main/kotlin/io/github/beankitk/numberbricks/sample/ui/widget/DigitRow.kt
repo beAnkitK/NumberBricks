@@ -4,25 +4,37 @@ import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.drawscope.DrawStyle
+import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.unit.dp
+import io.github.beankitk.numberbricks.DigitStyle
 import io.github.beankitk.numberbricks.NumberBricks
+import io.github.beankitk.numberbricks.defaultAnimationSpec
 
 @Composable
-internal fun DigitRow(
+fun DigitRow(
     digits: List<Int>,
-    digitAlpha: Float,
-    brickSizeMultiplier: Float,
-    animateDigits: Boolean,
-    animationSpec: AnimationSpec<Float>,
-    animateOnFirstVisible: Boolean
+    modifier: Modifier = Modifier,
+    digitStyle: DigitStyle = DigitStyle.Default,
+    brickSizeMultiplier: Float = 5f,
+    animateDigits: Boolean = false,
+    animationSpec: AnimationSpec<Float> = defaultAnimationSpec(),
+    animateOnFirstVisible: Boolean = false
 ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(15.dp)) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(15.dp)
+    ) {
         require(digits.size == 2) { "DigitRow expects exactly two digits" }
         NumberBricks(
             digit = digits[0],
-            digitColor = Color.White,
-            digitAlpha = digitAlpha,
+            digitStyle = digitStyle,
             brickSizeMultiplier = brickSizeMultiplier,
             animateDigits = animateDigits,
             animationSpec = animationSpec,
@@ -30,12 +42,44 @@ internal fun DigitRow(
         )
         NumberBricks(
             digit = digits[1],
-            digitColor = Color.White,
-            digitAlpha = digitAlpha,
+            digitStyle = digitStyle,
             brickSizeMultiplier = brickSizeMultiplier,
             animateDigits = animateDigits,
             animationSpec = animationSpec,
             animateOnFirstVisible = animateOnFirstVisible
         )
     }
+}
+
+@Composable
+fun DigitRow(
+    digits: List<Int>,
+    modifier: Modifier = Modifier,
+    digitColor: Color = Color.White,
+    digitAlpha: Float = 1f,
+    digitDrawStyle: DrawStyle = Fill,
+    digitColorFilter: ColorFilter? = null,
+    digitBlendMode: BlendMode = BlendMode.SrcOver,
+    brickSizeMultiplier: Float = 5f,
+    animateDigits: Boolean = false,
+    animationSpec: AnimationSpec<Float> = defaultAnimationSpec(),
+    animateOnFirstVisible: Boolean = false,
+) {
+    val digitStyle = DigitStyle(
+        brush = SolidColor(digitColor),
+        alpha = digitAlpha,
+        drawStyle = digitDrawStyle,
+        colorFilter = digitColorFilter,
+        blendMode = digitBlendMode
+    )
+    
+    DigitRow(
+        digits = digits,
+        modifier = modifier,
+        digitStyle = digitStyle,
+        brickSizeMultiplier = brickSizeMultiplier,
+        animateDigits = animateDigits,
+        animationSpec = animationSpec,
+        animateOnFirstVisible = animateOnFirstVisible
+    )
 }

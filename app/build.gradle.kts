@@ -6,6 +6,7 @@ plugins {
     alias(plugin.plugins.android.application)
     alias(plugin.plugins.kotlin.android)
     alias(plugin.plugins.kotlin.compose)
+    alias(plugin.plugins.kotlin.serialization)
 }
 
 android {
@@ -37,6 +38,8 @@ android {
     kotlinOptions {
        jvmTarget = build.versions.java.jvmTarget.get()
        freeCompilerArgs += listOf(
+           "-opt-in=androidx.compose.animation.ExperimentalSharedTransitionApi",
+           "-opt-in=androidx.compose.foundation.layout.ExperimentalLayoutApi",
            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api"
        )
     }
@@ -76,5 +79,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.androidx.navigation)
 	implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.serialization.core)
 }

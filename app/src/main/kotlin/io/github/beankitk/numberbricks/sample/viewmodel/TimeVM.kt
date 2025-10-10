@@ -6,6 +6,7 @@ import java.time.LocalTime
 import io.github.beankitk.numberbricks.sample.utils.delayUntilNextSecond
 import io.github.beankitk.numberbricks.sample.utils.getTime
 import io.github.beankitk.numberbricks.sample.utils.toDigitList
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,16 +17,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
 
-class ClockScreenVM : ViewModel() {
+class TimeVM : ViewModel() {
 
     private val _currentTime = MutableStateFlow(getTime())
     val currentTime: StateFlow<LocalTime> = _currentTime.asStateFlow()
     
-    private val _isAmbientMode = MutableStateFlow(false)
-    val isAmbientMode: StateFlow<Boolean> = _isAmbientMode.asStateFlow()
-    
-    private val _isLargeClock = MutableStateFlow(false)
-    val isLargeClock: StateFlow<Boolean> = _isLargeClock.asStateFlow()
+    private val _isClockRunning = MutableStateFlow(true)
+    val isClockRunning: StateFlow<Boolean> = _isClockRunning.asStateFlow()
     
     val currentTimeAsList: StateFlow<List<Int>> = _currentTime
         .map { it.toDigitList() }
@@ -35,27 +33,32 @@ class ClockScreenVM : ViewModel() {
             initialValue = _currentTime.value.toDigitList()
         )
         
+    private var clockJob: Job? = null
+
     init {
         viewModelScope.launch {
-            while (isActive) {
-                delay(delayUntilNextSecond())
-                _currentTime.value = getTime()
+            _isClockRunning.collect { running ->
+                if (running) startClock() else stopClock()
             }
         }
     }
-    
-    fun toggleAmbientMode() {
-        _isAmbientMode.value = !_isAmbientMode.value
+
+    private fun startClock() {
+        if (clockJob?.isActive == true) return
+        clockJob = viewModelScope.launch {
+            while (isActive) {
+                _currentTime.value = getTime()
+                delay(delayUntilNextSecond())
+            }
+        }
     }
 
-    fun toggleLargeClock() {
-        _isLargeClock.value = !_isLargeClock.value
-    }  
+    private fun stopClock() {
+        clockJob?.cancel()
+        clockJob = null
+    }
     
-    fun scheduleAmbientMode() {
-        viewModelScope.launch {
-            delay(3000)
-            _isAmbientMode.value = true
-        }
+    fun toggleClockRunning() {
+        _isClockRunning.value = !_isClockRunning.value
     }
 }
