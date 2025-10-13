@@ -199,7 +199,7 @@ private fun NumberBricksImpl(
     var wasFirstVisible by rememberSaveable { mutableStateOf(false) }
     var progress = rememberSaveable(saver = animatableSaver) { Animatable(0f) }
     
-    val initialOffsets = remember(wasFirstVisible, digit, brickSizePx) {
+    val initialOffsets = remember(wasFirstVisible, digit) {
         if (!wasFirstVisible) {
             Array(13) { Offset(brickSizePx, brickSizePx * 2f) }
         } else {
@@ -207,8 +207,8 @@ private fun NumberBricksImpl(
         }
     }
     
-    val startOffsets = remember(brickSizePx) { Array(13) { i -> initialOffsets[i] } }
-    val endOffsets   = remember(brickSizePx) { Array(13) { i -> initialOffsets[i] } }
+    val startOffsets = remember { Array(13) { i -> initialOffsets[i] } }
+    val endOffsets = remember { Array(13) { i -> initialOffsets[i] } }
     val targetOffsets = remember { Array(13) { Offset.Unspecified } }
     
     LaunchedEffect(digit, animateDigits) {
@@ -246,6 +246,12 @@ private fun NumberBricksImpl(
             progress.animateTo(1f,animationSpec)
         }
         previousDigit = digit
+    }
+    
+    LaunchedEffect(brickSizePx) {
+        targetOffsets.computeOffsetsFor(digit, brickSizePx)
+        endOffsets.copyInto(startOffsets)
+        targetOffsets.copyInto(endOffsets)
     }
     
     Spacer(

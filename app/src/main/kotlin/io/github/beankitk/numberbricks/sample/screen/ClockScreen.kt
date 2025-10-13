@@ -85,10 +85,7 @@ fun SharedTransitionScope.ClockScreen(
     val clockStyle = remember(styleId) { ClockStyles.styleFor(styleId) }
     
     val animatedDrift = remember { Animatable(Offset.Zero, Offset.VectorConverter, label = "clock-drift-animatable") }
-    
     val animatedBrickSize = remember { Animatable(targetSmallClockSize, Float.VectorConverter, label = "large-clock-transition") }
-    
-    val brickSizeMultiplier = animatedBrickSize.value
     
     DisposableEffect(Unit) {
         systemManager.isSystemBarsLight = false
@@ -205,7 +202,7 @@ fun SharedTransitionScope.ClockScreen(
             DigitRow(
                 digits = currentTime.subList(0, 2),
                 digitStyle = clockStyle.hourStyle,
-                brickSizeMultiplier = brickSizeMultiplier,
+                brickSizeMultiplier = animatedBrickSize.value,
                 animateDigits = animateDigits,
                 animationSpec = animationSpec,
                 animateOnFirstVisible = animateOnFirstVisible
@@ -214,7 +211,7 @@ fun SharedTransitionScope.ClockScreen(
             DigitRow(
                 digits = currentTime.subList(2, 4),
                 digitStyle = clockStyle.minuteStyle,
-                brickSizeMultiplier = brickSizeMultiplier,
+                brickSizeMultiplier = animatedBrickSize.value,
                 animateDigits = animateDigits,
                 animationSpec = animationSpec,
                 animateOnFirstVisible = animateOnFirstVisible
@@ -229,7 +226,7 @@ fun SharedTransitionScope.ClockScreen(
                     ),
                     digits = currentTime.subList(4, 6),
                     digitStyle = clockStyle.secondStyle,
-                    brickSizeMultiplier = brickSizeMultiplier,
+                    brickSizeMultiplier = animatedBrickSize.value,
                     animateDigits = animateDigits,
                     animationSpec = animationSpec,
                     animateOnFirstVisible = animateOnFirstVisible
