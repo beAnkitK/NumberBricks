@@ -189,7 +189,6 @@ private fun NumberBricksImpl(
     
     val baseBrickSize = 1.dp
     val brickSizeDp = baseBrickSize * brickSizeMultiplier
-    
     val width = brickSizeDp * 3f
     val height = brickSizeDp * 5f
     
@@ -201,7 +200,7 @@ private fun NumberBricksImpl(
         if (!wasFirstVisible) {
             Array(13) { Offset(1f, 2f) }
         } else {
-            Array(13) { Offset.Unspecified }.also { it.getOffsetsFor(digit) }
+            Array(13) { Offset.Unspecified }.also { it.fillOffsetsFor(digit) }
         }
     }
     
@@ -210,27 +209,31 @@ private fun NumberBricksImpl(
     val targetOffsets = remember { Array(13) { Offset.Unspecified } }
     
     LaunchedEffect(digit, animateDigits) {
-        val isDigitChange = previousDigit != digit
-        if (wasFirstVisible && !isDigitChange && progress.value == 1f) return@LaunchedEffect
-    
-        targetOffsets.getOffsetsFor(digit)
-        endOffsets.copyInto(startOffsets)
-        targetOffsets.copyInto(endOffsets)
+        if (wasFirstVisible && previousDigit == digit && progress.value == 1f) 
+            return@LaunchedEffect
+            
+        if (previousDigit != digit) {
+            targetOffsets.fillOffsetsFor(digit)
+            endOffsets.copyInto(startOffsets)
+            targetOffsets.copyInto(endOffsets)
+            previousDigit = digit
+        }
+        
+        val shouldAnimate = when {
+            !animateDigits -> false
+            !wasFirstVisible -> {
+                wasFirstVisible = true
+                animateOnFirstVisible
+            }
+            else -> true
+        }
         
         progress.snapTo(0f)
-        if (!animateDigits) {
-            progress.snapTo(1f)
-        } else if (!wasFirstVisible) {
-            if (animateOnFirstVisible) {
-                progress.animateTo(1f, animationSpec)
-            } else {
-                progress.snapTo(1f)
-            }    
-            wasFirstVisible = true
+        if (shouldAnimate) {
+            progress.animateTo(1f, animationSpec)
         } else {
-            progress.animateTo(1f,animationSpec)
+            progress.snapTo(1f)
         }
-        previousDigit = digit
     }
     
     Spacer(

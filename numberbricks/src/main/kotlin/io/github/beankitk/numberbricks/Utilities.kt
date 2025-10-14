@@ -29,120 +29,120 @@ internal val animatableSaver: Saver<Animatable<Float, AnimationVector1D>, Float>
         restore = { value -> Animatable(value) }
     )
 
-internal fun Array<Offset>.getOffsetsFor(digit: Int) {
+internal fun Array<Offset>.fillOffsetsFor(digit: Int) {
     val layout = DIGIT_LAYOUTS.getOrElse(digit) { DIGIT_LAYOUTS[10] }
     for (i in indices) {
-        val xIndex = layout[i * 2].toFloat()
-        val yIndex = layout[i * 2 + 1].toFloat()
+        val xIndex = layout[i * 2]
+        val yIndex = layout[i * 2 + 1]
         this[i] = Offset(xIndex, yIndex)
     }
 }
 
-private val DIGIT_LAYOUTS: Array<ByteArray> = arrayOf(
+private val DIGIT_LAYOUTS: Array<FloatArray> = arrayOf(
     // digit 0
-    byteArrayOf(
-        0,0, 1,0, 2,0,
-        0,1, 2,1,
-        0,2, 0,2, 2,2,
-        0,3, 2,3,
-        0,4, 1,4, 2,4
+    floatArrayOf(
+        0f,0f, 1f,0f, 2f,0f,
+        0f,1f, 2f,1f,
+        0f,2f, 0f,2f, 2f,2f,
+        0f,3f, 2f,3f,
+        0f,4f, 1f,4f, 2f,4f
     ),
     // digit 1
-    byteArrayOf(
-        0,0, 1,0, 1,0,
-        1,1, 1,1,
-        1,2, 1,2, 1,2,
-        1,3, 1,3,
-        0,4, 1,4, 2,4
+    floatArrayOf(
+        0f,0f, 1f,0f, 1f,0f,
+        1f,1f, 1f,1f,
+        1f,2f, 1f,2f, 1f,2f,
+        1f,3f, 1f,3f,
+        0f,4f, 1f,4f, 2f,4f
     ),
     // digit 2
-    byteArrayOf(
-        0,0, 1,0, 2,0,
-        2,1, 2,1,
-        0,2, 1,2, 2,2,
-        0,3, 0,3,
-        0,4, 1,4, 2,4
+    floatArrayOf(
+        0f,0f, 1f,0f, 2f,0f,
+        2f,1f, 2f,1f,
+        0f,2f, 1f,2f, 2f,2f,
+        0f,3f, 0f,3f,
+        0f,4f, 1f,4f, 2f,4f
     ),
     // digit 3
-    byteArrayOf(
-        0,0, 1,0, 2,0,
-        2,1, 2,1,
-        0,2, 1,2, 2,2,
-        2,3, 2,3,
-        0,4, 1,4, 2,4
+    floatArrayOf(
+        0f,0f, 1f,0f, 2f,0f,
+        2f,1f, 2f,1f,
+        0f,2f, 1f,2f, 2f,2f,
+        2f,3f, 2f,3f,
+        0f,4f, 1f,4f, 2f,4f
     ),
     // digit 4
-    byteArrayOf(
-        0,0, 2,0, 2,0,
-        0,1, 2,1,
-        0,2, 1,2, 2,2,
-        2,3, 2,3,
-        2,4, 2,4, 2,4
+    floatArrayOf(
+        0f,0f, 2f,0f, 2f,0f,
+        0f,1f, 2f,1f,
+        0f,2f, 1f,2f, 2f,2f,
+        2f,3f, 2f,3f,
+        2f,4f, 2f,4f, 2f,4f
     ),
     // digit 5
-    byteArrayOf(
-        0,0, 1,0, 2,0,
-        0,1, 2,0,
-        0,2, 1,2, 2,2,
-        2,3, 2,3,
-        0,4, 1,4, 2,4
+    floatArrayOf(
+        0f,0f, 1f,0f, 2f,0f,
+        0f,1f, 2f,0f,
+        0f,2f, 1f,2f, 2f,2f,
+        2f,3f, 2f,3f,
+        0f,4f, 1f,4f, 2f,4f
     ),
     // digit 6
-    byteArrayOf(
-        0,0, 1,0, 2,0,
-        0,1, 2,0,
-        0,2, 1,2, 2,2,
-        0,3, 2,3,
-        0,4, 1,4, 2,4
+    floatArrayOf(
+        0f,0f, 1f,0f, 2f,0f,
+        0f,1f, 2f,0f,
+        0f,2f, 1f,2f, 2f,2f,
+        0f,3f, 2f,3f,
+        0f,4f, 1f,4f, 2f,4f
     ),
     // digit 7
-    byteArrayOf(
-        0,0, 1,0, 2,0,
-        2,1, 2,1,
-        1,2, 1,2, 2,2,
-        2,3, 2,3,
-        2,4, 2,4, 2,4
+    floatArrayOf(
+        0f,0f, 1f,0f, 2f,0f,
+        2f,1f, 2f,1f,
+        1f,2f, 1f,2f, 2f,2f,
+        2f,3f, 2f,3f,
+        2f,4f, 2f,4f, 2f,4f
     ),
     // digit 8
-    byteArrayOf(
-        0,0, 1,0, 2,0,
-        0,1, 2,1,
-        0,2, 1,2, 2,2,
-        0,3, 2,3,
-        0,4, 1,4, 2,4
+    floatArrayOf(
+        0f,0f, 1f,0f, 2f,0f,
+        0f,1f, 2f,1f,
+        0f,2f, 1f,2f, 2f,2f,
+        0f,3f, 2f,3f,
+        0f,4f, 1f,4f, 2f,4f
     ),
     // digit 9
-    byteArrayOf(
-        0,0, 1,0, 2,0,
-        0,1, 2,1,
-        0,2, 1,2, 2,2,
-        0,4, 2,3,
-        0,4, 1,4, 2,4
+    floatArrayOf(
+        0f,0f, 1f,0f, 2f,0f,
+        0f,1f, 2f,1f,
+        0f,2f, 1f,2f, 2f,2f,
+        0f,4f, 2f,3f,
+        0f,4f, 1f,4f, 2f,4f
     ),
-    //default at center 1,2 
-    byteArrayOf(
-        1,2, 1,2, 1,2,
-        1,2, 1,2, 
-        1,2, 1,2, 1,2,
-        1,2, 1,2,
-        1,2, 1,2, 1,2,
+    // default at center 1,2 
+    floatArrayOf(
+        1f,2f, 1f,2f, 1f,2f,
+        1f,2f, 1f,2f, 
+        1f,2f, 1f,2f, 1f,2f,
+        1f,2f, 1f,2f,
+        1f,2f, 1f,2f, 1f,2f
     )
     /**
     old 1
-    byteArrayOf(
-        2,0, 2,0, 2,0,
-        2,1, 2,1,
-        2,2, 2,2, 2,2,
-        2,3, 2,3,
-        2,4, 2,4, 2,4
+    floatArrayOf(
+        2f,0f, 2f,0f, 2f,0f,
+        2f,1f, 2f,1f,
+        2f,2f, 2f,2f, 2f,2f,
+        2f,3f, 2f,3f,
+        2f,4f, 2f,4f, 2f,4f
     ),
     old 7
-    byteArrayOf(
-        0,0, 1,0, 2,0,
-        2,1, 2,1,
-        2,2, 2,2, 2,2,
-        2,3, 2,3,
-        2,4, 2,4, 2,4
+    floatArrayOf(
+        0f,0f, 1f,0f, 2f,0f,
+        2f,1f, 2f,1f,
+        2f,2f, 2f,2f, 2f,2f,
+        2f,3f, 2f,3f,
+        2f,4f, 2f,4f, 2f,4f
     ),
     */
 )
