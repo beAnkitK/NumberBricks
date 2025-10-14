@@ -187,13 +187,11 @@ private fun NumberBricksImpl(
         "The digit parameter accepts only values from 0 to 9, but got $digit"
     }
     
-    val density = LocalDensity.current
-    val baseBrickSize: Dp = 1.dp
+    val baseBrickSize = 1.dp
     val brickSizeDp = baseBrickSize * brickSizeMultiplier
-    val brickSizePx = remember(density, brickSizeDp) { with(density) { brickSizeDp.toPx() } }
+    
     val width = brickSizeDp * 3f
     val height = brickSizeDp * 5f
-    val brickSize = remember(brickSizePx) { Size(width = brickSizePx, height = brickSizePx) }
     
     var previousDigit by rememberSaveable { mutableStateOf<Int?>(null) }
     var wasFirstVisible by rememberSaveable { mutableStateOf(false) }
@@ -201,9 +199,9 @@ private fun NumberBricksImpl(
     
     val initialOffsets = remember(wasFirstVisible, digit) {
         if (!wasFirstVisible) {
-            Array(13) { Offset(brickSizePx, brickSizePx * 2f) }
+            Array(13) { Offset(1f, 2f) }
         } else {
-            Array(13) { Offset.Unspecified }.also { it.computeOffsetsFor(digit, brickSizePx) }
+            Array(13) { Offset.Unspecified }.also { it.getOffsetsFor(digit) }
         }
     }
     
@@ -215,32 +213,19 @@ private fun NumberBricksImpl(
         val isDigitChange = previousDigit != digit
         if (wasFirstVisible && !isDigitChange && progress.value == 1f) return@LaunchedEffect
     
-        targetOffsets.computeOffsetsFor(digit, brickSizePx)
-    
-        if (!animateDigits) {
-            endOffsets.copyInto(startOffsets)
-            targetOffsets.copyInto(endOffsets)
-            progress.snapTo(0f)
-            progress.snapTo(1f)
-            previousDigit = digit
-            return@LaunchedEffect
-        }
+        targetOffsets.getOffsetsFor(digit)
+        endOffsets.copyInto(startOffsets)
+        targetOffsets.copyInto(endOffsets)
         
-        val inMiddleOfAnimation = progress.value > 0f && progress.value < 1f
-    
-        if (inMiddleOfAnimation) {
-            for (i in 0 until 13) {
-                startOffsets[i] = lerp(startOffsets[i], endOffsets[i], progress.value)
-                endOffsets[i] = targetOffsets[i]
-            }
-        } else {
-            endOffsets.copyInto(startOffsets)
-            targetOffsets.copyInto(endOffsets)
-        }
-    
         progress.snapTo(0f)
-        if (!wasFirstVisible) {
-            if (animateOnFirstVisible) progress.animateTo(1f, animationSpec) else progress.snapTo(1f)
+        if (!animateDigits) {
+            progress.snapTo(1f)
+        } else if (!wasFirstVisible) {
+            if (animateOnFirstVisible) {
+                progress.animateTo(1f, animationSpec)
+            } else {
+                progress.snapTo(1f)
+            }    
             wasFirstVisible = true
         } else {
             progress.animateTo(1f,animationSpec)
@@ -248,27 +233,30 @@ private fun NumberBricksImpl(
         previousDigit = digit
     }
     
-    LaunchedEffect(brickSizePx) {
-        targetOffsets.computeOffsetsFor(digit, brickSizePx)
-        endOffsets.copyInto(startOffsets)
-        targetOffsets.copyInto(endOffsets)
-    }
-    
     Spacer(
         modifier = modifier
             .size(width, height)
             .drawWithCache {
                 val digitPath = Path()
+                
                 val brush = digitStyle.brush
                 val alpha = digitStyle.alpha
                 val drawStyle = digitStyle.drawStyle
                 val colorFilter = digitStyle.colorFilter
                 val blendMode = digitStyle.blendMode
                 
+                val brickWidth = size.width / 3f
+                val brickHeight = size.height / 5f
+                val brickSize = Size(brickWidth, brickHeight)
+                
                 onDrawBehind {
                     digitPath.reset()
                     for (i in 0 until 13) {
-                        val animatedOffset = lerp(startOffsets[i], endOffsets[i], progress.value)
+                        val unitOffset = lerp(startOffsets[i], endOffsets[i], progress.value)
+                        val animatedOffset = Offset(
+                            unitOffset.x * brickWidth,
+                            unitOffset.y * brickHeight
+                        )
                         digitPath.addRect(Rect(animatedOffset, brickSize))
                     }
                     drawPath(

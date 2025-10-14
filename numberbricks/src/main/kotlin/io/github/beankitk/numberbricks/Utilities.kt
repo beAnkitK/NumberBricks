@@ -29,12 +29,12 @@ internal val animatableSaver: Saver<Animatable<Float, AnimationVector1D>, Float>
         restore = { value -> Animatable(value) }
     )
 
-internal fun Array<Offset>.computeOffsetsFor(digit: Int, cellPx: Float) {
+internal fun Array<Offset>.getOffsetsFor(digit: Int) {
     val layout = DIGIT_LAYOUTS.getOrElse(digit) { DIGIT_LAYOUTS[10] }
     for (i in indices) {
-        val xIndex = layout[i * 2].toInt()
-        val yIndex = layout[i * 2 + 1].toInt()
-        this[i] = Offset(xIndex * cellPx, yIndex * cellPx)
+        val xIndex = layout[i * 2].toFloat()
+        val yIndex = layout[i * 2 + 1].toFloat()
+        this[i] = Offset(xIndex, yIndex)
     }
 }
 
