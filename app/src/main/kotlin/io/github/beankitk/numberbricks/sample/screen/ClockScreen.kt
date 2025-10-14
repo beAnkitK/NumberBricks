@@ -49,6 +49,8 @@ import io.github.beankitk.numberbricks.sample.ui.widget.AxisLayout
 import io.github.beankitk.numberbricks.sample.ui.widget.DigitRow
 import io.github.beankitk.numberbricks.sample.utils.getTargetBrickSize
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.isActive
 import kotlin.math.hypot
 import kotlin.random.Random
 
@@ -67,7 +69,7 @@ fun SharedTransitionScope.ClockScreen(
     isVerticalClock: Boolean? = null,
     animateDigits: Boolean = true,
     animationSpec: AnimationSpec<Float> = defaultAnimationSpec(),
-    animateOnFirstVisible: Boolean = false
+    animateOnFirstVisible: Boolean = true
 ) {
     val configuration = LocalConfiguration.current
     val isVertical = isVerticalClock ?: configuration.orientation == Configuration.ORIENTATION_PORTRAIT
@@ -82,13 +84,8 @@ fun SharedTransitionScope.ClockScreen(
     
     val clockStyle = remember(styleId) { ClockStyles.styleFor(styleId) }
     
-    val animatedDrift = remember { Animatable(Offset.Zero, Offset.VectorConverter) }
-    
-    val brickSizeMultiplier by animateFloatAsState(
-        targetValue = if (isLargeClock) targetLargeClockSize else targetSmallClockSize,
-        animationSpec = defaultAnimationSpec(),
-        label = "large-clock-transition"
-    )
+    val animatedDrift = remember { Animatable(Offset.Zero, Offset.VectorConverter, label = "clock-drift-animatable") }
+    val animatedBrickSize = remember { Animatable(targetSmallClockSize, Float.VectorConverter, label = "large-clock-transition") }
     
     DisposableEffect(Unit) {
         systemManager.isSystemBarsLight = false
@@ -106,41 +103,69 @@ fun SharedTransitionScope.ClockScreen(
         systemManager.screenBrightness = if (isAmbientMode) 0f else -1f
     }
     
-    LaunchedEffect(isAmbientMode, isLargeClock, parentSize.value, contentSize.value) {
+    LaunchedEffect(isAmbientMode, isLargeClock) {
     
-        snapshotFlow { parentSize.value to contentSize.value }
-            .first { (p, c) -> p.width != 0 && p.height != 0 && c.width != 0 && c.height != 0 }
-
-        if (!isAmbientMode || isLargeClock) {
-            animatedDrift.animateTo(Offset.Zero, animationSpec = defaultAnimationSpec())
-            return@LaunchedEffect
-        }
-
+        snapshotFlow { Pair(parentSize.value, contentSize.value) }
+            .first { (p, c) ->
+                p.width != 0 && p.height != 0 && c.width != 0 && c.height != 0 
+            }
+            
         val maxAllowedX = maxOf(0f, (parentSize.value.width - contentSize.value.width) / 2f)
         val maxAllowedY = maxOf(0f, (parentSize.value.height - contentSize.value.height) / 2f)
-
+        
         if (maxAllowedX <= 0f && maxAllowedY <= 0f) {
             animatedDrift.animateTo(Offset.Zero, animationSpec = defaultAnimationSpec())
+            if (isLargeClock) {
+                animatedBrickSize.animateTo(targetLargeClockSize, animationSpec = defaultAnimationSpec())
+            } else {
+                animatedBrickSize.animateTo(targetSmallClockSize, animationSpec = defaultAnimationSpec())
+            }
             return@LaunchedEffect
         }
         
-        while (isAmbientMode && !isLargeClock) {
-            val targetX = (Random.nextFloat() * 2f - 1f) * maxAllowedX
-            val targetY = (Random.nextFloat() * 2f - 1f) * maxAllowedY
-
-            val dx = targetX - animatedDrift.value.x
-            val dy = targetY - animatedDrift.value.y
-            val distance = hypot(dx.toDouble(), dy.toDouble()).toFloat()
-
-            val duration = ((distance / AMBIENT_SPEED_PX_PER_SEC) * 1000f).toInt().coerceIn(1500, 8000)
-
-            animatedDrift.animateTo(
-                Offset(targetX, targetY),
-                animationSpec = tween(durationMillis = duration, delayMillis = 2000, easing = LinearOutSlowInEasing)
-            )
+        when {
+            isAmbientMode && !isLargeClock -> {
+                launch {
+                    animatedBrickSize.animateTo(targetSmallClockSize, animationSpec = defaultAnimationSpec())
+                }
+                launch {
+                    while (isAmbientMode && !isLargeClock && isActive) {
+                        val targetX = (Random.nextFloat() * 2f - 1f) * maxAllowedX
+                        val targetY = (Random.nextFloat() * 2f - 1f) * maxAllowedY
+                        
+                        val dx = targetX - animatedDrift.value.x
+                        val dy = targetY - animatedDrift.value.y
+                        val distance = hypot(dx.toDouble(), dy.toDouble()).toFloat()
+                        val duration = ((distance / AMBIENT_SPEED_PX_PER_SEC) * 1000f).toInt().coerceIn(1500, 8000)
+                        
+                        animatedDrift.animateTo(
+                            Offset(targetX, targetY),
+                            animationSpec = tween(durationMillis = duration, delayMillis = 2000, easing = LinearOutSlowInEasing)
+                        )
+                    }
+                }    
+            }
+                        
+            isLargeClock -> {
+                launch {
+                    animatedDrift.animateTo(Offset.Zero, animationSpec = defaultAnimationSpec())
+                }
+                launch {
+                    animatedBrickSize.animateTo(targetLargeClockSize, animationSpec = defaultAnimationSpec())
+                }
+            }
+            
+            else -> {
+                launch {
+                    animatedBrickSize.animateTo(targetSmallClockSize, animationSpec = defaultAnimationSpec())
+                }
+                launch {
+                    animatedDrift.animateTo(Offset.Zero, animationSpec = defaultAnimationSpec())
+                }
+            }
         }
     }
-
+    
     Box(
         modifier = modifier
             .sharedBounds(
@@ -177,7 +202,7 @@ fun SharedTransitionScope.ClockScreen(
             DigitRow(
                 digits = currentTime.subList(0, 2),
                 digitStyle = clockStyle.hourStyle,
-                brickSizeMultiplier = brickSizeMultiplier,
+                brickSizeMultiplier = animatedBrickSize.value,
                 animateDigits = animateDigits,
                 animationSpec = animationSpec,
                 animateOnFirstVisible = animateOnFirstVisible
@@ -186,7 +211,7 @@ fun SharedTransitionScope.ClockScreen(
             DigitRow(
                 digits = currentTime.subList(2, 4),
                 digitStyle = clockStyle.minuteStyle,
-                brickSizeMultiplier = brickSizeMultiplier,
+                brickSizeMultiplier = animatedBrickSize.value,
                 animateDigits = animateDigits,
                 animationSpec = animationSpec,
                 animateOnFirstVisible = animateOnFirstVisible
@@ -201,7 +226,7 @@ fun SharedTransitionScope.ClockScreen(
                     ),
                     digits = currentTime.subList(4, 6),
                     digitStyle = clockStyle.secondStyle,
-                    brickSizeMultiplier = brickSizeMultiplier,
+                    brickSizeMultiplier = animatedBrickSize.value,
                     animateDigits = animateDigits,
                     animationSpec = animationSpec,
                     animateOnFirstVisible = animateOnFirstVisible
