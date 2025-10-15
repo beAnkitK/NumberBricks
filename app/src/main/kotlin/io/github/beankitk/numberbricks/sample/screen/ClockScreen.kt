@@ -3,7 +3,6 @@ package io.github.beankitk.numberbricks.sample.screen
 import android.content.res.Configuration
 import android.view.WindowManager
 import androidx.compose.animation.AnimatedContentScope
-import androidx.compose.animation.BoundsTransform
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec
@@ -57,12 +56,11 @@ import kotlin.random.Random
 @Composable
 fun SharedTransitionScope.ClockScreen(
     styleId: String,
-    visibilityScope: AnimatedContentScope,
-    boundsTransition: BoundsTransform,
     currentTime: List<Int>,
     toggleAmbientMode: () -> Unit,
     toggleLargeClock: () -> Unit,
     scheduleAmbientMode: () -> Unit,
+    visibilityScope: AnimatedContentScope,
     modifier: Modifier = Modifier,
     isAmbientMode: Boolean = false,
     isLargeClock: Boolean = false,
@@ -169,9 +167,9 @@ fun SharedTransitionScope.ClockScreen(
     Box(
         modifier = modifier
             .sharedBounds(
-                rememberSharedContentState(styleId + "bounds"),
+                rememberSharedContentState("${styleId} + bounds"),
                 visibilityScope,
-                boundsTransform = boundsTransition,
+                zIndexInOverlay = 1f,
                 clipInOverlayDuringTransition = OverlayClip(MaterialTheme.shapes.medium)
             )
             .background(Color.Black)
@@ -222,7 +220,8 @@ fun SharedTransitionScope.ClockScreen(
                     modifier = Modifier
                     .sharedElement(
                         rememberSharedContentState(styleId),
-                        visibilityScope
+                        visibilityScope,
+                        zIndexInOverlay = 2f
                     ),
                     digits = currentTime.subList(4, 6),
                     digitStyle = clockStyle.secondStyle,

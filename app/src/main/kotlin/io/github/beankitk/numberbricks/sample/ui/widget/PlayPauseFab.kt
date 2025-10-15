@@ -23,12 +23,13 @@ import androidx.compose.ui.res.stringResource
 @Composable
 fun PlayPauseFab(
     isPlay: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val interactionSource = remember { MutableInteractionSource() }
 
     ExtendedFloatingActionButton(
-        modifier = Modifier
+        modifier = modifier
             .padding(end = 12.dp)
             .indication(interactionSource, elasticIn(0.9f)),
         onClick = onClick,

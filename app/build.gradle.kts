@@ -54,6 +54,8 @@ android {
         
         getByName("debug") {
             isDebuggable = true
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
         }
     }
 

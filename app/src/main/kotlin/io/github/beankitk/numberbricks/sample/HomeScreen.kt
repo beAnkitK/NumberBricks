@@ -2,7 +2,6 @@ package io.github.beankitk.numberbricks.sample
 
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
-import androidx.compose.animation.BoundsTransform
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -42,36 +41,34 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                 .background(MaterialTheme.colorScheme.surface)
         ) {
             composable<StylesPage> {
-                val timeVM: TimeVM = viewModel()
+                val timeVM = viewModel<TimeVM>()
                 val currentTime by timeVM.currentTimeAsList.collectAsStateWithLifecycle()
                 val isClockRunning by timeVM.isClockRunning.collectAsStateWithLifecycle()
                 
                 StylesScreen(
-                    visibilityScope = this,
-                    boundsTransition = boundsTransition,
                     currentTime = currentTime,
                     isClockRunning = isClockRunning,
                     toggleClockRunning = timeVM::toggleClockRunning,
-                    onClockStyleClick = { navController.navigate(ClockPage(it)) }
+                    onClockStyleClick = { navController.navigate(ClockPage(it)) },
+                    visibilityScope = this,
                 )
             }
             composable<ClockPage> {
                 val args = it.toRoute<ClockPage>()
-                val clockScreenVM: ClockScreenVM = viewModel()
+                val clockScreenVM = viewModel<ClockScreenVM>()
                 val currentTime by clockScreenVM.currentTimeAsList.collectAsStateWithLifecycle()
                 val isAmbientMode by clockScreenVM.isAmbientMode.collectAsStateWithLifecycle()
                 val isLargeClock by clockScreenVM.isLargeClock.collectAsStateWithLifecycle()
     
                 ClockScreen(
                     styleId = args.styleId,
-                    visibilityScope = this,
-                    boundsTransition = boundsTransition,
                     currentTime = currentTime,
                     isAmbientMode = isAmbientMode,
                     isLargeClock = isLargeClock,
                     toggleAmbientMode = clockScreenVM::toggleAmbientMode,
                     toggleLargeClock = clockScreenVM::toggleLargeClock,
-                    scheduleAmbientMode = clockScreenVM::scheduleAmbientMode
+                    scheduleAmbientMode = clockScreenVM::scheduleAmbientMode,
+                    visibilityScope = this
                 )
             }
         }
@@ -83,5 +80,3 @@ data object StylesPage
 
 @Serializable
 data class ClockPage(val styleId: String)
-
-private val boundsTransition = BoundsTransform { _, _ -> tween(300) }

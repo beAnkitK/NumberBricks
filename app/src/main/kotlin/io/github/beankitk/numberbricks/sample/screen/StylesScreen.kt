@@ -1,8 +1,12 @@
 package io.github.beankitk.numberbricks.sample.screen
 
 import androidx.compose.animation.AnimatedContentScope
-import androidx.compose.animation.BoundsTransform
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,8 +19,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsIgnoringVisibility
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -26,6 +31,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -43,29 +51,64 @@ import io.github.beankitk.numberbricks.sample.utils.endPadding
 
 @Composable
 fun SharedTransitionScope.StylesScreen(
-    visibilityScope: AnimatedContentScope,
-    boundsTransition: BoundsTransform,
     currentTime: List<Int>,
     isClockRunning: Boolean,
     toggleClockRunning: () -> Unit,
     onClockStyleClick: (String) -> Unit,
+    visibilityScope: AnimatedContentScope,
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val contentInsets = WindowInsets.systemBarsIgnoringVisibility.union(WindowInsets.displayCutout)
+    val categoryListState = rememberLazyListState()
+   
+    val animateAppBarExit by remember {
+        derivedStateOf {
+            categoryListState.firstVisibleItemIndex > 0 || categoryListState.firstVisibleItemScrollOffset >= 200
+        }
+    }
     
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        contentWindowInsets = WindowInsets.systemBarsIgnoringVisibility.union(WindowInsets.displayCutout),
+        contentWindowInsets = contentInsets,
         topBar = {
-            StylesTopBar(scrollBehavior)
+            with(visibilityScope) {
+                StylesTopBar(
+                    scrollBehavior = scrollBehavior,
+                    modifier = Modifier
+                        .renderInSharedTransitionScopeOverlay(
+                            renderInOverlay = { isTransitionActive && animateAppBarExit },
+                            zIndexInOverlay = 3f
+                        )
+                        .then(
+                            if(isTransitionActive && animateAppBarExit)
+                                Modifier.animateEnterExit(
+                                    enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
+                                    exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(),
+                                    label = "top_appbar_enter_exit_anim"
+                                )
+                            else Modifier
+                        )
+                )
+            }    
         },
         floatingActionButton = {
-            PlayPauseFab(
-                isPlay = isClockRunning,
-                onClick = toggleClockRunning
-            )
+            with(visibilityScope) {
+                PlayPauseFab(
+                    isPlay = isClockRunning,
+                    onClick = toggleClockRunning,
+                    modifier = Modifier
+                        .renderInSharedTransitionScopeOverlay(zIndexInOverlay = 3f)
+                        .animateEnterExit(
+                            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+                            label = "fab_enter_exit_anim"
+                        ),
+                )
+            }
         },
         content = { innerPadding ->
             LazyColumn(
+                state = categoryListState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
                     top = innerPadding.calculateTopPadding() + 16.dp,
@@ -86,8 +129,7 @@ fun SharedTransitionScope.StylesScreen(
                             onClockStyleClick(it.styleId)
                         },
                         padding = innerPadding,
-                        visibilityScope = visibilityScope,
-                        boundsTransition = boundsTransition
+                        visibilityScope = visibilityScope
                     )
                 }
             }
@@ -105,8 +147,7 @@ fun SharedTransitionScope.GridSection(
     digit: List<Int>,
     onClick: (ClockStyle) -> Unit,
     padding: PaddingValues,
-    visibilityScope: AnimatedContentScope,
-    boundsTransition: BoundsTransform
+    visibilityScope: AnimatedContentScope
 ) {
     Column {
         Text(
@@ -137,8 +178,7 @@ fun SharedTransitionScope.GridSection(
                     width = sectionItemWidth,
                     digit = digit,
                     onClick = onClick,
-                    visibilityScope = visibilityScope,
-                    boundsTransition = boundsTransition
+                    visibilityScope = visibilityScope
                 )
             }
         }
@@ -151,8 +191,7 @@ private fun SharedTransitionScope.StyleItem(
     width: Dp,
     digit: List<Int>,
     onClick: (ClockStyle) -> Unit,
-    visibilityScope: AnimatedContentScope,
-    boundsTransition: BoundsTransform
+    visibilityScope: AnimatedContentScope
 ) {
     val currentDigitStyle =
         if (style.useThemeColor) {
@@ -164,9 +203,9 @@ private fun SharedTransitionScope.StyleItem(
     Surface(
         modifier = Modifier
             .sharedBounds(
-                rememberSharedContentState(style.styleId + "bounds"),
+                rememberSharedContentState("${style.styleId} + bounds"),
                 visibilityScope,
-                boundsTransform = boundsTransition,
+                zIndexInOverlay = 1f,
                 clipInOverlayDuringTransition = OverlayClip(MaterialTheme.shapes.medium)
             )
             .width(width),
@@ -181,7 +220,8 @@ private fun SharedTransitionScope.StyleItem(
             DigitRow(
                 modifier = Modifier.sharedElement(
                     rememberSharedContentState(style.styleId),
-                    visibilityScope
+                    visibilityScope,
+                    zIndexInOverlay = 2f
                 ),
                 digits = digit,
                 digitStyle = currentDigitStyle,

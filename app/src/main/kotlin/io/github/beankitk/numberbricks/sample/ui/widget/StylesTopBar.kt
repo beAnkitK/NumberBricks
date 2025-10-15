@@ -33,11 +33,12 @@ import io.github.beankitk.numberbricks.sample.ui.theme.AntonFont
 
 @Composable
 fun StylesTopBar(
-    scrollBehavior: TopAppBarScrollBehavior
+    scrollBehavior: TopAppBarScrollBehavior,
+    modifier: Modifier = Modifier
 ) {
     val displaySmall = MaterialTheme.typography.displaySmall.copy(fontFamily = AntonFont)
     val headlineLarge = MaterialTheme.typography.headlineLarge.copy(fontFamily = AntonFont)
-
+    
     val overlappedFraction by remember { derivedStateOf { scrollBehavior.state.overlappedFraction } }
     val isOverlapThresholdCrossed = remember(overlappedFraction) { overlappedFraction > 0.3f }
     val titleStyle = remember(overlappedFraction, displaySmall, headlineLarge) {
@@ -51,7 +52,8 @@ fun StylesTopBar(
                     listOf(MaterialTheme.colorScheme.surface, Color.Transparent)
                 )
             )
-            .padding(top = 12.dp),
+            .padding(top = 12.dp)
+            .then(modifier),
         title = {
             Column(modifier = Modifier.fillMaxHeight()) {
                 Text(
