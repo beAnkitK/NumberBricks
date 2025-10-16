@@ -29,6 +29,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -79,6 +80,7 @@ fun SharedTransitionScope.ClockScreen(
     val systemManager = rememberSystemManager()
     val parentSize = remember { mutableStateOf(IntSize.Zero) }
     val contentSize = remember { mutableStateOf(IntSize.Zero) }
+    var lastAmbientOffset by remember { mutableStateOf(Offset.Zero) }
     
     val clockStyle = remember(styleId) { ClockStyles.styleFor(styleId) }
     
@@ -112,50 +114,52 @@ fun SharedTransitionScope.ClockScreen(
         val maxAllowedY = maxOf(0f, (parentSize.value.height - contentSize.value.height) / 2f)
         
         if (maxAllowedX <= 0f && maxAllowedY <= 0f) {
-            animatedDrift.animateTo(Offset.Zero, animationSpec = defaultAnimationSpec())
+            lastAmbientOffset = Offset.Zero
+            animatedDrift.animateTo(Offset.Zero, defaultAnimationSpec())
             if (isLargeClock) {
-                animatedBrickSize.animateTo(targetLargeClockSize, animationSpec = defaultAnimationSpec())
+                animatedBrickSize.animateTo(targetLargeClockSize, defaultAnimationSpec())
             } else {
-                animatedBrickSize.animateTo(targetSmallClockSize, animationSpec = defaultAnimationSpec())
+                animatedBrickSize.animateTo(targetSmallClockSize, defaultAnimationSpec())
             }
             return@LaunchedEffect
         }
         
         when {
             isAmbientMode && !isLargeClock -> {
+                launch { animatedBrickSize.animateTo(targetSmallClockSize, defaultAnimationSpec()) }
                 launch {
-                    animatedBrickSize.animateTo(targetSmallClockSize, animationSpec = defaultAnimationSpec())
-                }
-                launch {
+                    if (lastAmbientOffset != Offset.Zero && animatedDrift.value == Offset.Zero) {
+                        animatedDrift.animateTo(lastAmbientOffset, animationSpec = defaultAnimationSpec())
+                    }
+                    
                     while (isAmbientMode && !isLargeClock) {
                         val targetX = (Random.nextFloat() * 2f - 1f) * maxAllowedX
                         val targetY = (Random.nextFloat() * 2f - 1f) * maxAllowedY
+                        val target = Offset(targetX, targetY)
                         
                         val dx = targetX - animatedDrift.value.x
                         val dy = targetY - animatedDrift.value.y
                         val distance = hypot(dx.toDouble(), dy.toDouble()).toFloat()
                         val duration = ((distance / AMBIENT_SPEED_PX_PER_SEC) * 1000f).toInt().coerceIn(1500, 8000)
-                        animatedDrift.animateTo(Offset(targetX, targetY), tween(duration, 2000, LinearOutSlowInEasing))
+                        animatedDrift.animateTo(target, tween(duration, 2000, LinearOutSlowInEasing))
+                        lastAmbientOffset = animatedDrift.value
                     }
                 }    
             }
                         
-            isLargeClock -> {
-                launch {
-                    animatedBrickSize.animateTo(targetLargeClockSize, defaultAnimationSpec())
-                }
-                launch {
-                    animatedDrift.animateTo(Offset.Zero, defaultAnimationSpec())
-                }
+            isAmbientMode && isLargeClock -> {
+                lastAmbientOffset = animatedDrift.value
+                launch { animatedBrickSize.animateTo(targetLargeClockSize, defaultAnimationSpec()) }
+                launch { animatedDrift.animateTo(Offset.Zero, defaultAnimationSpec()) }
             }
             
             else -> {
+                lastAmbientOffset = Offset.Zero
                 launch {
-                    animatedBrickSize.animateTo(targetSmallClockSize, defaultAnimationSpec())
+                    if (isLargeClock) animatedBrickSize.animateTo(targetLargeClockSize, defaultAnimationSpec())
+                    else animatedBrickSize.animateTo(targetSmallClockSize, defaultAnimationSpec())
                 }
-                launch {
-                    animatedDrift.animateTo(Offset.Zero, defaultAnimationSpec())
-                }
+                launch { animatedDrift.animateTo(Offset.Zero, defaultAnimationSpec()) }
             }
         }
     }
@@ -214,11 +218,11 @@ fun SharedTransitionScope.ClockScreen(
             if (clockStyle.showSeconds) {
                 DigitRow(
                     modifier = Modifier
-                    .sharedElement(
-                        rememberSharedContentState(styleId),
-                        visibilityScope,
-                        zIndexInOverlay = 2f
-                    ),
+                        .sharedElement(
+                            rememberSharedContentState(styleId),
+                            visibilityScope,
+                            zIndexInOverlay = 2f
+                        ),
                     digits = currentTime.subList(4, 6),
                     digitStyle = clockStyle.secondStyle,
                     brickSize = animatedBrickSize.value,
