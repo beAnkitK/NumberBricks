@@ -27,9 +27,9 @@ fun PaddingValues.endPadding(): Dp {
     }
 }
 
-internal fun getTargetBrickSize(isScreenVertical: Boolean, widthDp: Float, heightDp: Float): Pair<Float, Float> {
-    val largeSize = if (isScreenVertical) heightDp / 16f else widthDp / 21f
-    val smallSize = if (isScreenVertical) heightDp / 35f else widthDp / 35f
+internal fun getTargetBrickSize(isScreenVertical: Boolean, widthDp: Dp, heightDp: Dp): Pair<Dp, Dp> {
+    val largeSize = if (isScreenVertical) heightDp / 16 else widthDp / 21
+    val smallSize = if (isScreenVertical) heightDp / 35 else widthDp / 35
     return Pair(largeSize, smallSize)
 }
 

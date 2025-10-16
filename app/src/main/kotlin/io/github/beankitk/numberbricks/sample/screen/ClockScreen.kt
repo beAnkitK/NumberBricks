@@ -39,6 +39,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.beankitk.numberbricks.defaultAnimationSpec
 import io.github.beankitk.numberbricks.sample.data.ClockStyles
@@ -49,7 +50,6 @@ import io.github.beankitk.numberbricks.sample.ui.widget.DigitRow
 import io.github.beankitk.numberbricks.sample.utils.getTargetBrickSize
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.isActive
 import kotlin.math.hypot
 import kotlin.random.Random
 
@@ -71,8 +71,8 @@ fun SharedTransitionScope.ClockScreen(
 ) {
     val configuration = LocalConfiguration.current
     val isVertical = isVerticalClock ?: configuration.orientation == Configuration.ORIENTATION_PORTRAIT
-    val height = configuration.screenHeightDp.toFloat()
-    val width = configuration.screenWidthDp.toFloat()
+    val height = configuration.screenHeightDp.dp
+    val width = configuration.screenWidthDp.dp
     val (targetLargeClockSize, targetSmallClockSize) = getTargetBrickSize(isVertical, width, height)
     val contentInsets = WindowInsets.systemBarsIgnoringVisibility.union(WindowInsets.displayCutout)
     
@@ -83,7 +83,7 @@ fun SharedTransitionScope.ClockScreen(
     val clockStyle = remember(styleId) { ClockStyles.styleFor(styleId) }
     
     val animatedDrift = remember { Animatable(Offset.Zero, Offset.VectorConverter, label = "clock-drift-animatable") }
-    val animatedBrickSize = remember { Animatable(targetSmallClockSize, Float.VectorConverter, label = "large-clock-transition") }
+    val animatedBrickSize = remember { Animatable(targetSmallClockSize, Dp.VectorConverter, label = "large-clock-transition") }
     
     DisposableEffect(Unit) {
         systemManager.isSystemBarsLight = false
@@ -127,7 +127,7 @@ fun SharedTransitionScope.ClockScreen(
                     animatedBrickSize.animateTo(targetSmallClockSize, animationSpec = defaultAnimationSpec())
                 }
                 launch {
-                    while (isAmbientMode && !isLargeClock && isActive) {
+                    while (isAmbientMode && !isLargeClock) {
                         val targetX = (Random.nextFloat() * 2f - 1f) * maxAllowedX
                         val targetY = (Random.nextFloat() * 2f - 1f) * maxAllowedY
                         
@@ -135,30 +135,26 @@ fun SharedTransitionScope.ClockScreen(
                         val dy = targetY - animatedDrift.value.y
                         val distance = hypot(dx.toDouble(), dy.toDouble()).toFloat()
                         val duration = ((distance / AMBIENT_SPEED_PX_PER_SEC) * 1000f).toInt().coerceIn(1500, 8000)
-                        
-                        animatedDrift.animateTo(
-                            Offset(targetX, targetY),
-                            animationSpec = tween(durationMillis = duration, delayMillis = 2000, easing = LinearOutSlowInEasing)
-                        )
+                        animatedDrift.animateTo(Offset(targetX, targetY), tween(duration, 2000, LinearOutSlowInEasing))
                     }
                 }    
             }
                         
             isLargeClock -> {
                 launch {
-                    animatedDrift.animateTo(Offset.Zero, animationSpec = defaultAnimationSpec())
+                    animatedBrickSize.animateTo(targetLargeClockSize, defaultAnimationSpec())
                 }
                 launch {
-                    animatedBrickSize.animateTo(targetLargeClockSize, animationSpec = defaultAnimationSpec())
+                    animatedDrift.animateTo(Offset.Zero, defaultAnimationSpec())
                 }
             }
             
             else -> {
                 launch {
-                    animatedBrickSize.animateTo(targetSmallClockSize, animationSpec = defaultAnimationSpec())
+                    animatedBrickSize.animateTo(targetSmallClockSize, defaultAnimationSpec())
                 }
                 launch {
-                    animatedDrift.animateTo(Offset.Zero, animationSpec = defaultAnimationSpec())
+                    animatedDrift.animateTo(Offset.Zero, defaultAnimationSpec())
                 }
             }
         }
@@ -200,7 +196,7 @@ fun SharedTransitionScope.ClockScreen(
             DigitRow(
                 digits = currentTime.subList(0, 2),
                 digitStyle = clockStyle.hourStyle,
-                brickSizeMultiplier = animatedBrickSize.value,
+                brickSize = animatedBrickSize.value,
                 animateDigits = animateDigits,
                 animationSpec = animationSpec,
                 animateOnFirstVisible = animateOnFirstVisible
@@ -209,7 +205,7 @@ fun SharedTransitionScope.ClockScreen(
             DigitRow(
                 digits = currentTime.subList(2, 4),
                 digitStyle = clockStyle.minuteStyle,
-                brickSizeMultiplier = animatedBrickSize.value,
+                brickSize = animatedBrickSize.value,
                 animateDigits = animateDigits,
                 animationSpec = animationSpec,
                 animateOnFirstVisible = animateOnFirstVisible
@@ -225,7 +221,7 @@ fun SharedTransitionScope.ClockScreen(
                     ),
                     digits = currentTime.subList(4, 6),
                     digitStyle = clockStyle.secondStyle,
-                    brickSizeMultiplier = animatedBrickSize.value,
+                    brickSize = animatedBrickSize.value,
                     animateDigits = animateDigits,
                     animationSpec = animationSpec,
                     animateOnFirstVisible = animateOnFirstVisible

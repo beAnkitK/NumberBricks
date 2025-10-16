@@ -225,7 +225,7 @@ private fun SharedTransitionScope.StyleItem(
                 ),
                 digits = digit,
                 digitStyle = currentDigitStyle,
-                brickSizeMultiplier = 18f,
+                brickSize = 18.dp,
                 animateDigits = true,
                 animateOnFirstVisible = false
             )

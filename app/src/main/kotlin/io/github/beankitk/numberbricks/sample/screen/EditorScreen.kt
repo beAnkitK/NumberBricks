@@ -47,7 +47,7 @@ fun EditorScreen(
             digit = digit,
             modifier = Modifier,
             digitColor = MaterialTheme.colorScheme.primary,
-            brickSizeMultiplier = 23f, 
+            brickSize = 23.dp,
             animateDigits = animateDigit,
             animateOnFirstVisible = animateOnFirstShown
         )

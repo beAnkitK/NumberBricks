@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.beankitk.numberbricks.DigitStyle
 import io.github.beankitk.numberbricks.NumberBricks
@@ -22,7 +23,7 @@ fun DigitRow(
     digits: List<Int>,
     modifier: Modifier = Modifier,
     digitStyle: DigitStyle = DigitStyle.Default,
-    brickSizeMultiplier: Float = 5f,
+    brickSize: Dp = 5.dp,
     animateDigits: Boolean = false,
     animationSpec: AnimationSpec<Float> = defaultAnimationSpec(),
     animateOnFirstVisible: Boolean = false
@@ -35,7 +36,7 @@ fun DigitRow(
         NumberBricks(
             digit = digits[0],
             digitStyle = digitStyle,
-            brickSizeMultiplier = brickSizeMultiplier,
+            brickSize = brickSize,
             animateDigits = animateDigits,
             animationSpec = animationSpec,
             animateOnFirstVisible = animateOnFirstVisible
@@ -43,7 +44,7 @@ fun DigitRow(
         NumberBricks(
             digit = digits[1],
             digitStyle = digitStyle,
-            brickSizeMultiplier = brickSizeMultiplier,
+            brickSize = brickSize,
             animateDigits = animateDigits,
             animationSpec = animationSpec,
             animateOnFirstVisible = animateOnFirstVisible
@@ -60,7 +61,7 @@ fun DigitRow(
     digitDrawStyle: DrawStyle = Fill,
     digitColorFilter: ColorFilter? = null,
     digitBlendMode: BlendMode = BlendMode.SrcOver,
-    brickSizeMultiplier: Float = 5f,
+    brickSize: Dp = 5.dp,
     animateDigits: Boolean = false,
     animationSpec: AnimationSpec<Float> = defaultAnimationSpec(),
     animateOnFirstVisible: Boolean = false,
@@ -77,7 +78,7 @@ fun DigitRow(
         digits = digits,
         modifier = modifier,
         digitStyle = digitStyle,
-        brickSizeMultiplier = brickSizeMultiplier,
+        brickSize = brickSize,
         animateDigits = animateDigits,
         animationSpec = animationSpec,
         animateOnFirstVisible = animateOnFirstVisible
