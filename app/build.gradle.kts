@@ -38,10 +38,12 @@ android {
     kotlinOptions {
        jvmTarget = build.versions.java.jvmTarget.get()
        freeCompilerArgs += listOf(
-           "-opt-in=androidx.compose.animation.ExperimentalSharedTransitionApi",
-           "-opt-in=androidx.compose.foundation.layout.ExperimentalLayoutApi",
-           "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api"
-       )
+            "-opt-in=androidx.compose.animation.ExperimentalSharedTransitionApi",
+            "-opt-in=androidx.compose.foundation.layout.ExperimentalLayoutApi",
+            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
+            "-P", "plugin:androidx.compose.compiler.plugins.kotlin:reportsDestination=${project.buildDir.absolutePath}/compose_metrics",
+            "-P", "plugin:androidx.compose.compiler.plugins.kotlin:metricsDestination=${project.buildDir.absolutePath}/compose_metrics"
+        )
     }
 
     buildTypes {
