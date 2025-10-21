@@ -3,6 +3,7 @@ package io.github.beankitk.numberbricks.sample.ui.widget
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.BlendMode
@@ -22,8 +23,9 @@ import io.github.beankitk.numberbricks.defaultAnimationSpec
 fun DigitRow(
     digits: List<Int>,
     modifier: Modifier = Modifier,
+    brickWidth: Dp? = null,
+    brickHeight: Dp? = null,
     digitStyle: DigitStyle = DigitStyle.Default,
-    brickSize: Dp = 5.dp,
     animateDigits: Boolean = false,
     animationSpec: AnimationSpec<Float> = defaultAnimationSpec(),
     animateOnFirstVisible: Boolean = false
@@ -35,16 +37,22 @@ fun DigitRow(
         require(digits.size == 2) { "DigitRow expects exactly two digits" }
         NumberBricks(
             digit = digits[0],
+            modifier = Modifier
+                .fillMaxSize()
+                .weight(1f),
+            brickWidth = brickWidth,
+            brickHeight = brickHeight,
             digitStyle = digitStyle,
-            brickSize = brickSize,
             animateDigits = animateDigits,
             animationSpec = animationSpec,
             animateOnFirstVisible = animateOnFirstVisible
         )
         NumberBricks(
             digit = digits[1],
+            modifier = Modifier
+                .fillMaxSize()
+                .weight(1f),
             digitStyle = digitStyle,
-            brickSize = brickSize,
             animateDigits = animateDigits,
             animationSpec = animationSpec,
             animateOnFirstVisible = animateOnFirstVisible
@@ -56,12 +64,13 @@ fun DigitRow(
 fun DigitRow(
     digits: List<Int>,
     modifier: Modifier = Modifier,
+    brickWidth: Dp? = null,
+    brickHeight: Dp? = null,
     digitColor: Color = Color.White,
     digitAlpha: Float = 1f,
     digitDrawStyle: DrawStyle = Fill,
     digitColorFilter: ColorFilter? = null,
     digitBlendMode: BlendMode = BlendMode.SrcOver,
-    brickSize: Dp = 5.dp,
     animateDigits: Boolean = false,
     animationSpec: AnimationSpec<Float> = defaultAnimationSpec(),
     animateOnFirstVisible: Boolean = false,
@@ -77,8 +86,9 @@ fun DigitRow(
     DigitRow(
         digits = digits,
         modifier = modifier,
+        brickWidth = brickWidth,
+        brickHeight = brickHeight,
         digitStyle = digitStyle,
-        brickSize = brickSize,
         animateDigits = animateDigits,
         animationSpec = animationSpec,
         animateOnFirstVisible = animateOnFirstVisible

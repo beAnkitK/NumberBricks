@@ -1,12 +1,26 @@
 package io.github.beankitk.numberbricks.sample.screen
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch 
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,24 +58,24 @@ fun EditorScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         NumberBricks(
-            digit = digit,
-            modifier = Modifier,
+            digit = digit % 10,
+            brickWidth = 23.dp,
+            brickHeight = 23.dp,
             digitColor = MaterialTheme.colorScheme.primary,
-            brickSize = 23.dp,
             animateDigits = animateDigit,
             animateOnFirstVisible = animateOnFirstShown
         )
         
         Spacer(modifier = Modifier.height(24.dp))
-  
-        // Stop / Resume button  
-        Button(onClick = { isRunning = !isRunning }) {
+        
+        Button(
+            onClick = { isRunning = !isRunning }
+        ) {
             Text(if (isRunning) "Stop" else "Resume")
-        } 
-  
-        Spacer(modifier = Modifier.height(32.dp))
-  
-        // Preference-style row: Animate Changes
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -78,9 +92,8 @@ fun EditorScreen(
             )  
         }
         
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         
-        // Preference-style row: Decrease Mode
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,

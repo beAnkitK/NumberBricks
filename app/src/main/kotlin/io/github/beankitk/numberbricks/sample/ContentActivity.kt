@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import io.github.beankitk.numberbricks.sample.ui.theme.AppTheme
 
 class ContentActivity : ComponentActivity() {
-
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         setupActivity()
         super.onCreate(savedInstanceState)

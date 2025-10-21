@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsIgnoringVisibility
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
@@ -218,14 +219,15 @@ private fun SharedTransitionScope.StyleItem(
             contentAlignment = Alignment.Center
         ) {
             DigitRow(
-                modifier = Modifier.sharedElement(
-                    rememberSharedContentState(style.styleId),
-                    visibilityScope,
-                    zIndexInOverlay = 2f
-                ),
                 digits = digit,
+                modifier = Modifier
+                    .sharedElement(
+                        rememberSharedContentState(style.styleId),
+                        visibilityScope,
+                        zIndexInOverlay = 2f
+                    )
+                    .size(123.dp, 90.dp),
                 digitStyle = currentDigitStyle,
-                brickSize = 18.dp,
                 animateDigits = true,
                 animateOnFirstVisible = false
             )

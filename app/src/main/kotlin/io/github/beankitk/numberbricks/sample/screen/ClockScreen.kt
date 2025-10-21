@@ -1,14 +1,12 @@
 package io.github.beankitk.numberbricks.sample.screen
 
 import android.content.res.Configuration
-import android.view.WindowManager
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.VectorConverter
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -18,10 +16,10 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsIgnoringVisibility
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -39,15 +37,15 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.beankitk.numberbricks.defaultAnimationSpec
 import io.github.beankitk.numberbricks.sample.data.ClockStyles
+import io.github.beankitk.numberbricks.sample.ui.clocklayout.ColumnClock
+import io.github.beankitk.numberbricks.sample.ui.clocklayout.RowClock
 import io.github.beankitk.numberbricks.sample.ui.theme.rememberSystemManager
-import io.github.beankitk.numberbricks.sample.ui.widget.Axis
-import io.github.beankitk.numberbricks.sample.ui.widget.AxisLayout
-import io.github.beankitk.numberbricks.sample.ui.widget.DigitRow
+import io.github.beankitk.numberbricks.sample.utils.VectorConverter
 import io.github.beankitk.numberbricks.sample.utils.getTargetBrickSize
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -65,27 +63,32 @@ fun SharedTransitionScope.ClockScreen(
     modifier: Modifier = Modifier,
     isAmbientMode: Boolean = false,
     isLargeClock: Boolean = false,
-    isVerticalClock: Boolean? = null,
+    isClockVertical: Boolean? = null,
     animateDigits: Boolean = true,
     animationSpec: AnimationSpec<Float> = defaultAnimationSpec(),
     animateOnFirstVisible: Boolean = true
 ) {
     val configuration = LocalConfiguration.current
-    val isVertical = isVerticalClock ?: configuration.orientation == Configuration.ORIENTATION_PORTRAIT
-    val height = configuration.screenHeightDp.dp
-    val width = configuration.screenWidthDp.dp
-    val (targetLargeClockSize, targetSmallClockSize) = getTargetBrickSize(isVertical, width, height)
+    val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+    val isClockInVertical = isClockVertical ?: isPortrait
+    val screenSize = DpSize(
+        width = configuration.screenWidthDp.dp,
+        height = configuration.screenHeightDp.dp
+    )
+    
     val contentInsets = WindowInsets.systemBarsIgnoringVisibility.union(WindowInsets.displayCutout)
     
+    val clockStyle = remember(styleId) { ClockStyles.styleFor(styleId) }
     val systemManager = rememberSystemManager()
-    val parentSize = remember { mutableStateOf(IntSize.Zero) }
-    val contentSize = remember { mutableStateOf(IntSize.Zero) }
+    var parentSize by remember { mutableStateOf(IntSize.Zero) }
+    var contentSize by remember { mutableStateOf(IntSize.Zero) }
     var lastAmbientOffset by remember { mutableStateOf(Offset.Zero) }
     
-    val clockStyle = remember(styleId) { ClockStyles.styleFor(styleId) }
+    val digitRowsCount = if (clockStyle.showSeconds) 3 else 2
+    val (targetLargeClockSize, targetSmallClockSize) = getTargetBrickSize(isPortrait, isClockInVertical, digitRowsCount, screenSize)
     
     val animatedDrift = remember { Animatable(Offset.Zero, Offset.VectorConverter, label = "clock-drift-animatable") }
-    val animatedBrickSize = remember { Animatable(targetSmallClockSize, Dp.VectorConverter, label = "large-clock-transition") }
+    val animatedBrickSize = remember { Animatable(targetSmallClockSize, DpSize.VectorConverter, label = "large-clock-transition") }
     
     DisposableEffect(Unit) {
         systemManager.isSystemBarsLight = false
@@ -105,13 +108,13 @@ fun SharedTransitionScope.ClockScreen(
     
     LaunchedEffect(isAmbientMode, isLargeClock) {
     
-        snapshotFlow { Pair(parentSize.value, contentSize.value) }
+        snapshotFlow { Pair(parentSize, contentSize) }
             .first { (p, c) ->
                 p.width != 0 && p.height != 0 && c.width != 0 && c.height != 0 
             }
             
-        val maxAllowedX = maxOf(0f, (parentSize.value.width - contentSize.value.width) / 2f)
-        val maxAllowedY = maxOf(0f, (parentSize.value.height - contentSize.value.height) / 2f)
+        val maxAllowedX = maxOf(0f, (parentSize.width - contentSize.width) / 2f)
+        val maxAllowedY = maxOf(0f, (parentSize.height - contentSize.height) / 2f)
         
         if (maxAllowedX <= 0f && maxAllowedY <= 0f) {
             lastAmbientOffset = Offset.Zero
@@ -146,7 +149,7 @@ fun SharedTransitionScope.ClockScreen(
                     }
                 }    
             }
-                        
+            
             isAmbientMode && isLargeClock -> {
                 lastAmbientOffset = animatedDrift.value
                 launch { animatedBrickSize.animateTo(targetLargeClockSize, defaultAnimationSpec()) }
@@ -180,57 +183,44 @@ fun SharedTransitionScope.ClockScreen(
                 onDoubleClick = toggleLargeClock
             )
             .fillMaxSize()
-            .onSizeChanged { parentSize.value = it }
             .windowInsetsPadding(contentInsets)
-            .padding(16.dp),
+            .padding(16.dp)
+            .onSizeChanged { parentSize = it },
         contentAlignment = Alignment.Center
     ) {
-        AxisLayout(
-            axis = if (isVertical) Axis.Vertical else Axis.Horizontal,
-            modifier = Modifier
-                .onGloballyPositioned { coords -> contentSize.value = coords.size }
-                .graphicsLayer {
-                    translationX = animatedDrift.value.x
-                    translationY = animatedDrift.value.y
-                }
-                .wrapContentSize(),
-            alignment = Alignment.Center,
-            arrangement = Arrangement.spacedBy(15.dp)
-        ) {
-            DigitRow(
-                digits = currentTime.subList(0, 2),
-                digitStyle = clockStyle.hourStyle,
-                brickSize = animatedBrickSize.value,
-                animateDigits = animateDigits,
-                animationSpec = animationSpec,
-                animateOnFirstVisible = animateOnFirstVisible
-            )
-
-            DigitRow(
-                digits = currentTime.subList(2, 4),
-                digitStyle = clockStyle.minuteStyle,
-                brickSize = animatedBrickSize.value,
-                animateDigits = animateDigits,
-                animationSpec = animationSpec,
-                animateOnFirstVisible = animateOnFirstVisible
-            )
-
-            if (clockStyle.showSeconds) {
-                DigitRow(
-                    modifier = Modifier
-                        .sharedElement(
-                            rememberSharedContentState(styleId),
-                            visibilityScope,
-                            zIndexInOverlay = 2f
-                        ),
-                    digits = currentTime.subList(4, 6),
-                    digitStyle = clockStyle.secondStyle,
-                    brickSize = animatedBrickSize.value,
-                    animateDigits = animateDigits,
-                    animationSpec = animationSpec,
-                    animateOnFirstVisible = animateOnFirstVisible
-                )
+        val clockModifier = Modifier
+            .onGloballyPositioned { coords -> contentSize = coords.size }
+            .graphicsLayer {
+                translationX = animatedDrift.value.x
+                translationY = animatedDrift.value.y
             }
+            .size(
+                width = animatedBrickSize.value.width,
+                height = animatedBrickSize.value.height
+            )
+
+        if (isClockInVertical) {
+            ColumnClock(
+                styleId = styleId,
+                clockStyle = clockStyle,
+                currentTime = currentTime,
+                visibilityScope = visibilityScope,
+                modifier = clockModifier,
+                animateDigits = animateDigits,
+                animationSpec = animationSpec,
+                animateOnFirstVisible = animateOnFirstVisible
+            )
+        } else {
+            RowClock(
+                styleId = styleId,
+                clockStyle = clockStyle,
+                currentTime = currentTime,
+                visibilityScope = visibilityScope,
+                modifier = clockModifier,
+                animateDigits = animateDigits,
+                animationSpec = animationSpec,
+                animateOnFirstVisible = animateOnFirstVisible
+            )
         }
     }
 }

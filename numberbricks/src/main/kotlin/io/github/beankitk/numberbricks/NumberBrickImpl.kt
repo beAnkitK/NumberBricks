@@ -3,7 +3,7 @@ package io.github.beankitk.numberbricks
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,8 +31,9 @@ import androidx.compose.ui.unit.dp
 internal fun NumberBricksImpl(
     digit: Int,
     modifier: Modifier,
+    brickWidth: Dp?,
+    brickHeight: Dp?,
     digitStyle: DigitStyle,
-    brickSize: Dp,
     animateDigits: Boolean,
     animationSpec: AnimationSpec<Float>,
     animateOnFirstVisible: Boolean,
@@ -41,8 +42,8 @@ internal fun NumberBricksImpl(
         "The digit parameter accepts only values from 0 to 9, but got $digit"
     }
     
-    val width = brickSize * 3f
-    val height = brickSize * 5f
+    val totalWidth = brickWidth?.let { it * 3 } ?: NumberbrickWidth
+    val totalHeight = brickHeight?.let { it * 5 } ?: NumberbrickHeight
     
     var previousDigit by rememberSaveable { mutableStateOf<Int?>(null) }
     var wasFirstVisible by rememberSaveable { mutableStateOf(false) }
@@ -63,7 +64,7 @@ internal fun NumberBricksImpl(
     LaunchedEffect(digit, animateDigits) {
         if (wasFirstVisible && previousDigit == digit && progress.value == 1f) 
             return@LaunchedEffect
-            
+        
         if (previousDigit != digit) {
             targetOffsets.fillOffsetsFor(digit)
             endOffsets.copyInto(startOffsets)
@@ -90,7 +91,7 @@ internal fun NumberBricksImpl(
     
     Spacer(
         modifier = modifier
-            .requiredSize(width, height)
+            .size(totalWidth, totalHeight)
             .drawWithCache {
                 val digitPath = Path()
                 
@@ -103,7 +104,7 @@ internal fun NumberBricksImpl(
                 val brickWidth = size.width / 3f
                 val brickHeight = size.height / 5f
                 val brickSize = Size(brickWidth, brickHeight)
-                
+               
                 onDrawBehind {
                     digitPath.reset()
                     for (i in 0 until 13) {
@@ -126,3 +127,6 @@ internal fun NumberBricksImpl(
             }
     )
 }
+
+private val NumberbrickWidth = 15.dp
+private val NumberbrickHeight = 25.dp
