@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
-import io.github.beankitk.numberbricks.DigitStyle
+import io.github.beankitk.numberbricks.core.DigitStyle
 
 object ClockStyles {
 

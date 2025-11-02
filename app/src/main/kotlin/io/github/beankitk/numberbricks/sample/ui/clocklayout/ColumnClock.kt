@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.github.beankitk.numberbricks.defaultAnimationSpec
+import io.github.beankitk.numberbricks.utils.defaultAnimationSpec
 import io.github.beankitk.numberbricks.sample.data.ClockStyle
 import io.github.beankitk.numberbricks.sample.ui.widget.DigitRow
 

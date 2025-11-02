@@ -40,7 +40,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import io.github.beankitk.numberbricks.defaultAnimationSpec
+import io.github.beankitk.numberbricks.utils.defaultAnimationSpec
 import io.github.beankitk.numberbricks.sample.data.ClockStyles
 import io.github.beankitk.numberbricks.sample.ui.clocklayout.ColumnClock
 import io.github.beankitk.numberbricks.sample.ui.clocklayout.RowClock

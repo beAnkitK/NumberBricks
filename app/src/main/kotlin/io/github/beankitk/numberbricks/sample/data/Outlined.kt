@@ -8,7 +8,7 @@ import androidx.compose.ui.graphics.StampedPathEffectStyle
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
-import io.github.beankitk.numberbricks.DigitStyle
+import io.github.beankitk.numberbricks.core.DigitStyle
 import io.github.beankitk.numberbricks.sample.utils.getCirclePath
 import io.github.beankitk.numberbricks.sample.utils.getDoubleDashPath
 import io.github.beankitk.numberbricks.sample.utils.getSquarePath

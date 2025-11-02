@@ -3,7 +3,7 @@ package io.github.beankitk.numberbricks.sample.data
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import io.github.beankitk.numberbricks.DigitStyle
+import io.github.beankitk.numberbricks.core.DigitStyle
 
 open class MinimalStyle(
     clockId: Int,
