@@ -1,13 +1,8 @@
-package io.github.beankitk.numberbricks.block.data
+package io.github.beankitk.numberbricks.blockdigit.data.offsets
 
 import androidx.compose.ui.geometry.Offset
 
-interface BlockOffset<T> : DigitData<T> {
-    
-    fun offsetFor(digit: Int, index: Int): Offset
-}
-
-open class DefaultBlockOffset : BlockOffset<FloatArray> {
+open class DefaultOffset : BlockOffset<FloatArray> {
 
     override val digit0 = floatArrayOf(
         0f,0f, 1f,0f, 2f,0f,

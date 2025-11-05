@@ -1,9 +1,9 @@
-package io.github.beankitk.numberbricks.block
+package io.github.beankitk.numberbricks.blockdigit
 
 import androidx.compose.ui.geometry.Size
 import io.github.beankitk.numberbricks.core.BrickLayout
-import io.github.beankitk.numberbricks.block.data.BlockOffset
-import io.github.beankitk.numberbricks.block.data.BlockCorners
+import io.github.beankitk.numberbricks.blockdigit.data.offsets.BlockOffset
+import io.github.beankitk.numberbricks.blockdigit.data.corners.BlockCorners
 
 class BlockLayout(
     val blockOffset: BlockOffset<*>,

@@ -18,7 +18,8 @@ class ContentActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             AppTheme(dynamicColor = false) {
-                EditorScreen()
+                //EditorScreen()
+                HomeScreen()
             }
         }
     }

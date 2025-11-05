@@ -191,7 +191,7 @@ fun NumberBricks(
     digitBlendMode: BlendMode = BlendMode.SrcOver,
     animateDigits: Boolean = false,
     animationSpec: AnimationSpec<Float> = defaultAnimationSpec(),
-    animateOnFirstVisible: Boolean = false,
+    animateOnFirstVisible: Boolean = false
 ) {
     val digitStyle = DigitStyle(
         brush = SolidColor(digitColor),
@@ -209,7 +209,7 @@ fun NumberBricks(
         digitStyle = digitStyle,
         animateDigits = animateDigits,
         animationSpec = animationSpec,
-        animateOnFirstVisible = animateOnFirstVisible
+        animateOnFirstVisible = animateOnFirstVisible,
     )
 }
 

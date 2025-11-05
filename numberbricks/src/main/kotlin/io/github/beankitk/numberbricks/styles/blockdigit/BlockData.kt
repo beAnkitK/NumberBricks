@@ -1,12 +1,13 @@
-package io.github.beankitk.numberbricks.block
+package io.github.beankitk.numberbricks.blockdigit
 
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.lerp
 import io.github.beankitk.numberbricks.core.BrickData
-import io.github.beankitk.numberbricks.utils.ShapeRadius
-import io.github.beankitk.numberbricks.utils.lerp
+import io.github.beankitk.numberbricks.data.ShapeRadius
+import io.github.beankitk.numberbricks.data.lerp
+import kotlin.math.min
 
 class BlockData(
     val index: Int,
@@ -19,31 +20,28 @@ class BlockData(
         val width = size.width
         val height = size.height
         
+        val brickWidth = size.width / 3
+        val brickHeight = size.width / 5
+        
+        val radiusSize = min(brickWidth, brickHeight)
+        
         val animatedPos = lerp(position, end.position, progress)
         val animatedSize = lerp(brickSize, end.brickSize, progress)
         val animatedRadius = lerp(cornerRadius, end.cornerRadius, progress)
+        val topLeft = animatedRadius.topLeft * radiusSize
+        val topRight = animatedRadius.topRight * radiusSize
+        val bottomRight = animatedRadius.bottomRight * radiusSize
+        val bottomLeft = animatedRadius.bottomLeft * radiusSize
         
         return BlockData(
             index = index,
             position = Offset(animatedPos.x * width, animatedPos.y * height),
             brickSize = Size(animatedSize.width * width, animatedSize.height * height),
             cornerRadius = ShapeRadius(
-                topLeft = CornerRadius(
-                    animatedRadius.topLeft.x * width,
-                    animatedRadius.topLeft.y * height
-                ),
-                topRight = CornerRadius(
-                    animatedRadius.topRight.x * width,
-                    animatedRadius.topRight.y * height
-                ),
-                bottomRight = CornerRadius(
-                    animatedRadius.bottomRight.x * width,
-                    animatedRadius.bottomRight.y * height
-                ),
-                bottomLeft = CornerRadius(
-                    animatedRadius.bottomLeft.x * width,
-                    animatedRadius.bottomLeft.y * height
-                )
+                topLeft = topLeft,
+                topRight = topRight,
+                bottomRight = bottomRight,
+                bottomLeft = bottomLeft
             )
         )
     }

@@ -1,14 +1,9 @@
-package io.github.beankitk.numberbricks.block.data
+package io.github.beankitk.numberbricks.blockdigit.data.corners
 
 import androidx.compose.ui.geometry.CornerRadius
-import io.github.beankitk.numberbricks.utils.ShapeRadius
+import io.github.beankitk.numberbricks.data.ShapeRadius
 
-interface BlockCorners<T> : DigitData<T> {
-    
-    fun radiusFor(digit: Int, index: Int): ShapeRadius
-}
-
-open class DefaultBlockCorners: BlockCorners<FloatArray> {
+open class DefaultCorners: BlockCorners<FloatArray> {
 
     override val digit0 = FloatArray(52) { 0f }
 

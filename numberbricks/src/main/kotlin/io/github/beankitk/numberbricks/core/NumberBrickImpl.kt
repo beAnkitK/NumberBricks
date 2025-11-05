@@ -28,9 +28,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.beankitk.numberbricks.utils.animatableSaver
 
-import io.github.beankitk.numberbricks.block.BlockLayout
-import io.github.beankitk.numberbricks.block.data.DefaultBlockOffset
-import io.github.beankitk.numberbricks.block.data.DefaultBlockCorners
+import io.github.beankitk.numberbricks.blockdigit.BlockLayout
+import io.github.beankitk.numberbricks.blockdigit.data.offsets.DefaultOffset
+import io.github.beankitk.numberbricks.blockdigit.data.corners.DefaultCorners
 
 @Composable
 internal fun NumberBricksImpl(
@@ -41,15 +41,15 @@ internal fun NumberBricksImpl(
     digitStyle: DigitStyle,
     animateDigits: Boolean,
     animationSpec: AnimationSpec<Float>,
-    animateOnFirstVisible: Boolean,
+    animateOnFirstVisible: Boolean
 ) {
     require(digit in 0..9) {
         "The digit parameter accepts only values from 0 to 9, but got $digit"
     }
     
     val blockLayout = BlockLayout(
-        blockOffset = DefaultBlockOffset(),
-        blockRadius = DefaultBlockCorners()
+        blockOffset = DefaultOffset(),
+        blockRadius = DefaultCorners()
     )
     
     val totalWidth = brickWidth?.let { it * blockLayout.cols } ?: NumberbrickWidth
@@ -116,7 +116,17 @@ internal fun NumberBricksImpl(
                         val animatedBricks = startBricks[i].interpolateBySize(endBricks[i], progress.value, size)
                         val animatedOffset = animatedBricks.position
                         val animatedSize = animatedBricks.brickSize
-                        digitPath.addRect(Rect(animatedOffset, animatedSize))
+                        val animatedCorner = animatedBricks.cornerRadius
+                        
+                        val brickRect = Rect(animatedOffset, animatedSize)
+                        val roundedBrick = RoundRect(
+                            brickRect,
+                            animatedCorner.topLeft,
+                            animatedCorner.topRight,
+                            animatedCorner.bottomRight,
+                            animatedCorner.bottomLeft
+                        )
+                        digitPath.addRoundRect(roundedBrick)
                     }
                     drawPath(
                         path = digitPath,

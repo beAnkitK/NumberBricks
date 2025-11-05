@@ -1,4 +1,4 @@
-package io.github.beankitk.numberbricks.block.data
+package io.github.beankitk.numberbricks.data
 
 interface DigitData<T> {
     val digit0: T
