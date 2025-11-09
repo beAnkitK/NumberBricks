@@ -1,7 +1,10 @@
 package io.github.beankitk.numberbricks.blockdigit
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.lerp
 import io.github.beankitk.numberbricks.core.BrickData
@@ -9,40 +12,53 @@ import io.github.beankitk.numberbricks.data.ShapeRadius
 import io.github.beankitk.numberbricks.data.lerp
 import kotlin.math.min
 
-class BlockData(
-    val index: Int,
-    val position: Offset,
-    val brickSize: Size,
+@Immutable
+data class BlockData(
+    override val index: Int,
+    override val size: Size,
+    override val position: Offset,
     val cornerRadius: ShapeRadius
 ): BrickData<BlockData> {
 
-    override fun interpolateBySize(end: BlockData, progress: Float, size: Size,): BlockData {
-        val width = size.width
-        val height = size.height
+    override fun scaledBy(totalSize: Size, brickSize: Size): BlockData {
+        val width = brickSize.width
+        val height = brickSize.height
+        val radius = brickSize.minDimension
         
-        val brickWidth = size.width / 3
-        val brickHeight = size.width / 5
-        
-        val radiusSize = min(brickWidth, brickHeight)
-        
-        val animatedPos = lerp(position, end.position, progress)
-        val animatedSize = lerp(brickSize, end.brickSize, progress)
-        val animatedRadius = lerp(cornerRadius, end.cornerRadius, progress)
-        val topLeft = animatedRadius.topLeft * radiusSize
-        val topRight = animatedRadius.topRight * radiusSize
-        val bottomRight = animatedRadius.bottomRight * radiusSize
-        val bottomLeft = animatedRadius.bottomLeft * radiusSize
-        
-        return BlockData(
-            index = index,
-            position = Offset(animatedPos.x * width, animatedPos.y * height),
-            brickSize = Size(animatedSize.width * width, animatedSize.height * height),
+        return copy(
+            position = Offset(
+                x = position.x * width,
+                y = position.y * height
+            ),
+            size = Size(
+                width = size.width * width,
+                height = size.height * height
+            ),
             cornerRadius = ShapeRadius(
-                topLeft = topLeft,
-                topRight = topRight,
-                bottomRight = bottomRight,
-                bottomLeft = bottomLeft
+                topLeft = cornerRadius.topLeft * radius,
+                topRight = cornerRadius.topRight * radius,
+                bottomRight = cornerRadius.bottomRight * radius,
+                bottomLeft = cornerRadius.bottomLeft * radius
             )
         )
     }
+    
+    fun toRect() = Rect(position, size)
+    
+    fun toRoundRect() = RoundRect(
+        Rect(position, size),
+        cornerRadius.topLeft,
+        cornerRadius.topRight,
+        cornerRadius.bottomLeft,
+        cornerRadius.bottomRight
+    )
+}
+
+fun lerp(start: BlockData, end: BlockData, t: Float): BlockData {
+    return BlockData(
+        index = end.index,
+        size = lerp(start.size, end.size, t),
+        position = lerp(start.position, end.position, t),
+        cornerRadius = lerp(start.cornerRadius, end.cornerRadius, t)
+    )
 }

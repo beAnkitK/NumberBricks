@@ -1,7 +1,15 @@
 package io.github.beankitk.numberbricks.core
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 
 interface BrickData<T : BrickData<T>> {
-    fun interpolateBySize(end: T, progress: Float, size: Size): T
+    
+    val index: Int
+    
+    val size: Size
+    
+    val position: Offset
+    
+    fun scaledBy(totalSize:Size, brickSize: Size): T
 }

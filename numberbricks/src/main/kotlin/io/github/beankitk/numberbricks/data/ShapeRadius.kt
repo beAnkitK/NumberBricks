@@ -4,11 +4,12 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.lerp
 
+@Stable
 data class ShapeRadius(
-    val topLeft: CornerRadius,
-    val topRight: CornerRadius,
-    val bottomRight: CornerRadius,
-    val bottomLeft: CornerRadius
+    val topLeft: CornerRadius = CornerRadius.Zero,
+    val topRight: CornerRadius = CornerRadius.Zero,
+    val bottomRight: CornerRadius = CornerRadius.Zero,
+    val bottomLeft: CornerRadius = CornerRadius.Zero,
 ) {
     @Stable
     inline fun isCircular(): Boolean {
@@ -21,7 +22,12 @@ data class ShapeRadius(
     }
     
     companion object {
-        @Stable val Zero = all(0f)
+        @Stable val Zero = all(CornerRadius.Zero)
+        
+        @Stable
+        fun all(radius: CornerRadius) = ShapeRadius(
+            radius, radius, radius, radius
+        )
         
         @Stable
         fun all(radius: Float) = ShapeRadius(
@@ -33,6 +39,7 @@ data class ShapeRadius(
     }
 }
 
+@Stable
 fun ShapeRadius(tl: Float, tr: Float, br: Float, bl: Float) = 
     ShapeRadius(
         topLeft = CornerRadius(tl),
@@ -41,6 +48,7 @@ fun ShapeRadius(tl: Float, tr: Float, br: Float, bl: Float) =
         bottomLeft = CornerRadius(bl)
     )
 
+@Stable
 fun lerp(start: ShapeRadius, end: ShapeRadius, t: Float) =
     ShapeRadius(
         topLeft = lerp(start.topLeft, end.topLeft, t),

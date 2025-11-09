@@ -24,13 +24,17 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.DrawStyle
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.beankitk.numberbricks.utils.animatableSaver
 
 import io.github.beankitk.numberbricks.blockdigit.BlockLayout
-import io.github.beankitk.numberbricks.blockdigit.data.offsets.DefaultOffset
-import io.github.beankitk.numberbricks.blockdigit.data.corners.DefaultCorners
+import io.github.beankitk.numberbricks.blockdigit.data.corners.*
+import io.github.beankitk.numberbricks.blockdigit.data.offset.*
+import io.github.beankitk.numberbricks.blockdigit.data.size.*
+import io.github.beankitk.numberbricks.blockdigit.lerp
 
 @Composable
 internal fun NumberBricksImpl(
@@ -48,8 +52,9 @@ internal fun NumberBricksImpl(
     }
     
     val blockLayout = BlockLayout(
-        blockOffset = DefaultOffset(),
-        blockRadius = DefaultCorners()
+        offsetProvider = ClassicOffset(),
+        sizeProvider = DefaultSize.Full,
+        cornersProvider = DefaultCorners.Zero
     )
     
     val totalWidth = brickWidth?.let { it * blockLayout.cols } ?: NumberbrickWidth
@@ -61,9 +66,9 @@ internal fun NumberBricksImpl(
     
     val initialBricks = remember(wasFirstVisible, digit) {
         if (!wasFirstVisible) {
-            blockLayout.getBrickData(digit, true)
+            blockLayout.defaultBrickData(digit)
         } else {
-            blockLayout.getBrickData(digit, false)
+            blockLayout.brickDataFor(digit)
         }
     }
     
@@ -75,7 +80,7 @@ internal fun NumberBricksImpl(
             return@LaunchedEffect
         
         if (previousDigit != digit) {
-            val targetBricks = blockLayout.getBrickData(digit, false)
+            val targetBricks = blockLayout.brickDataFor(digit)
             endBricks.copyInto(startBricks)
             targetBricks.copyInto(endBricks)
             previousDigit = digit
@@ -110,23 +115,20 @@ internal fun NumberBricksImpl(
                 val colorFilter = digitStyle.colorFilter
                 val blendMode = digitStyle.blendMode
                 
+                val brickSize = Size(
+                    width = size.width / blockLayout.cols,
+                    height = size.height / blockLayout.rows
+                )
+                
                 onDrawBehind {
-                    digitPath.reset()
+                    digitPath.rewind()
                     for (i in 0 until blockLayout.brickCount) {
-                        val animatedBricks = startBricks[i].interpolateBySize(endBricks[i], progress.value, size)
-                        val animatedOffset = animatedBricks.position
-                        val animatedSize = animatedBricks.brickSize
-                        val animatedCorner = animatedBricks.cornerRadius
-                        
-                        val brickRect = Rect(animatedOffset, animatedSize)
-                        val roundedBrick = RoundRect(
-                            brickRect,
-                            animatedCorner.topLeft,
-                            animatedCorner.topRight,
-                            animatedCorner.bottomRight,
-                            animatedCorner.bottomLeft
-                        )
-                        digitPath.addRoundRect(roundedBrick)
+                        val animatedBricks = lerp(startBricks[i], endBricks[i], progress.value).scaledBy(size, brickSize)
+                        if(animatedBricks.cornerRadius.isZero()) {
+                            digitPath.addRect(animatedBricks.toRect())
+                        } else {
+                            digitPath.addRoundRect(animatedBricks.toRoundRect())
+                        }
                     }
                     drawPath(
                         path = digitPath,
@@ -137,6 +139,9 @@ internal fun NumberBricksImpl(
                         blendMode = blendMode
                     )
                 }
+            }
+            .semantics {
+                contentDescription = "$digit"
             }
     )
 }
