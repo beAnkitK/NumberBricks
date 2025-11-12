@@ -121,7 +121,7 @@ internal fun NumberBricksImpl(
                 )
                 
                 onDrawBehind {
-                    digitPath.rewind()
+                    digitPath.reset()
                     for (i in 0 until blockLayout.brickCount) {
                         val animatedBricks = lerp(startBricks[i], endBricks[i], progress.value).scaledBy(size, brickSize)
                         if(animatedBricks.cornerRadius.isZero()) {

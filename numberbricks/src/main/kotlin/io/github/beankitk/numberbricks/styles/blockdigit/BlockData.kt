@@ -20,6 +20,16 @@ data class BlockData(
     val cornerRadius: ShapeRadius
 ): BrickData<BlockData> {
 
+    private val asRect = Rect(position, size)
+
+    private val asRoundRect = RoundRect(
+        asRect,
+        cornerRadius.topLeft,
+        cornerRadius.topRight,
+        cornerRadius.bottomRight,
+        cornerRadius.bottomLeft
+    )
+
     override fun scaledBy(totalSize: Size, brickSize: Size): BlockData {
         val width = brickSize.width
         val height = brickSize.height
@@ -43,15 +53,9 @@ data class BlockData(
         )
     }
     
-    fun toRect() = Rect(position, size)
+    fun toRect() = asRect
     
-    fun toRoundRect() = RoundRect(
-        Rect(position, size),
-        cornerRadius.topLeft,
-        cornerRadius.topRight,
-        cornerRadius.bottomLeft,
-        cornerRadius.bottomRight
-    )
+    fun toRoundRect() = asRoundRect
 }
 
 fun lerp(start: BlockData, end: BlockData, t: Float): BlockData {

@@ -9,8 +9,8 @@ open class VariableSize(
 ): SizeProvider {
 
     override fun sizeFor(
-        digit: Int,
         index: Int,
+        digit: Int,
         position: Offset
     ) = Size(
         width = eachColWidths[position.x.toInt()],

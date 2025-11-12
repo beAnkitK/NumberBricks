@@ -7,7 +7,7 @@ open class DefaultSize private constructor(
     private val brickSize: Size
 ): SizeProvider {
 
-    override fun sizeFor(digit: Int, index: Int, position: Offset) = brickSize
+    override fun sizeFor(index: Int, digit: Int, position: Offset) = brickSize
     
     companion object {
         val Zero = DefaultSize(Size.Zero)

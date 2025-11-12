@@ -1,5 +1,6 @@
 package io.github.beankitk.numberbricks.blockdigit
 
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import io.github.beankitk.numberbricks.core.BrickLayout
 import io.github.beankitk.numberbricks.blockdigit.data.corners.CornersProvider
@@ -17,16 +18,19 @@ class BlockLayout(
     override val brickCount = 13
 
     override fun brickDataFor(digit: Int): Array<BlockData> {
-        return Array(brickCount) { index ->
+        val blockRects = Array(brickCount) { index ->
             val offset = offsetProvider.offsetFor(index, digit)
             val size = sizeProvider.sizeFor(index, digit, offset)
-            val cornerRadius = cornersProvider.radiusFor(index, digit)
-            
+            Rect(offset, size)
+        }
+        val cornersArray = cornersProvider.radiusFor(digit, blockRects)
+        
+        return Array(brickCount) { index ->
             BlockData(
                 index = index,
-                size = size,
-                position = offset,
-                cornerRadius = cornerRadius
+                size = blockRects[index].size,
+                position = blockRects[index].topLeft,
+                cornerRadius = cornersArray[index]
             )
         }
     }
