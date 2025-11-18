@@ -1,6 +1,6 @@
 package io.github.beankitk.numberbricks.blockdigit.data.offset
 
-open class MechaOffset : ClassicOffset() {
+class MechaOffset : ClassicOffset() {
 
     override val digit1 = arrayOf(
         g4, g2, g2,

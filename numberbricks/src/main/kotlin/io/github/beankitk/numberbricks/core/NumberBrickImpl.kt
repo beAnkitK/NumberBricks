@@ -31,10 +31,11 @@ import androidx.compose.ui.unit.dp
 import io.github.beankitk.numberbricks.utils.animatableSaver
 
 import io.github.beankitk.numberbricks.blockdigit.BlockLayout
+import io.github.beankitk.numberbricks.blockdigit.data.BlockLayoutData
 import io.github.beankitk.numberbricks.blockdigit.data.corners.*
 import io.github.beankitk.numberbricks.blockdigit.data.offset.*
 import io.github.beankitk.numberbricks.blockdigit.data.size.*
-import io.github.beankitk.numberbricks.blockdigit.lerp
+import io.github.beankitk.numberbricks.blockdigit.data.lerp
 
 @Composable
 internal fun NumberBricksImpl(
@@ -52,9 +53,10 @@ internal fun NumberBricksImpl(
     }
     
     val blockLayout = BlockLayout(
+        layoutData = BlockLayoutData.default,
         offsetProvider = ClassicOffset(),
-        sizeProvider = DefaultSize.Full,
-        cornersProvider = DefaultCorners.Zero
+        sizeProvider = DefaultSize.uniform(1f),
+        cornersProvider = DefaultCorners.zero
     )
     
     val totalWidth = brickWidth?.let { it * blockLayout.cols } ?: NumberbrickWidth

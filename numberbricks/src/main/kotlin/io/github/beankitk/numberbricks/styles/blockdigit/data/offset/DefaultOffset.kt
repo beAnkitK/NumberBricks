@@ -2,16 +2,19 @@ package io.github.beankitk.numberbricks.blockdigit.data.offset
 
 import androidx.compose.ui.geometry.Offset
 
-open class DefaultOffset private constructor(
+class DefaultOffset private constructor(
     private val offset: Offset
 ): OffsetProvider {
+    
+    override val rows = 0
+    override val cols = 0
+    override val brickCount = 0
+    override val isAdaptive = true
     
     override fun offsetFor(index: Int, digit: Int) = offset
     
     companion object {
-        val Zero = DefaultOffset(Offset.Zero)
-        val Center = DefaultOffset(Offset(1f, 2f))
-        val End = DefaultOffset(Offset(2f, 4f))
+        val zero = DefaultOffset(Offset.Zero)
         
         fun getFor(offset: Offset) = DefaultOffset(offset)
     }

@@ -6,9 +6,11 @@ import io.github.beankitk.numberbricks.data.CornerType
 import io.github.beankitk.numberbricks.data.CornerProfile
 import io.github.beankitk.numberbricks.data.DigitData
 import io.github.beankitk.numberbricks.data.ShapeRadius
+import io.github.beankitk.numberbricks.blockdigit.data.ProviderData
+import io.github.beankitk.numberbricks.blockdigit.data.createArray
 import io.github.beankitk.numberbricks.utils.CornerDetector
 
-interface CornersProvider {
+interface CornersProvider : ProviderData {
     
     fun radiusFor(digit: Int, bricks: Array<Rect>): Array<ShapeRadius>
 }
@@ -31,7 +33,8 @@ abstract class CustomCornerProvider(
     val blr = ShapeRadius(bottomLeft = cornerRadius, bottomRight = cornerRadius)
     val full = ShapeRadius.all(cornerRadius)
     
-    override val default = Array(13) { full }
+    final override val isAdaptive = false
+    override val default = createArray { full }
     
     override fun radiusFor(digit: Int, bricks: Array<Rect>) = this[digit]
     
@@ -40,6 +43,11 @@ abstract class CustomCornerProvider(
 abstract class AutoCornerProvider : CornersProvider {
 
     private val detector = CornerDetector()
+    
+    final override val rows = 0
+    final override val cols = 0
+    final override val brickCount = 0
+    final override val isAdaptive = true
     
     override fun radiusFor(digit: Int, bricks: Array<Rect>) =
         detectCornerFor(digit, bricks)

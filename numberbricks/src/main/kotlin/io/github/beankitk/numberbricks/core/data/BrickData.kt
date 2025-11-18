@@ -1,4 +1,4 @@
-package io.github.beankitk.numberbricks.core
+package io.github.beankitk.numberbricks.core.data
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size

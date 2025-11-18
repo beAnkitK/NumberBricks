@@ -1,6 +1,6 @@
 package io.github.beankitk.numberbricks.blockdigit.data.offset
 
-class AbstractOffset : BaseOffsetProvider() {
+class AbstractOffset : ClassicOffset() {
 
     override val digit0 = arrayOf(
         g1, g2, g2,

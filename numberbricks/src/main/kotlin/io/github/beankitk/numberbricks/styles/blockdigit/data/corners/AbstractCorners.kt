@@ -31,14 +31,14 @@ class AbstractCorners(
         }
 
     companion object {
-        val Squared = AbstractCorners()
+        val squared = AbstractCorners()
         
-        fun Rounded(
+        fun rounded(
             rX: Float = 0.5f,
             rY: Float = rX
         ) = AbstractCorners(outerRadius = CornerRadius(rX, rY))
         
-        fun Vintage(
+        fun vintage(
             r1: Float = 1f,
             r2: Float = 1f
         ) = AbstractCorners(

@@ -1,4 +1,4 @@
-package io.github.beankitk.numberbricks.blockdigit
+package io.github.beankitk.numberbricks.blockdigit.data
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.geometry.CornerRadius
@@ -7,7 +7,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.lerp
-import io.github.beankitk.numberbricks.core.BrickData
+import io.github.beankitk.numberbricks.core.data.BrickData
 import io.github.beankitk.numberbricks.data.ShapeRadius
 import io.github.beankitk.numberbricks.data.lerp
 import kotlin.math.min

@@ -1,12 +1,9 @@
 package io.github.beankitk.numberbricks.core
 
-interface BrickLayout<T : BrickData<T>> {
+import io.github.beankitk.numberbricks.core.data.BrickData
+import io.github.beankitk.numberbricks.core.data.LayoutData
 
-    val rows: Int
-    
-    val cols: Int
-    
-    val brickCount: Int
+interface BrickLayout<T : BrickData<T>> : LayoutData {
 
     fun brickDataFor(digit: Int): Array<T>
 

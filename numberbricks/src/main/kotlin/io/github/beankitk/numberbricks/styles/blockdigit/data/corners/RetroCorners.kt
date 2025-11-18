@@ -34,9 +34,9 @@ class RetroCorners(
     }
     
     companion object {
-        val Bubble = RetroCorners(CornerRadius(0.5f))
+        val bubble = RetroCorners(CornerRadius(0.5f))
         
-        fun SoloCurve(
+        fun soloCurve(
             outerRadius: Float = 0.2f,
             singleCornerRadius: Float = 0.85f
         ) = RetroCorners(CornerRadius(outerRadius), CornerRadius(singleCornerRadius))
