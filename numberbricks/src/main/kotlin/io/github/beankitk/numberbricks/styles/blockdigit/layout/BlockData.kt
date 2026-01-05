@@ -1,4 +1,4 @@
-package io.github.beankitk.numberbricks.blockdigit.data
+package io.github.beankitk.numberbricks.blockdigit.layout
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.geometry.CornerRadius
@@ -7,18 +7,19 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.lerp
-import io.github.beankitk.numberbricks.core.data.BrickData
+import io.github.beankitk.numberbricks.core.layout.BrickItem
 import io.github.beankitk.numberbricks.data.ShapeRadius
 import io.github.beankitk.numberbricks.data.lerp
 import kotlin.math.min
 
+//TODO Rename as BlockItem
 @Immutable
 data class BlockData(
     override val index: Int,
-    override val size: Size,
     override val position: Offset,
+    override val size: Size,
     val cornerRadius: ShapeRadius
-): BrickData<BlockData> {
+): BrickItem<BlockData> {
 
     private val asRect = Rect(position, size)
 

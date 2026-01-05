@@ -1,9 +1,9 @@
-package io.github.beankitk.numberbricks.core.data
+package io.github.beankitk.numberbricks.core.layout
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 
-interface BrickData<T : BrickData<T>> {
+interface BrickItem<T : BrickItem<T>> {
     
     val index: Int
     

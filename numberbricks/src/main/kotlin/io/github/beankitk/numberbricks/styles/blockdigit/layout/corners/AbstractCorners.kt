@@ -1,4 +1,4 @@
-package io.github.beankitk.numberbricks.blockdigit.data.corners
+package io.github.beankitk.numberbricks.blockdigit.layout.corners
 
 import androidx.compose.ui.geometry.CornerRadius
 import io.github.beankitk.numberbricks.data.CornerType

@@ -30,12 +30,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.beankitk.numberbricks.utils.animatableSaver
 
-import io.github.beankitk.numberbricks.blockdigit.BlockLayout
-import io.github.beankitk.numberbricks.blockdigit.data.BlockLayoutData
-import io.github.beankitk.numberbricks.blockdigit.data.corners.*
-import io.github.beankitk.numberbricks.blockdigit.data.offset.*
-import io.github.beankitk.numberbricks.blockdigit.data.size.*
-import io.github.beankitk.numberbricks.blockdigit.data.lerp
+import io.github.beankitk.numberbricks.core.layout.LayoutInfo
+import io.github.beankitk.numberbricks.blockdigit.layout.BlockLayout
+import io.github.beankitk.numberbricks.blockdigit.layout.corners.*
+import io.github.beankitk.numberbricks.blockdigit.layout.offset.*
+import io.github.beankitk.numberbricks.blockdigit.layout.size.*
+import io.github.beankitk.numberbricks.blockdigit.layout.lerp
 
 @Composable
 internal fun NumberBricksImpl(
@@ -53,29 +53,28 @@ internal fun NumberBricksImpl(
     }
     
     val blockLayout = BlockLayout(
-        layoutData = BlockLayoutData.default,
+        layoutInfo = LayoutInfo.of(rows = 5, cols = 3, bricks = 13),
         offsetProvider = ClassicOffset(),
         sizeProvider = DefaultSize.uniform(1f),
         cornersProvider = DefaultCorners.zero
     )
     
-    val totalWidth = brickWidth?.let { it * blockLayout.cols } ?: NumberbrickWidth
-    val totalHeight = brickHeight?.let { it * blockLayout.rows } ?: NumberbrickHeight
+    val totalWidth = brickWidth?.let { it * blockLayout.layoutInfo.colsCount } ?: NumberbrickWidth
+    val totalHeight = brickHeight?.let { it * blockLayout.layoutInfo.rowsCount } ?: NumberbrickHeight
     
     var previousDigit by rememberSaveable { mutableStateOf<Int?>(null) }
     var wasFirstVisible by rememberSaveable { mutableStateOf(false) }
     var progress = rememberSaveable(saver = animatableSaver) { Animatable(0f) }
     
-    val initialBricks = remember(wasFirstVisible, digit) {
-        if (!wasFirstVisible) {
-            blockLayout.defaultBrickData(digit)
-        } else {
-            blockLayout.brickDataFor(digit)
-        }
+    val initialBricks by remember(wasFirstVisible, digit) {
+        mutableStateOf(
+            if (!wasFirstVisible) blockLayout.defaultBrickData(digit)
+            else blockLayout.brickDataFor(digit)
+        )
     }
     
-    val startBricks = remember { Array(blockLayout.brickCount) { i -> initialBricks[i] } }
-    val endBricks = remember { Array(blockLayout.brickCount) { i -> initialBricks[i] } }
+    var startBricks by remember { mutableStateOf(initialBricks) }
+    var endBricks by remember { mutableStateOf(initialBricks) }
     
     LaunchedEffect(digit, animateDigits) {
         if (wasFirstVisible && previousDigit == digit && progress.value == 1f) 
@@ -83,8 +82,8 @@ internal fun NumberBricksImpl(
         
         if (previousDigit != digit) {
             val targetBricks = blockLayout.brickDataFor(digit)
-            endBricks.copyInto(startBricks)
-            targetBricks.copyInto(endBricks)
+            startBricks = endBricks
+            endBricks = targetBricks
             previousDigit = digit
         }
         
@@ -118,13 +117,13 @@ internal fun NumberBricksImpl(
                 val blendMode = digitStyle.blendMode
                 
                 val brickSize = Size(
-                    width = size.width / blockLayout.cols,
-                    height = size.height / blockLayout.rows
+                    width = size.width / blockLayout.layoutInfo.colsCount,
+                    height = size.height / blockLayout.layoutInfo.rowsCount
                 )
                 
                 onDrawBehind {
                     digitPath.reset()
-                    for (i in 0 until blockLayout.brickCount) {
+                    for (i in 0 until blockLayout.layoutInfo.brickCount) {
                         val animatedBricks = lerp(startBricks[i], endBricks[i], progress.value).scaledBy(size, brickSize)
                         if(animatedBricks.cornerRadius.isZero()) {
                             digitPath.addRect(animatedBricks.toRect())

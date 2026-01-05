@@ -1,8 +1,8 @@
-package io.github.beankitk.numberbricks.blockdigit.data.offset
+package io.github.beankitk.numberbricks.blockdigit.layout.offset
 
 class AbstractOffset : ClassicOffset() {
 
-    override val digit0 = arrayOf(
+    override val digit0 = listOf(
         g1, g2, g2,
         g4, g6,
         g7, g7, g9,
@@ -10,7 +10,7 @@ class AbstractOffset : ClassicOffset() {
         g14, g14, g15
     )
 
-    override val digit1 = arrayOf(
+    override val digit1 = listOf(
         g1, g1, g1,
         g5, g5,
         g8, g8, g8,
@@ -18,7 +18,7 @@ class AbstractOffset : ClassicOffset() {
         g13, g14, g15
     )
 
-    override val digit2 = arrayOf(
+    override val digit2 = listOf(
         g1, g2, g2,
         g6, g6,
         g7, g8, g9,
@@ -26,7 +26,7 @@ class AbstractOffset : ClassicOffset() {
         g14, g14, g15
     )
 
-    override val digit3 = arrayOf(
+    override val digit3 = listOf(
         g1, g2, g2,
         g6, g6,
         g8, g8, g8,
@@ -34,7 +34,7 @@ class AbstractOffset : ClassicOffset() {
         g13, g14, g14
     )
 
-    override val digit4 = arrayOf(
+    override val digit4 = listOf(
         g1, g1, g1,
         g4, g4,
         g7, g9, g9,
@@ -42,7 +42,7 @@ class AbstractOffset : ClassicOffset() {
         g15, g15, g15
     )
 
-    override val digit5 = arrayOf(
+    override val digit5 = listOf(
         g2, g2, g3,
         g4, g4,
         g7, g8, g9,
@@ -50,7 +50,7 @@ class AbstractOffset : ClassicOffset() {
         g13, g14, g14
     )
 
-    override val digit6 = arrayOf(
+    override val digit6 = listOf(
         g2, g2, g3,
         g4, g4,
         g7, g8, g9,
@@ -58,7 +58,7 @@ class AbstractOffset : ClassicOffset() {
         g14, g14, g15
     )
 
-    override val digit7 = arrayOf(
+    override val digit7 = listOf(
         g1, g2, g3,
         g6, g6,
         g8, g8, g8,
@@ -66,7 +66,7 @@ class AbstractOffset : ClassicOffset() {
         g13, g13, g13
     )
 
-    override val digit8 = arrayOf(
+    override val digit8 = listOf(
         g1, g2, g3,
         g4, g6,
         g8, g8, g8,
@@ -74,7 +74,7 @@ class AbstractOffset : ClassicOffset() {
         g13, g14, g15
     )
 
-    override val digit9 = arrayOf(
+    override val digit9 = listOf(
         g1, g2, g2,
         g4, g6,
         g7, g8, g9,
