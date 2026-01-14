@@ -10,7 +10,7 @@ class AbstractCorners(
     cornerRadius: CornerRadius = CornerRadius.Zero,
     jointRadius: CornerRadius = CornerRadius.Zero
 ): AutoCornerProvider() {
-    
+
     override val edgeRadius = CornerRadius.Zero
     override val outerRadius = outerRadius
     override val cornerNeighborRadius = cornerNeighborRadius
@@ -18,7 +18,7 @@ class AbstractCorners(
     override val jointInlineRadius = CornerRadius.Zero
     override val jointRadius = jointRadius
     override val innerRadius = CornerRadius.Zero
-    
+
     protected override fun modifyCornerProfile(
         digit: Int,
         index: Int,
@@ -32,12 +32,12 @@ class AbstractCorners(
 
     companion object {
         val squared = AbstractCorners()
-        
+
         fun rounded(
             rX: Float = 0.5f,
             rY: Float = rX
         ) = AbstractCorners(outerRadius = CornerRadius(rX, rY))
-        
+
         fun vintage(
             r1: Float = 1f,
             r2: Float = 1f

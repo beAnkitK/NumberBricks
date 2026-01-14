@@ -7,7 +7,8 @@ import androidx.compose.ui.geometry.CornerRadius
 import io.github.beankitk.numberbricks.core.layout.AdaptiveProvider
 import io.github.beankitk.numberbricks.core.layout.FixedProvider
 import io.github.beankitk.numberbricks.core.layout.LayoutProvider
-import io.github.beankitk.numberbricks.core.layout.LayoutScope
+import io.github.beankitk.numberbricks.core.layout.LayoutProperties
+import io.github.beankitk.numberbricks.core.layout.ProviderStore
 import io.github.beankitk.numberbricks.core.layout.ProviderKey
 import io.github.beankitk.numberbricks.blockdigit.layout.offset.OffsetProvider
 import io.github.beankitk.numberbricks.blockdigit.layout.size.SizeProvider
@@ -25,10 +26,14 @@ sealed interface CornersProvider : LayoutProvider<ShapeRadius> {
 
     abstract class Fixed: FixedProvider<ShapeRadius>(), CornersProvider {
         final override val key = CornersProvider.key
+
+        protected override fun onAttachWith(properties: LayoutProperties) {}
     }
 
     abstract class Adaptive: AdaptiveProvider<ShapeRadius>(), CornersProvider {
         final override val key = CornersProvider.key
+
+        protected override fun onAttachWith(properties: LayoutProperties) {}
     }
 }
 
@@ -52,7 +57,7 @@ abstract class CustomCornerProvider(
 
     override val dependsOn = emptySet<ProviderKey<*>>()
 
-    override fun LayoutScope.getOrComputeFor(digit: Int) = this@CustomCornerProvider[digit]
+    override fun getProviderData(digit: Int, providerStore: ProviderStore) = this@CustomCornerProvider[digit]
 
 }
 
@@ -63,10 +68,10 @@ abstract class AutoCornerProvider : CornersProvider.Adaptive() {
     override val dependsOn: Set<ProviderKey<*>>
         get() = setOf(OffsetProvider.key, SizeProvider.key)
 
-    override fun LayoutScope.getOrComputeFor(digit: Int): List<ShapeRadius> {
-        val offsetList = getProviderDataFor<Offset>(OffsetProvider.key)
-        val sizeList = getProviderDataFor<Size>(SizeProvider.key)
-        val rectsArray = Array(brickCount) { index -> Rect(offsetList[index], sizeList[index]) }
+    override fun getProviderData(digit: Int, providerStore: ProviderStore): List<ShapeRadius> {
+        val offsetList = providerStore.get<Offset>(OffsetProvider.key)
+        val sizeList = providerStore.get<Size>(SizeProvider.key)
+        val rectsArray = Array(config.bricks) { index -> Rect(offsetList[index], sizeList[index]) }
 
         return detectCornerFor(digit, rectsArray)
     }

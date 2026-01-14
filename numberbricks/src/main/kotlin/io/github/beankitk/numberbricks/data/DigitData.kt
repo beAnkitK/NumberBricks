@@ -12,7 +12,7 @@ interface DigitData<T> {
     val digit8: T
     val digit9: T
     val default: T
-    
+
     operator fun get(digit: Int) = 
          when (digit) {
             0 -> digit0

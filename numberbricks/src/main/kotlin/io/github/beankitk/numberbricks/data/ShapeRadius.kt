@@ -15,20 +15,20 @@ data class ShapeRadius(
     inline fun isCircular(): Boolean {
         return topLeft.isCircular() && topRight.isCircular() && bottomRight.isCircular() && bottomLeft.isCircular()
     }
-    
+
     @Stable
     inline fun isZero(): Boolean {
         return topLeft.isZero() && topRight.isZero() && bottomRight.isZero() && bottomLeft.isZero()
     }
-    
+
     companion object {
         @Stable val Zero = all(CornerRadius.Zero)
-        
+
         @Stable
         fun all(radius: CornerRadius) = ShapeRadius(
             radius, radius, radius, radius
         )
-        
+
         @Stable
         fun all(radius: Float) = ShapeRadius(
             CornerRadius(radius, radius),

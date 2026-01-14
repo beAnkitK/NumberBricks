@@ -7,9 +7,9 @@ interface BrickItem<T : BrickItem<T>> {
     
     val index: Int
     
-    val size: Size
+    val offset: Offset
     
-    val position: Offset
+    val size: Size
     
     fun scaledBy(totalSize:Size, brickSize: Size): T
 }

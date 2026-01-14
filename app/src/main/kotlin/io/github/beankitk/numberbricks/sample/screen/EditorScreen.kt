@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.beankitk.numberbricks.NumberBricks
+import kotlin.random.Random
 import kotlinx.coroutines.delay
 
 @Composable
@@ -37,7 +38,7 @@ fun EditorScreen(
     var isDecrease by remember { mutableStateOf(false) }
     var isRunning by remember { mutableStateOf(true) }
     var digit by rememberSaveable { mutableIntStateOf(0) }
-    
+
     LaunchedEffect(isRunning, isDecrease) {
         while (isRunning) {
             delay(1000)
@@ -48,34 +49,46 @@ fun EditorScreen(
             }
         }
     }
-    
+
     Column(
         modifier = modifier
             .background(MaterialTheme.colorScheme.surface)
             .fillMaxSize()
             .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         NumberBricks(
-            digit = digit % 10,
+            digit = digit,
             brickWidth = 23.dp,
             brickHeight = 23.dp,
             digitColor = MaterialTheme.colorScheme.primary,
             animateDigits = animateDigit,
             animateOnFirstVisible = animateOnFirstShown
         )
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        Button(
-            onClick = { isRunning = !isRunning }
+
+        Text(
+            text = "Current Digit = $digit",
+            color = MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.bodyLarge
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(if (isRunning) "Stop" else "Resume")
+            Button(onClick = {
+                digit = Random.nextInt(0, 9999)
+            }) { Text("Ramdom Number") }
+
+            Button(onClick = {
+                isRunning = !isRunning
+            }) {
+                Text(if (isRunning) "Stop" else "Resume")
+            }
         }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -91,9 +104,7 @@ fun EditorScreen(
                 onCheckedChange = { animateDigit = it }
             )  
         }
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,

@@ -12,16 +12,15 @@ import io.github.beankitk.numberbricks.data.ShapeRadius
 import io.github.beankitk.numberbricks.data.lerp
 import kotlin.math.min
 
-//TODO Rename as BlockItem
 @Immutable
-data class BlockData(
+data class BlockItem(
     override val index: Int,
-    override val position: Offset,
+    override val offset: Offset,
     override val size: Size,
     val cornerRadius: ShapeRadius
-): BrickItem<BlockData> {
+): BrickItem<BlockItem> {
 
-    private val asRect = Rect(position, size)
+    private val asRect = Rect(offset, size)
 
     private val asRoundRect = RoundRect(
         asRect,
@@ -31,15 +30,15 @@ data class BlockData(
         cornerRadius.bottomLeft
     )
 
-    override fun scaledBy(totalSize: Size, brickSize: Size): BlockData {
+    override fun scaledBy(totalSize: Size, brickSize: Size): BlockItem {
         val width = brickSize.width
         val height = brickSize.height
         val radius = brickSize.minDimension
-        
+
         return copy(
-            position = Offset(
-                x = position.x * width,
-                y = position.y * height
+            offset = Offset(
+                x = offset.x * width,
+                y = offset.y * height
             ),
             size = Size(
                 width = size.width * width,
@@ -53,17 +52,17 @@ data class BlockData(
             )
         )
     }
-    
+
     fun toRect() = asRect
-    
+
     fun toRoundRect() = asRoundRect
 }
 
-fun lerp(start: BlockData, end: BlockData, t: Float): BlockData {
-    return BlockData(
+fun lerp(start: BlockItem, end: BlockItem, t: Float): BlockItem {
+    return BlockItem(
         index = end.index,
         size = lerp(start.size, end.size, t),
-        position = lerp(start.position, end.position, t),
+        offset = lerp(start.offset, end.offset, t),
         cornerRadius = lerp(start.cornerRadius, end.cornerRadius, t)
     )
 }

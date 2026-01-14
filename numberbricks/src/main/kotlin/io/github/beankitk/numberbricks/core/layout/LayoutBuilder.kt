@@ -1,62 +1,115 @@
 package io.github.beankitk.numberbricks.core.layout
 
 interface LayoutBuilder<T : BrickItem<T>> {
-    
-    val layoutScope: LayoutScope
-    
-    val layoutInfo: LayoutInfo
-    
-    fun brickDataFor(digit: Int): List<T>
 
-    fun defaultBrickData(digit: Int): List<T>
-    
-    fun dispose()
+    fun construct(properties: LayoutProperties)
+
+    fun bindProviders(properties: LayoutProperties)
+
+    fun getBrickItemsFor(digit: Int): List<T>
+
+    fun defaultBrickItems(): List<T>
+
+    fun destruct()
 }
 
-abstract class BrickLayoutBuilder<T : BrickItem<T>>(
-    layoutInfo: LayoutInfo
-): LayoutBuilder<T> {
+abstract class BrickLayoutBuilder<T : BrickItem<T>> : LayoutBuilder<T> {
 
-    private val providers = mutableMapOf<ProviderKey<*>, LayoutProvider<*>>()
-    private val _layoutScope = LayoutScopeImpl(layoutInfo)
+    private var isConstructed = false
+    private val providersRegistry = mutableListOf<LayoutProvider<*>>()
+    private var executionOrder: List<LayoutProvider<*>> = emptyList()
+    private lateinit var properties: LayoutProperties
 
-    override val layoutScope: LayoutScope
-        get() = _layoutScope
-
-    override val layoutInfo = layoutScope.layoutInfo
-
-    protected fun <P> registerProvider(provider: LayoutProvider<P>) {
-        require(providers.none { it.key == provider.key }) {
-            "Provider with ${provider.key.id} already registered"
-        }
-        require(provider.matchesWith(layoutScope.layoutInfo)) {
-            "Provider '${provider.key.id}' is incompatible with layout"
-        }
-        providers[provider.key] = provider
+    override fun construct(properties: LayoutProperties) {
+        require(!isConstructed) { "Builder already constructed" }
+        this.properties = properties
+        bindProviders(properties)
+        executionOrder = computeExecutionOrder()
+        providersRegistry.forEach { it.attachWith(properties) }
+        isConstructed = true
     }
 
-    override fun brickDataFor(digit: Int): List<T> {
-        layoutScope.updateDigit(digit)
+    final override fun getBrickItemsFor(digit: Int): List<T> {
+        checkConstructed()
+        val providerStore = DefaultProviderStore(digit, properties.config)
+        executionOrder.forEach { provider ->
+            computeDataFor(digit, provider, providerStore)
+        }
+        return buildBricksFor(digit, providerStore)
+    }
 
-        providers.forEach { key, provider ->
-            val providerData = with(provider) { layoutScope.getOrComputeFor(digit) }
-            //layoutScope.putProviderDataFor(key, providerData)
-            
-            @Suppress("UNCHECKED_CAST")
-            layoutScope.putProviderDataFor(
-                key as ProviderKey<Any?>,
-                providerData as List<Any?>
-            )
+    //TODO: Add digit parameter to return digit aware deafult bricks
+    final override fun defaultBrickItems(): List<T> {
+        checkConstructed()
+        return getBrickItemsFor(-1)
+    }
+
+    override fun destruct() {
+        providersRegistry.clear()
+        executionOrder = emptyList()
+        isConstructed = false
+    }
+
+    protected final fun <P> registerProvider(provider: LayoutProvider<P>) {
+        require(!isConstructed) { "Cannot register providers after construction" }
+        require(providersRegistry.none { it.key == provider.key }) {
+            "Provider with ${provider.key} already registered"
         }
 
-        return buildBrickData(digit)
+        val providerConsent = provider.matchesWith(properties)
+        if (providerConsent.hasRejected()) {
+            error(providerConsent.getRejectionReason() ?:
+                "Provider '${provider.key}' incompatible with layout")
+        }
+
+        providersRegistry.add(provider)
     }
 
-    override fun dispose() {
-        layoutScope.clearProviderData()
-        providers.clear()
+    private fun <P> computeDataFor(
+        digit: Int,
+        provider: LayoutProvider<P>,
+        providerStore: DefaultProviderStore
+    ) {
+        val providerData = provider.getProviderData(digit, providerStore)
+        providerStore.store<P>(provider.key, providerData)
     }
 
-    abstract override fun defaultBrickData(digit: Int): List<T>
-    protected abstract fun buildBrickData(digit: Int): List<T>
+    private fun computeExecutionOrder(): List<LayoutProvider<*>> {
+        if (providersRegistry.all { it.dependsOn.isEmpty() }) {
+            return providersRegistry.toList()
+        }
+
+        val providersByKey = providersRegistry.associateBy { it.key }
+        val visitedProviders = mutableMapOf<ProviderKey<*>, VisitState>()
+        val orderedProvider = mutableListOf<LayoutProvider<*>>()
+
+        fun dfs(key: ProviderKey<*>) {
+            when (visitedProviders[key]) {
+                VisitState.VISITING -> error("Failed due to cyclic provider dependency detected at $key")
+                VisitState.VISITED -> return
+                else -> { /* continue */ }
+            }
+
+            visitedProviders[key] = VisitState.VISITING
+            val provider = providersByKey[key] ?: error("Unknown provider dependency: $key")
+            provider.dependsOn.forEach { depKey -> dfs(depKey) }
+            visitedProviders[key] = VisitState.VISITED
+            orderedProvider.add(provider)
+        }
+
+        providersByKey.keys.forEach { key ->
+            if (visitedProviders[key] == null) dfs(key)
+        }
+
+        return orderedProvider
+    }
+
+    private enum class VisitState { VISITING, VISITED }
+
+    private fun checkConstructed() {
+        require(isConstructed) { "Builder not constructed. Call construct() first" }
+    }
+
+    protected abstract fun buildBricksFor(digit: Int, store: ProviderStore): List<T>
+    //protected abstract fun buildDefaultBricks(digit: Int): List<T>
 }

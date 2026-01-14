@@ -1,15 +1,16 @@
 package io.github.beankitk.numberbricks.blockdigit.layout.offset
 
 import androidx.compose.ui.geometry.Offset
-import io.github.beankitk.numberbricks.core.layout.LayoutScope
+import io.github.beankitk.numberbricks.core.layout.LayoutConfig
+import io.github.beankitk.numberbricks.core.layout.ProviderStore
 import io.github.beankitk.numberbricks.core.layout.ProviderKey
 import io.github.beankitk.numberbricks.data.DigitData
 
 open class ClassicOffset : OffsetProvider.Fixed(), DigitData<List<Offset>> {
 
-    final override val rowsCount = 5
-    final override val colsCount = 3
-    final override val brickCount = 13
+    final override val config = LayoutConfig.of(
+        rows = 5, cols = 3, bricks = 13
+    )
 
     private val x0 = 0f * CELL
     private val x1 = 1f * CELL
@@ -127,7 +128,7 @@ open class ClassicOffset : OffsetProvider.Fixed(), DigitData<List<Offset>> {
 
     override val dependsOn = emptySet<ProviderKey<*>>()
     
-    override fun LayoutScope.getOrComputeFor(digit: Int): List<Offset> =
+    override fun getProviderData(digit: Int, providerStore: ProviderStore): List<Offset> =
         this@ClassicOffset[digit]
 }
 

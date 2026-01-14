@@ -38,6 +38,7 @@ android {
 
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.collection)
     implementation(libs.compose.animation.core)
     implementation(libs.compose.foundation)
     implementation(libs.compose.runtime)

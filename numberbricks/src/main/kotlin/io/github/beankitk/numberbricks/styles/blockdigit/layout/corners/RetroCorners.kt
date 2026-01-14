@@ -9,7 +9,7 @@ class RetroCorners(
     outerRadius: CornerRadius,
     private val singleCornerRadius: CornerRadius = outerRadius
 ): AutoCornerProvider() {
-    
+
     override val edgeRadius = CornerRadius.Zero
     override val outerRadius = outerRadius
     override val cornerNeighborRadius = CornerRadius.Zero
@@ -17,7 +17,7 @@ class RetroCorners(
     override val jointInlineRadius = CornerRadius.Zero
     override val jointRadius = CornerRadius.Zero
     override val innerRadius = CornerRadius.Zero
-    
+
     protected override fun modifyShapeRadius(
         digit: Int,
         index: Int,
@@ -32,10 +32,10 @@ class RetroCorners(
             )
         else this
     }
-    
+
     companion object {
         val bubble = RetroCorners(CornerRadius(0.5f))
-        
+
         fun soloCurve(
             outerRadius: Float = 0.2f,
             singleCornerRadius: Float = 0.85f

@@ -1,7 +1,7 @@
 package io.github.beankitk.numberbricks.blockdigit.layout.offset
 
 import androidx.compose.ui.geometry.Offset
-import io.github.beankitk.numberbricks.core.layout.LayoutScope
+import io.github.beankitk.numberbricks.core.layout.ProviderStore
 import io.github.beankitk.numberbricks.core.layout.ProviderKey
 
 class DefaultOffset private constructor(
@@ -12,8 +12,8 @@ class DefaultOffset private constructor(
 
     override val dependsOn = emptySet<ProviderKey<*>>()
 
-    override fun LayoutScope.getOrComputeFor(digit: Int): List<Offset> {
-        return cachedOffsets ?: List(brickCount) { offset }.also {
+    override fun getProviderData(digit: Int, providerStore: ProviderStore): List<Offset> {
+        return cachedOffsets ?: List(config.bricks) { offset }.also {
             cachedOffsets = it
         }
     }
