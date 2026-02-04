@@ -1,47 +1,47 @@
-package io.github.beankitk.numberbricks.core.layout
+package io.github.beankitk.numberbricks.core.geometry
 
-interface LayoutBuilder<T : BrickItem<T>> {
+interface DigitBuilder<T : Brick<T>> {
 
-    fun construct(properties: LayoutProperties)
+    fun construct(properties: GeometryProps)
 
-    fun bindProviders(properties: LayoutProperties)
+    fun bindProviders()
 
-    fun getBrickItemsFor(digit: Int): List<T>
+    fun getBricksFor(digit: Int): List<T>
 
-    fun defaultBrickItems(): List<T>
+    fun defaultBricks(): List<T>
 
     fun destruct()
 }
 
-abstract class BrickLayoutBuilder<T : BrickItem<T>> : LayoutBuilder<T> {
+abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
 
     private var isConstructed = false
-    private val providersRegistry = mutableListOf<LayoutProvider<*>>()
-    private var executionOrder: List<LayoutProvider<*>> = emptyList()
-    private lateinit var properties: LayoutProperties
+    private val providersRegistry = mutableListOf<GeometryProvider<*>>()
+    private var executionOrder: List<GeometryProvider<*>> = emptyList()
+    protected lateinit var properties: GeometryProps
 
-    override fun construct(properties: LayoutProperties) {
+    override fun construct(properties: GeometryProps) {
         require(!isConstructed) { "Builder already constructed" }
         this.properties = properties
-        bindProviders(properties)
+        bindProviders()
         executionOrder = computeExecutionOrder()
         providersRegistry.forEach { it.attachWith(properties) }
         isConstructed = true
     }
 
-    final override fun getBrickItemsFor(digit: Int): List<T> {
+    final override fun getBricksFor(digit: Int): List<T> {
         checkConstructed()
         val providerStore = DefaultProviderStore(digit, properties.config)
         executionOrder.forEach { provider ->
             computeDataFor(digit, provider, providerStore)
         }
-        return buildBricksFor(digit, providerStore)
+        return buildBricks(digit, providerStore)
     }
 
     //TODO: Add digit parameter to return digit aware deafult bricks
-    final override fun defaultBrickItems(): List<T> {
+    final override fun defaultBricks(): List<T> {
         checkConstructed()
-        return getBrickItemsFor(-1)
+        return getBricksFor(-1)
     }
 
     override fun destruct() {
@@ -50,7 +50,7 @@ abstract class BrickLayoutBuilder<T : BrickItem<T>> : LayoutBuilder<T> {
         isConstructed = false
     }
 
-    protected final fun <P> registerProvider(provider: LayoutProvider<P>) {
+    protected final fun <P> registerProvider(provider: GeometryProvider<P>) {
         require(!isConstructed) { "Cannot register providers after construction" }
         require(providersRegistry.none { it.key == provider.key }) {
             "Provider with ${provider.key} already registered"
@@ -67,21 +67,21 @@ abstract class BrickLayoutBuilder<T : BrickItem<T>> : LayoutBuilder<T> {
 
     private fun <P> computeDataFor(
         digit: Int,
-        provider: LayoutProvider<P>,
+        provider: GeometryProvider<P>,
         providerStore: DefaultProviderStore
     ) {
         val providerData = provider.getProviderData(digit, providerStore)
         providerStore.store<P>(provider.key, providerData)
     }
 
-    private fun computeExecutionOrder(): List<LayoutProvider<*>> {
+    private fun computeExecutionOrder(): List<GeometryProvider<*>> {
         if (providersRegistry.all { it.dependsOn.isEmpty() }) {
             return providersRegistry.toList()
         }
 
         val providersByKey = providersRegistry.associateBy { it.key }
         val visitedProviders = mutableMapOf<ProviderKey<*>, VisitState>()
-        val orderedProvider = mutableListOf<LayoutProvider<*>>()
+        val orderedProvider = mutableListOf<GeometryProvider<*>>()
 
         fun dfs(key: ProviderKey<*>) {
             when (visitedProviders[key]) {
@@ -110,6 +110,6 @@ abstract class BrickLayoutBuilder<T : BrickItem<T>> : LayoutBuilder<T> {
         require(isConstructed) { "Builder not constructed. Call construct() first" }
     }
 
-    protected abstract fun buildBricksFor(digit: Int, store: ProviderStore): List<T>
+    protected abstract fun buildBricks(digit: Int, store: ProviderStore): List<T>
     //protected abstract fun buildDefaultBricks(digit: Int): List<T>
 }

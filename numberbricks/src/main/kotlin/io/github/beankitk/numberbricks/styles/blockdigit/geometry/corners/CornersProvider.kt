@@ -1,24 +1,24 @@
-package io.github.beankitk.numberbricks.blockdigit.layout.corners
+package io.github.beankitk.numberbricks.blockdigit.geometry.corners
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.CornerRadius
-import io.github.beankitk.numberbricks.core.layout.AdaptiveProvider
-import io.github.beankitk.numberbricks.core.layout.FixedProvider
-import io.github.beankitk.numberbricks.core.layout.LayoutProvider
-import io.github.beankitk.numberbricks.core.layout.LayoutProperties
-import io.github.beankitk.numberbricks.core.layout.ProviderStore
-import io.github.beankitk.numberbricks.core.layout.ProviderKey
-import io.github.beankitk.numberbricks.blockdigit.layout.offset.OffsetProvider
-import io.github.beankitk.numberbricks.blockdigit.layout.size.SizeProvider
+import io.github.beankitk.numberbricks.core.geometry.AdaptiveProvider
+import io.github.beankitk.numberbricks.core.geometry.FixedProvider
+import io.github.beankitk.numberbricks.core.geometry.GeometryProvider
+import io.github.beankitk.numberbricks.core.geometry.GeometryProps
+import io.github.beankitk.numberbricks.core.geometry.ProviderStore
+import io.github.beankitk.numberbricks.core.geometry.ProviderKey
+import io.github.beankitk.numberbricks.blockdigit.geometry.offset.OffsetProvider
+import io.github.beankitk.numberbricks.blockdigit.geometry.size.SizeProvider
 import io.github.beankitk.numberbricks.data.CornerType
 import io.github.beankitk.numberbricks.data.CornerProfile
 import io.github.beankitk.numberbricks.data.DigitData
 import io.github.beankitk.numberbricks.data.ShapeRadius
 import io.github.beankitk.numberbricks.utils.CornerDetector
 
-sealed interface CornersProvider : LayoutProvider<ShapeRadius> {
+sealed interface CornersProvider : GeometryProvider<ShapeRadius> {
 
     companion object {
         val key = ProviderKey<ShapeRadius>("provider.corners.base")
@@ -27,13 +27,13 @@ sealed interface CornersProvider : LayoutProvider<ShapeRadius> {
     abstract class Fixed: FixedProvider<ShapeRadius>(), CornersProvider {
         final override val key = CornersProvider.key
 
-        protected override fun onAttachWith(properties: LayoutProperties) {}
+        protected override fun onAttachWith(properties: GeometryProps) {}
     }
 
     abstract class Adaptive: AdaptiveProvider<ShapeRadius>(), CornersProvider {
         final override val key = CornersProvider.key
 
-        protected override fun onAttachWith(properties: LayoutProperties) {}
+        protected override fun onAttachWith(properties: GeometryProps) {}
     }
 }
 
@@ -71,7 +71,7 @@ abstract class AutoCornerProvider : CornersProvider.Adaptive() {
     override fun getProviderData(digit: Int, providerStore: ProviderStore): List<ShapeRadius> {
         val offsetList = providerStore.get<Offset>(OffsetProvider.key)
         val sizeList = providerStore.get<Size>(SizeProvider.key)
-        val rectsArray = Array(config.bricks) { index -> Rect(offsetList[index], sizeList[index]) }
+        val rectsArray = Array(providerConfig.bricks) { index -> Rect(offsetList[index], sizeList[index]) }
 
         return detectCornerFor(digit, rectsArray)
     }

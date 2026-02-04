@@ -1,4 +1,4 @@
-package io.github.beankitk.numberbricks.blockdigit.layout
+package io.github.beankitk.numberbricks.blockdigit.geometry
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.geometry.CornerRadius
@@ -7,18 +7,18 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.lerp
-import io.github.beankitk.numberbricks.core.layout.BrickItem
+import io.github.beankitk.numberbricks.core.geometry.Brick
 import io.github.beankitk.numberbricks.data.ShapeRadius
 import io.github.beankitk.numberbricks.data.lerp
 import kotlin.math.min
 
 @Immutable
-data class BlockItem(
+data class Block(
     override val index: Int,
     override val offset: Offset,
     override val size: Size,
     val cornerRadius: ShapeRadius
-): BrickItem<BlockItem> {
+): Brick<Block> {
 
     private val asRect = Rect(offset, size)
 
@@ -30,7 +30,7 @@ data class BlockItem(
         cornerRadius.bottomLeft
     )
 
-    override fun scaledBy(totalSize: Size, brickSize: Size): BlockItem {
+    override fun scaledBy(totalSize: Size, brickSize: Size): Block {
         val width = brickSize.width
         val height = brickSize.height
         val radius = brickSize.minDimension
@@ -58,8 +58,8 @@ data class BlockItem(
     fun toRoundRect() = asRoundRect
 }
 
-fun lerp(start: BlockItem, end: BlockItem, t: Float): BlockItem {
-    return BlockItem(
+fun lerp(start: Block, end: Block, t: Float): Block {
+    return Block(
         index = end.index,
         size = lerp(start.size, end.size, t),
         offset = lerp(start.offset, end.offset, t),

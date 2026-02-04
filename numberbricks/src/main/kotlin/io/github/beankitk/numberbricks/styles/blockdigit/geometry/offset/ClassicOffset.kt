@@ -1,14 +1,15 @@
-package io.github.beankitk.numberbricks.blockdigit.layout.offset
+package io.github.beankitk.numberbricks.blockdigit.geometry.offset
 
 import androidx.compose.ui.geometry.Offset
-import io.github.beankitk.numberbricks.core.layout.LayoutConfig
-import io.github.beankitk.numberbricks.core.layout.ProviderStore
-import io.github.beankitk.numberbricks.core.layout.ProviderKey
+import io.github.beankitk.numberbricks.core.geometry.GridConfig
+import io.github.beankitk.numberbricks.core.geometry.ProviderStore
+import io.github.beankitk.numberbricks.core.geometry.ProviderKey
+import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 import io.github.beankitk.numberbricks.data.DigitData
 
 open class ClassicOffset : OffsetProvider.Fixed(), DigitData<List<Offset>> {
 
-    final override val config = LayoutConfig.of(
+    final override val providerConfig = GridConfig(
         rows = 5, cols = 3, bricks = 13
     )
 
@@ -38,13 +39,7 @@ open class ClassicOffset : OffsetProvider.Fixed(), DigitData<List<Offset>> {
     protected val g14 = Offset(x1, y4)
     protected val g15 = Offset(x2, y4)
 
-    override val default = listOf(
-        g8, g8, g8,
-        g8, g8,
-        g8, g8, g8,
-        g8, g8,
-        g8, g8, g8
-    )
+    override val default = buildProviderData { g8 }
 
     override val digit0 = listOf(
         g1, g2, g3,

@@ -1,4 +1,4 @@
-package io.github.beankitk.numberbricks.core.layout
+package io.github.beankitk.numberbricks.core.geometry
 
 @JvmInline
 value class ProviderKey<T>(val id: String) {

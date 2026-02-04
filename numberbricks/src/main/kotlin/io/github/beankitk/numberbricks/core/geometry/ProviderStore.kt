@@ -1,10 +1,10 @@
-package io.github.beankitk.numberbricks.core.layout
+package io.github.beankitk.numberbricks.core.geometry
 
 interface ProviderStore {
 
     val digit: Int
 
-    val config: LayoutConfig
+    val layoutConfig: GridConfig
 
     fun <T> has(key: ProviderKey<T>): Boolean
 
@@ -13,7 +13,7 @@ interface ProviderStore {
 
 class DefaultProviderStore(
     override val digit: Int,
-    override val config: LayoutConfig
+    override val layoutConfig: GridConfig
 ) : ProviderStore {
 
     private val providerDataStore = mutableMapOf<ProviderKey<*>, List<*>>()
@@ -28,8 +28,8 @@ class DefaultProviderStore(
     }
 
     internal fun <T> store(key: ProviderKey<T>, providerData: List<T>) {
-        require(providerData.size == config.bricks) {
-            "Provider data list must have $config.bricks size, but was ${providerData.size} for $key"
+        require(providerData.size == layoutConfig.bricks) {
+            "Provider data list must have $layoutConfig.bricks size, but was ${providerData.size} for $key"
         }
         providerDataStore[key] = providerData
     }

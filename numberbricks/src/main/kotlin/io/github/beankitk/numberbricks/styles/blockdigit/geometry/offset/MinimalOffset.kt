@@ -1,4 +1,4 @@
-package io.github.beankitk.numberbricks.blockdigit.layout.offset
+package io.github.beankitk.numberbricks.blockdigit.geometry.offset
 
 class MinimalOffset : ClassicOffset() {
 

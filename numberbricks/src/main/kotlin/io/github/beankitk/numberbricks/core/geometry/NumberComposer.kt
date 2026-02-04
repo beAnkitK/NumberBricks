@@ -1,4 +1,4 @@
-package io.github.beankitk.numberbricks.core.layout
+package io.github.beankitk.numberbricks.core.geometry
 
 import androidx.collection.IntList
 import androidx.collection.IntObjectMap
@@ -16,21 +16,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.util.packInts
-import io.github.beankitk.numberbricks.core.layout.internal.DigitEntryList
+import io.github.beankitk.numberbricks.core.internal.DigitSlotList
 import kotlin.math.absoluteValue
 
-interface LayoutComposer<T : BrickItem<T>> {
+interface NumberComposer<T : Brick<T>> {
 
     val currentNumber: Int
 
     val previousNumber: Int?
 
-    val properties: LayoutProperties
+    val properties: GeometryProps
 
-    val layoutConfig: LayoutConfig
+    val layoutConfig: GridConfig
 
-    val layoutBuilder: LayoutBuilder<T>
+    val digitBuilder: DigitBuilder<T>
 
     val digitSequence: IntArray
 
@@ -40,29 +39,29 @@ interface LayoutComposer<T : BrickItem<T>> {
 
     fun getDigitCount(): Int
 
-    fun getDigitEntryAt(index: Int): DigitEntry?
+    fun getDigitSlotAt(index: Int): DigitSlot?
 
-    fun getBrickItems(digit: Int): List<T>?
+    fun getBricksFor(digit: Int): List<T>?
 
-    fun getDefaultBrickItems(): List<T>
+    fun getDefaultBricks(): List<T>
 
     fun dispose()
 }
 
-class DefaultLayoutComposer<T : BrickItem<T>>(
+class DefaultNumberComposer<T : Brick<T>>(
     initialNumber: Int,
-    override val properties: LayoutProperties,
-    override val layoutBuilder: LayoutBuilder<T>
-) : LayoutComposer<T> {
+    override val properties: GeometryProps,
+    override val digitBuilder: DigitBuilder<T>
+) : NumberComposer<T> {
 
     private var isInitialized = false
 
-    private val digitEntryList: DigitEntryList = DigitEntryList()
+    private val digitSlotList: DigitSlotList = DigitSlotList()
     private var _digitSequence: IntList = emptyIntList()
-    private var digitEntryCount by mutableIntStateOf(0)
+    private var digitSlotCount by mutableIntStateOf(0)
 
     private val digitBricksCache: MutableIntObjectMap<List<T>> = mutableIntObjectMapOf()
-    private var defaultBrickItems: List<T>? = null
+    private var defaultBricks: List<T>? = null
 
     //TODO: setting current number to initial number without constructing the builder leads to digit mismatch
     private val _currentNumber = mutableIntStateOf(initialNumber.absoluteValue)
@@ -71,7 +70,7 @@ class DefaultLayoutComposer<T : BrickItem<T>>(
     private val _previousNumber = mutableStateOf<Int?>(null)
     override val previousNumber: Int? by _previousNumber
 
-    override val layoutConfig: LayoutConfig
+    override val layoutConfig: GridConfig
         get() = properties.config
 
     override val digitSequence: IntArray
@@ -79,8 +78,8 @@ class DefaultLayoutComposer<T : BrickItem<T>>(
 
     override fun initiate() {
         require(!isInitialized) { "Layout Composer already initialized. Cannot be initiated" }
-        layoutBuilder.construct(properties)
-        defaultBrickItems = layoutBuilder.defaultBrickItems()
+        digitBuilder.construct(properties)
+        defaultBricks = digitBuilder.defaultBricks()
         isInitialized = true
 
         applyNumberChange(_currentNumber.value, isFirstUpdate = true)
@@ -103,12 +102,12 @@ class DefaultLayoutComposer<T : BrickItem<T>>(
 
         uniqueDigits.forEach { digit ->
             if (!digitBricksCache.containsKey(digit)) {
-                val brickItems = layoutBuilder.getBrickItemsFor(digit)
-                digitBricksCache[digit] = brickItems
+                val bricks = digitBuilder.getBricksFor(digit)
+                digitBricksCache[digit] = bricks
             }
         }
 
-        updateDigitEntryList(newDigitSequence)
+        updateDigitSlotList(newDigitSequence)
         _digitSequence = newDigitSequence
         if (!isFirstUpdate) {
             _previousNumber.value = _currentNumber.value
@@ -117,7 +116,7 @@ class DefaultLayoutComposer<T : BrickItem<T>>(
         }
         _previousNumber.value = _currentNumber.value
         _currentNumber.value = newNumber
-        digitEntryCount = newDigitSequence.size
+        digitSlotCount = newDigitSequence.size
     }
 
     private fun parseDigitsReversed(number: Int): IntList {
@@ -135,17 +134,17 @@ class DefaultLayoutComposer<T : BrickItem<T>>(
         }
     }
 
-    private fun updateDigitEntryList(digitList: IntList) {
-        val currDigitCount = digitEntryCount
+    private fun updateDigitSlotList(digitList: IntList) {
+        val currDigitCount = digitSlotCount
         val newDigitCount = digitList.size
 
         val commonSize = minOf(currDigitCount, newDigitCount)
         for (place in 0 until commonSize) {
-            val currDigitEntry = digitEntryList[place]
+            val currDigitSlot = digitSlotList[place]
             val newDigit = digitList[place]
 
-            if (currDigitEntry.currentDigit != newDigit) {
-                digitEntryList[place] = currDigitEntry.withCurrent(newDigit)
+            if (currDigitSlot.currentDigit != newDigit) {
+                digitSlotList[place] = currDigitSlot.withCurrent(newDigit)
             }
         }
 
@@ -153,79 +152,52 @@ class DefaultLayoutComposer<T : BrickItem<T>>(
             newDigitCount > currDigitCount -> {
                 val newDigitsList = LongArray(newDigitCount - currDigitCount) { index ->
                     val digitIndex = index + currDigitCount
-                    DigitEntry(digitList[digitIndex]).packed
+                    DigitSlot(digitList[digitIndex]).packed
                 }
-                digitEntryList.pushAll(newDigitsList)
+                digitSlotList.pushAll(newDigitsList)
             }
 
             newDigitCount < currDigitCount -> {
-                digitEntryList.popRangeFrom(newDigitCount, currDigitCount)
+                digitSlotList.popRangeFrom(newDigitCount, currDigitCount)
             }
         }
     }
 
     override fun getDigitCount(): Int {
         checkInitialized()
-        return digitEntryCount
+        return digitSlotCount
     }
 
-    override fun getDigitEntryAt(index: Int): DigitEntry? {
+    override fun getDigitSlotAt(index: Int): DigitSlot? {
         checkInitialized()
-	    return digitEntryList[index]
+	    return digitSlotList[index]
     }
 
-    override fun getBrickItems(digit: Int): List<T>? {
+    override fun getBricksFor(digit: Int): List<T>? {
         checkInitialized()
         require(digit in 0..9) { "Digit must be in range 0-9" }
         return digitBricksCache[digit]
     }
 
-    override fun getDefaultBrickItems(): List<T> {
+    override fun getDefaultBricks(): List<T> {
         checkInitialized()
-        return defaultBrickItems ?: layoutBuilder.defaultBrickItems().also { defaultBrickItems = it }
+        return defaultBricks ?: digitBuilder.defaultBricks().also { defaultBricks = it }
     }
 
     override fun dispose() {
         _digitSequence = emptyIntList()
-        digitEntryList.clear()
+        digitSlotList.clear()
         digitBricksCache.clear()
-        defaultBrickItems = null
-        digitEntryCount = 0
+        defaultBricks = null
+        digitSlotCount = 0
         _previousNumber.value = null
-        layoutBuilder.destruct()
+        digitBuilder.destruct()
         isInitialized = false
     }
 
     private fun checkInitialized() {
         require(isInitialized) { "Composer not initialized. Call initiate() first" }
     }
-}
-
-@JvmInline
-value class DigitEntry(val packed: Long) {
-
-    constructor(
-        previousDigit: Int,
-        currentDigit: Int
-    ) : this(packInts(previousDigit, currentDigit))
-
-    constructor(currentDigit: Int): this(Int.MIN_VALUE, currentDigit)
-
-    val previousDigit: Int?
-        get() {
-            val raw = (packed shr 32).toInt()
-            return if (raw == Int.MIN_VALUE) null else raw
-        }
-
-    val currentDigit: Int
-        get() = (packed and 0xFFFFFFFFL).toInt()
-
-    fun withCurrent(newDigit: Int): DigitEntry =
-        DigitEntry(currentDigit, newDigit)
-
-    fun isSame(): Boolean = previousDigit == currentDigit
-
-    override fun toString() = "[curr = $currentDigit, prev = $previousDigit]"
 }
 
 private fun IntList.asIntSet(): IntSet {

@@ -1,7 +1,8 @@
-package io.github.beankitk.numberbricks.blockdigit.layout.corners
+package io.github.beankitk.numberbricks.blockdigit.geometry.corners
 
-import io.github.beankitk.numberbricks.core.layout.ProviderStore
-import io.github.beankitk.numberbricks.core.layout.ProviderKey
+import io.github.beankitk.numberbricks.core.geometry.ProviderStore
+import io.github.beankitk.numberbricks.core.geometry.ProviderKey
+import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 import io.github.beankitk.numberbricks.data.ShapeRadius
 
 open class DefaultCorners private constructor(
@@ -13,7 +14,7 @@ open class DefaultCorners private constructor(
     override val dependsOn = emptySet<ProviderKey<*>>()
 
     override fun getProviderData(digit: Int, providerStore: ProviderStore): List<ShapeRadius> {
-        return cachedCornerRadius ?: List(config.bricks) { cornerRadius }.also {
+        return cachedCornerRadius ?: buildProviderData { cornerRadius }.also {
             cachedCornerRadius = it
         }
     }

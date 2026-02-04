@@ -34,16 +34,16 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.beankitk.numberbricks.utils.animatableSaver
 
-import io.github.beankitk.numberbricks.core.layout.DigitEntry
-import io.github.beankitk.numberbricks.core.layout.DefaultLayoutComposer
-import io.github.beankitk.numberbricks.core.layout.LayoutProperties
-import io.github.beankitk.numberbricks.core.layout.LayoutConfig
-import io.github.beankitk.numberbricks.blockdigit.layout.BlockItem
-import io.github.beankitk.numberbricks.blockdigit.layout.BlockLayout
-import io.github.beankitk.numberbricks.blockdigit.layout.corners.*
-import io.github.beankitk.numberbricks.blockdigit.layout.offset.*
-import io.github.beankitk.numberbricks.blockdigit.layout.size.*
-import io.github.beankitk.numberbricks.blockdigit.layout.lerp
+import io.github.beankitk.numberbricks.core.geometry.DigitSlot
+import io.github.beankitk.numberbricks.core.geometry.DefaultNumberComposer
+import io.github.beankitk.numberbricks.core.geometry.GeometryProps
+import io.github.beankitk.numberbricks.core.geometry.GridConfig
+import io.github.beankitk.numberbricks.blockdigit.geometry.Block
+import io.github.beankitk.numberbricks.blockdigit.geometry.BlockDigitBuilder
+import io.github.beankitk.numberbricks.blockdigit.geometry.corners.*
+import io.github.beankitk.numberbricks.blockdigit.geometry.offset.*
+import io.github.beankitk.numberbricks.blockdigit.geometry.size.*
+import io.github.beankitk.numberbricks.blockdigit.geometry.lerp
 
 import io.github.beankitk.numberbricks.utils.logd
 
@@ -58,35 +58,35 @@ internal fun NumberBricksImpl(
     animationSpec: AnimationSpec<Float>,
     animateOnFirstVisible: Boolean
 ) {
-    val layoutProperties = remember {
-        object : LayoutProperties {
-            override val config = LayoutConfig.of(rows = 5, cols = 3, bricks = 13)
+    val geometryPropeties = remember {
+        object : GeometryProps {
+            override val config = GridConfig(rows = 5, cols = 3, bricks = 13)
         }
     }
 
-    val layoutComposer = remember {
-        DefaultLayoutComposer<BlockItem>(
+    val numberComposer = remember {
+        DefaultNumberComposer<Block>(
             initialNumber = digit,
-            properties = layoutProperties,
-            layoutBuilder = BlockLayout(
-                offsetProvider = ClassicOffset(),
+            properties = geometryPropeties,
+            digitBuilder = BlockDigitBuilder(
+                offsetProvider = AbstractOffset(),
                 sizeProvider = DefaultSize.uniform(1f),
-                cornersProvider = DefaultCorners.uniform(1f)
+                cornersProvider = AbstractCorners.vintage()
             )
         ).apply { initiate() }
     }
 
-    val layoutConfig = layoutComposer.layoutConfig
-    val digitCount = layoutComposer.getDigitCount()
+    val layoutConfig = numberComposer.layoutConfig
+    val digitCount = numberComposer.getDigitCount()
     val totalWidth = brickWidth?.let { it * layoutConfig.cols } ?: NumberbrickWidth
     val totalHeight = brickHeight?.let { it * layoutConfig.rows } ?: NumberbrickHeight
 
     DisposableEffect(Unit) {
-        onDispose { layoutComposer.dispose() }
+        onDispose { numberComposer.dispose() }
     }
 
     LaunchedEffect(digit) {
-        layoutComposer.updateNumber(digit)
+        numberComposer.updateNumber(digit)
     }
 
     Row(
@@ -97,7 +97,7 @@ internal fun NumberBricksImpl(
             key(place) {
                 SingleDigitBrick(
                     place = place,
-                    composer = layoutComposer,
+                    numberComposer = numberComposer,
                     totalWidth = totalWidth,
                     totalHeight = totalHeight,
                     digitStyle = digitStyle,
@@ -113,7 +113,7 @@ internal fun NumberBricksImpl(
 @Composable
 private fun SingleDigitBrick(
     place: Int,
-    composer: DefaultLayoutComposer<BlockItem>,
+    numberComposer: DefaultNumberComposer<Block>,
     totalWidth: Dp,
     totalHeight: Dp,
     digitStyle: DigitStyle,
@@ -124,30 +124,32 @@ private fun SingleDigitBrick(
     var wasFirstVisible by rememberSaveable { mutableStateOf(false) }
     val progress = rememberSaveable(saver = animatableSaver) {  Animatable(0f) }
 
-    val currentNumber = composer.currentNumber
-    val digitEntry = remember(currentNumber) { composer.getDigitEntryAt(place) }
+    val currentNumber = numberComposer.currentNumber
+    val digitSlot = remember(currentNumber) { numberComposer.getDigitSlotAt(place) }
 
-    if (digitEntry == null) return
+    if (digitSlot == null) return
 
-    val previousDigit = digitEntry.previousDigit
-    val currentDigit = digitEntry.currentDigit
+    val previousDigit = digitSlot.previousDigit
+    val currentDigit = digitSlot.currentDigit
 
-    var startBricks by remember { mutableStateOf<List<BlockItem>>(emptyList()) }
-    var endBricks by remember { mutableStateOf<List<BlockItem>>(emptyList()) }
+    var startBricks by remember { mutableStateOf<List<Block>>(emptyList()) }
+    var endBricks by remember { mutableStateOf<List<Block>>(emptyList()) }
 
     LaunchedEffect(place, currentDigit, animateDigits) {
+		//this check is used for launched trigger due to config change so that does not run on again if there not number updates
         if (wasFirstVisible && previousDigit == currentDigit && progress.value == 1f) {
             return@LaunchedEffect
         }
 
+		// this check is for wedding do not update the bruckitem when same digit is there
         if (previousDigit != currentDigit) {
             startBricks = if(!wasFirstVisible || previousDigit == null) {
-                composer.getDefaultBrickItems()
+                numberComposer.getDefaultBricks()
             } else {
-                composer.getBrickItems(previousDigit) ?: error("No bricks for digit $previousDigit")
+                numberComposer.getBricksFor(previousDigit) ?: error("No bricks for digit $previousDigit")
             }
             
-            endBricks = composer.getBrickItems(currentDigit) ?: error("No bricks for digit $currentDigit")
+            endBricks = numberComposer.getBricksFor(currentDigit) ?: error("No bricks for digit $currentDigit")
         }
 
         val shouldAnimate = when {
@@ -182,13 +184,13 @@ private fun SingleDigitBrick(
                 val blendMode = digitStyle.blendMode
 
                 val brickSize = Size(
-                    width = size.width / composer.layoutConfig.cols,
-                    height = size.height / composer.layoutConfig.rows
+                    width = size.width / numberComposer.layoutConfig.cols,
+                    height = size.height / numberComposer.layoutConfig.rows
                 )
 
                 onDrawBehind {
                     digitPath.reset()
-                    for (i in 0 until composer.layoutConfig.bricks) {
+                    for (i in 0 until numberComposer.layoutConfig.bricks) {
                         val animatedBrick = lerp(
                             startBricks[i],
                             endBricks[i],

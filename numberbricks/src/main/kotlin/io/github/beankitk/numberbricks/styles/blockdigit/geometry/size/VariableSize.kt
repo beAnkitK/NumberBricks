@@ -1,12 +1,13 @@
-package io.github.beankitk.numberbricks.blockdigit.layout.size
+package io.github.beankitk.numberbricks.blockdigit.geometry.size
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import io.github.beankitk.numberbricks.core.layout.Consent
-import io.github.beankitk.numberbricks.core.layout.LayoutProperties
-import io.github.beankitk.numberbricks.core.layout.ProviderStore
-import io.github.beankitk.numberbricks.core.layout.ProviderKey
-import io.github.beankitk.numberbricks.blockdigit.layout.offset.OffsetProvider
+import io.github.beankitk.numberbricks.core.geometry.Consent
+import io.github.beankitk.numberbricks.core.geometry.GeometryProps
+import io.github.beankitk.numberbricks.core.geometry.ProviderStore
+import io.github.beankitk.numberbricks.core.geometry.ProviderKey
+import io.github.beankitk.numberbricks.core.geometry.buildProviderData
+import io.github.beankitk.numberbricks.blockdigit.geometry.offset.OffsetProvider
 import io.github.beankitk.numberbricks.utils.toIntOffset
 
 class VariableSize(
@@ -17,7 +18,7 @@ class VariableSize(
     override val dependsOn: Set<ProviderKey<*>>
         get() = setOf(OffsetProvider.key)
 
-    override fun matchesWith(properties: LayoutProperties): Consent {
+    override fun matchesWith(properties: GeometryProps): Consent {
         val layoutConfig = properties.config
         if (eachColWidth.size != layoutConfig.cols) {
             return Consent.Reject("Column widths array size (${eachColWidth.size}) must match layout columns (${layoutConfig.cols})")
@@ -30,7 +31,7 @@ class VariableSize(
 
     override fun getProviderData(digit: Int, providerStore: ProviderStore): List<Size> {
         val bricksOffset = providerStore.get<Offset>(OffsetProvider.key)
-        return List(config.bricks) { index ->
+        return buildProviderData { index ->
             val position = bricksOffset[index].toIntOffset()
             Size(
                 width = eachColWidth[position.x],
