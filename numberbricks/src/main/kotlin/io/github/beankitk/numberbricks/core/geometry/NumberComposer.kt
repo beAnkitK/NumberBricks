@@ -114,7 +114,6 @@ class DefaultNumberComposer<T : Brick<T>>(
         } else {
             _previousNumber.value = null
         }
-        _previousNumber.value = _currentNumber.value
         _currentNumber.value = newNumber
         digitSlotCount = newDigitSequence.size
     }

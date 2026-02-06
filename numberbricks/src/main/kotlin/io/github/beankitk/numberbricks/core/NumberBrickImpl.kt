@@ -45,8 +45,6 @@ import io.github.beankitk.numberbricks.blockdigit.geometry.offset.*
 import io.github.beankitk.numberbricks.blockdigit.geometry.size.*
 import io.github.beankitk.numberbricks.blockdigit.geometry.lerp
 
-import io.github.beankitk.numberbricks.utils.logd
-
 @Composable
 internal fun NumberBricksImpl(
     digit: Int,
