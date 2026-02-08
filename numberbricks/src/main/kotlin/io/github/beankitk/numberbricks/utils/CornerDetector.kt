@@ -10,9 +10,39 @@ import io.github.beankitk.numberbricks.data.CornerType
 typealias CornerEntry = Pair<Int, CornerPoint>
 typealias CornerRegistry = Map<String, List<CornerEntry>>
 
+/**
+ * Computes corner topology for a set of rectangles as [CornerProfile] by analyzing how their
+ * corners overlap in 2D space.
+ *
+ *[CornerDetector] inspects how all corner points of the supplied rectangles coincide in
+ * 2D space and computes a [CornerProfile] for each rectangle. Each profile describes the
+ * structural role of the rectangle’s four corners (for example, outer, edge,
+ * joint, or inner) based on neighboring rectangles(horizontal, vertical, and diagonal)
+ * that touch the same point.
+ *
+ * The detector is geometry-focused and rendering-agnostic. It does not perform
+ * any drawing or layout itself; instead, it provides semantic information that
+ * consumers may use to drive behaviors such as corner rounding, border merging,
+ * clipping, or visual continuity in composed layouts.
+ *
+ * Corner detection is performed for all rectangles as a group. The returned
+ * array preserves the input order, producing one [CornerProfile] per rectangle.
+ *
+ * ### Usage
+ * Typical usage is to pass all participating rectangles at once and receive a
+ * one-to-one array of [CornerProfile] results:
+ *
+ * ```
+ * val profiles = CornerDetector().getCornerProfile(rects)
+ * ```
+ * @see CornerProfile
+ * @see CornerType
+ * @see CornerPoint
+ */
 @Immutable
 class CornerDetector {
     private val epsilon = 0.001f
+    //Maps each corner to its (horizontal, vertical, diagonal) neighbor corners of other rects.
     private val cornerRelations: Map<CornerPoint, Triple<CornerPoint, CornerPoint, CornerPoint>> =
         mapOf(
             CornerPoint.TopLeft to Triple(
@@ -37,6 +67,17 @@ class CornerDetector {
             )
         )
 
+    /**
+     * Computes corner profiles for an array of rectangles.
+     *
+     * Analyzes the spatial relationships between rectangles and classifies
+     * each corner based on its neighbors. Optionally allows custom modification
+     * of computed profiles.
+     *
+     * @param rects Array of rectangles to analyze
+     * @param modifyProfile Optional function to customize the computed profile for each rectangle
+     * @return Array of corner profiles, one per input rectangle
+     */
     fun getCornerProfile(
         rects: Array<Rect>, 
         modifyProfile: ((Int, CornerProfile) -> CornerProfile)? = null
@@ -62,6 +103,8 @@ class CornerDetector {
         }
     }
 
+    // Creates a spatial index of all rectangle corners. Multiple corners from
+    // different rectangles may share the same position.
     private fun indexCornersFor(rects: Array<Rect>): CornerRegistry = 
         buildMap<String, MutableList<CornerEntry>> {
             rects.forEachIndexed { index, rect ->
@@ -72,6 +115,7 @@ class CornerDetector {
             }
         }
 
+    // Adds a corner to the spatial index.
     private fun addCorner(
         index: Int,
         offset: Offset,
@@ -83,6 +127,7 @@ class CornerDetector {
             .add(index to cornerPoint)
     }
 
+    // Determines the corner type by analyzing neighbors at the same position.
     private fun CornerRegistry.findCornerType(
         rect: Rect,
         rectIndex: Int,
@@ -117,6 +162,8 @@ class CornerDetector {
         }
     }
 
+    // If this corner is Outer but has a neighboring corner
+    // with diagonal contact, it's classified as CornerNeighbor.
     private inline fun findCornerNeighbor(
         currentCorner: CornerType,
         hNeighbor: CornerType,

@@ -7,6 +7,17 @@ import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 import io.github.beankitk.numberbricks.data.DigitData
 
+/**
+ * Provides offsets for classical styled digit.
+ *
+ * Provides brick positions for a 5×3 grid with 13 bricks, subclasses define specific
+ * visual styles with different brick arrangements. Implements [DigitData], enabling
+ * per-digit offset configuration using a list of brick-count offsets
+ * (i.e., size = 13 offset for each brick).
+ *
+ * **Note:** This defines offsets assuming 1f brick size, it must be scaled during drawing
+ * by brick size.
+ */
 open class ClassicOffset : OffsetProvider.Fixed(), DigitData<List<Offset>> {
 
     final override val providerConfig = GridConfig(

@@ -1,5 +1,10 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry.offset
 
+/**
+ * Provides offsets for minimal styled digit
+ *
+ * @see ClassicOffset
+ */
 class MinimalOffset : ClassicOffset() {
 
     override val digit1 = listOf(

@@ -12,6 +12,48 @@ import io.github.beankitk.numberbricks.data.ShapeRadius
 import io.github.beankitk.numberbricks.data.lerp
 import kotlin.math.min
 
+ /**
+ * A rectangular brick with rounded corners for block-style digit display.
+ *
+ * Represents a single visual element in a block digit layout. It extends [Brick] with corner radius
+ * to support rounded rectangle drawing. Used in block digit styles, here, all geometric properties
+ * ([offset], [size], [cornerRadius]) are specified in a normalized coordinate system relative to 1f
+ * where 1f represents one grid cell. All properties are stored as grid-relative values and scaled to
+ * pixels during rendering.
+ *
+ * **Coordinate System:**
+ * Grid: 5 rows × 3 cols
+ * Canvas: 200dp height × 120dp width
+ * Unit brick size: width = 120dp/3 = 40dp, height = 200dp/5 = 40dp
+ *
+ * Example brick with normalized values:
+ * ```
+ * // Normalized values
+ * offset = Offset(2f, 3f)
+ * size = Size(1.5f, 1f)
+ * cornerRadius = 0.8f
+ *
+ * // After scaling (rendered values)
+ * actualOffset = (80dp, 120dp)      // 2f × 40dp, 3f × 40dp
+ * actualSize = (60dp, 40dp)         // 1.5f × 40dp, 1f × 40dp
+ * actualRadius = 32dp               // 0.8f × min(60dp, 40dp)
+ * ```
+ *
+ * **Property Ranges:**
+ * - **offset**: x ∈ [0f, cols], y ∈ [0f, rows]
+ * - **size**: width ∈ [0f, cols], height ∈ [0f, rows]
+ * - **cornerRadius**: [0f, 1f]
+ *   - 0f = sharp corners
+ *   - 1f = maximum rounding (clamped to min(width, height))
+ *   - Values > 1f are treated as 1f
+ *
+ * Negative values are not allowed for any property.
+ *
+ * @property index The brick's index in the ordered brick list, range [0, brickCount)
+ * @property offset The brick's top-left position in normalized grid coordinates
+ * @property size The brick's dimensions in normalized grid units
+ * @property cornerRadius The corner radii as percentages of the brick's actual size
+ */
 @Immutable
 data class Block(
     override val index: Int,
@@ -20,8 +62,10 @@ data class Block(
     val cornerRadius: ShapeRadius
 ): Brick<Block> {
 
+    /** This block represented as a simple rectangle. */
     private val asRect = Rect(offset, size)
 
+    /** This block represented as a rounded rectangle with corner radii applied. */
     private val asRoundRect = RoundRect(
         asRect,
         cornerRadius.topLeft,
@@ -53,11 +97,30 @@ data class Block(
         )
     }
 
+    /**
+     * Converts this block to a simple rectangle.
+     *
+     * @return A [Rect] with this block's position and size
+     */
     fun toRect() = asRect
 
+    /**
+     * Converts this block to a rounded rectangle.
+     *
+     * @return A [RoundRect] with this block's position, size, and corner radii
+     */
     fun toRoundRect() = asRoundRect
 }
 
+/**
+ * Linearly interpolates between two blocks. The index of the resulting block
+ *  is taken from the end block.
+ *
+ * @param start The starting block (at t = 0.0)
+ * @param end The ending block (at t = 1.0)
+ * @param t The interpolation fraction (typically 0.0 to 1.0)
+ * @return The interpolated block
+ */
 fun lerp(start: Block, end: Block, t: Float): Block {
     return Block(
         index = end.index,

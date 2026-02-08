@@ -10,6 +10,18 @@ import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 import io.github.beankitk.numberbricks.blockdigit.geometry.offset.OffsetProvider
 import io.github.beankitk.numberbricks.utils.toIntOffset
 
+/**
+ * Provides variable brick sizes based on column and row dimensions.
+ *
+ * Each brick's size is determined by its grid position, using per-column
+ * widths and per-row heights. This allows for non-uniform brick sizing
+ * where different rows or columns have different dimensions.
+ *
+ * Depends on [OffsetProvider] to determine each brick's grid position.
+ *
+ * @property eachColWidth Array of widths for each column (must match grid column count)
+ * @property eachRowHeight Array of heights for each row (must match grid row count)
+ */
 class VariableSize(
     val eachColWidth: FloatArray,
     val eachRowHeight: FloatArray

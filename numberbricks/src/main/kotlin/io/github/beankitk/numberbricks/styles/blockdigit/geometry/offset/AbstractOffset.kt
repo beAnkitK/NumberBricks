@@ -1,5 +1,10 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry.offset
 
+/**
+ * Provides offsets for abstracted styled digit
+ *
+ * @see ClassicOffset
+ */
 class AbstractOffset : ClassicOffset() {
 
     override val digit0 = listOf(

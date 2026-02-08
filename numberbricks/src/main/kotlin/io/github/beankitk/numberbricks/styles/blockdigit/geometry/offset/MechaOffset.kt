@@ -1,5 +1,10 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry.offset
 
+/**
+ * Provides offsets for modern-mechanical looking styled digit
+ *
+ * @see ClassicOffset
+ */
 class MechaOffset : ClassicOffset() {
 
     override val digit1 = listOf(
