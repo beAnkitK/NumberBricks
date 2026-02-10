@@ -43,10 +43,18 @@ class RetroCorners(
     }
 
     companion object {
-        /** Retro Rounded style that applies equal rounding to both single & double outer corners. */
+        /**
+         * Retro Rounded style that applies equal rounding to both single & double outer corners.
+         *
+         * **Note:** This defines offsets assuming 1f brick size, aligned with the [Block] coordinate scale.
+         */
         val bubble = RetroCorners(CornerRadius(0.5f))
 
-        /** Retro style that differently rounds single and double outer corners creating a sleek look. */
+        /**
+         * Retro style that differently rounds single and double outer corners creating a sleek look.
+         *
+         * **Note:** This defines offsets assuming 1f brick size, aligned with the [Block] coordinate scale.
+         */
         fun soloCurve(
             outerRadius: Float = 0.2f,
             singleCornerRadius: Float = 0.85f

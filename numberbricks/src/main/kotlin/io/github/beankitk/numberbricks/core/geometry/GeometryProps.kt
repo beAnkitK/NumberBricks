@@ -31,20 +31,11 @@ data class GridConfig(
     val bricks: Int
 ) {
     init {
-        require(rows >= 0) { "Rows must be non-negative" }
-        require(cols >= 0) { "Cols must be non-negative" }
-        require(bricks >= 0) { "Brick count must be non-negative" }
+        require(rows > 0) { "Rows must be greater than 0" }
+        require(cols > 0) { "Cols must be greater than 0" }
+        require(bricks > 0) { "Brick count must be greater than 0" }
         require(bricks <= rows * cols) {
             "Brick count cannot be greater than ${rows * cols}"
         }
     }
 }
-
-/**
- * Creates an empty grid configuration with zero dimensions.
- *
- * Useful as a placeholder or initial state before actual configuration is available.
- *
- * @return A [GridConfig] with 0 rows, 0 columns, and 0 bricks
- */
-inline fun emptyGridConfig(): GridConfig = GridConfig(0, 0, 0)

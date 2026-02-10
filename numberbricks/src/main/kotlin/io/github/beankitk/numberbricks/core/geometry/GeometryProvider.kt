@@ -108,8 +108,9 @@ abstract class AdaptiveProvider<T>: GeometryProvider<T> {
 
     final override val isAdaptive = true
 
-    final override var providerConfig = emptyGridConfig()
-        private set
+    private var _providerConfig: GridConfig? = null
+    final override val providerConfig
+        get() = _providerConfig ?: error("providerConfig accessed before attachWith() was called.")
 
     /**
      * Checks compatibility with the given geometry properties.
@@ -124,7 +125,7 @@ abstract class AdaptiveProvider<T>: GeometryProvider<T> {
     override fun matchesWith(properties: GeometryProps): Consent = Consent.Accept
 
     final override fun attachWith(properties: GeometryProps) {
-        providerConfig = properties.config
+        _providerConfig = properties.config
         onAttachWith(properties)
     }
 

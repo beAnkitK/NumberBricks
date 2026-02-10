@@ -46,6 +46,8 @@ class AbstractCorners(
         /**
          * Provides fully rounded corners all the outer corners of bricks. This is same as
          * [RetroCorners.bubble] creating all circular bubbled look.
+         *
+         * **Note:** This defines offsets assuming 1f brick size, aligned with the [Block] coordinate scale.
          */
         val bubble = AbstractCorners(
             outerRadius = CornerRadius(1f),
@@ -55,6 +57,9 @@ class AbstractCorners(
         /**
          * Provides rounded corners to outer corners of bricks. This is different from
          * [bubble] that it leaves the corner neigbours sharp for a balanced abstract rounding.
+         *
+         * **Note:** This, by default, defines offsets assuming 1f brick size, aligned with
+         * the [Block] coordinate scale.
          */
         fun rounded(
             rX: Float = 0.5f,
@@ -65,6 +70,9 @@ class AbstractCorners(
          * Provides rounded corner each corner types of abstract offset block differently. This allows
          * to create a wide range of styles for digit. For achieving [RetroCorners.soloCurve], use
          * `AbstractCorners.vintage(outer = 0.2f, cornerNeighbor = 0.85f) to achieve same look.
+         *
+         * **Note:** This, by default, defines offsets assuming 1f brick size, aligned with
+         * the [Block] coordinate scale.
          */
         fun vintage(
             outer: Float = 1f,

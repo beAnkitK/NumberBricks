@@ -1,6 +1,7 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry.offset
 
 import androidx.compose.ui.geometry.Offset
+import io.github.beankitk.numberbricks.blockdigit.geometry.Block
 import io.github.beankitk.numberbricks.core.geometry.GridConfig
 import io.github.beankitk.numberbricks.core.geometry.ProviderStore
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
@@ -15,8 +16,9 @@ import io.github.beankitk.numberbricks.data.DigitData
  * per-digit offset configuration using a list of brick-count offsets
  * (i.e., size = 13 offset for each brick).
  *
- * **Note:** This defines offsets assuming 1f brick size, it must be scaled during drawing
- * by brick size.
+ * **Note:** This defines offsets assuming 1f brick size, aligned with the [Block] coordinate scale.
+ *
+ * @see Block for details on relative scale handling.
  */
 open class ClassicOffset : OffsetProvider.Fixed(), DigitData<List<Offset>> {
 
