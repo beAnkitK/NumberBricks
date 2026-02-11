@@ -32,15 +32,24 @@ class RetroCorners(
         index: Int,
         shapeRadius: ShapeRadius
     ): ShapeRadius = with(shapeRadius) {
-        if (listOf(topLeft, topRight, bottomRight, bottomLeft).count { it == outerRadius } == 1)
+        var outerRadiusCount = 0
+
+        if (topLeft == outerRadius) outerRadiusCount++
+        if (topRight == outerRadius) outerRadiusCount++
+        if (bottomRight == outerRadius) outerRadiusCount++
+        if (bottomLeft == outerRadius) outerRadiusCount++
+
+        if (outerRadiusCount == 1) {
             copy(
-                topLeft = if (topLeft == outerRadius) singleCornerRadius else topLeft,
-                topRight = if (topRight == outerRadius) singleCornerRadius else topRight,
-                bottomRight = if (bottomRight == outerRadius) singleCornerRadius else bottomRight,
-                bottomLeft = if (bottomLeft == outerRadius) singleCornerRadius else bottomLeft
+                topLeft = outerToSingleRadius(topLeft),
+                topRight = outerToSingleRadius(topRight),
+                bottomRight = outerToSingleRadius(bottomRight),
+                bottomLeft = outerToSingleRadius(bottomLeft)
             )
-        else this
+        } else this
     }
+
+    private val outerToSingleRadius: (CornerRadius) -> CornerRadius = { if (it == outerRadius) singleCornerRadius else it }
 
     companion object {
         /**

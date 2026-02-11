@@ -16,7 +16,7 @@ import io.github.beankitk.numberbricks.data.CornerType
 import io.github.beankitk.numberbricks.data.CornerProfile
 import io.github.beankitk.numberbricks.data.DigitData
 import io.github.beankitk.numberbricks.data.ShapeRadius
-import io.github.beankitk.numberbricks.utils.CornerDetector
+import io.github.beankitk.numberbricks.utils.getCornerProfile
 
 /** Provides corner radius data for bricks in a digit layout.*/
 sealed interface CornersProvider: GeometryProvider<ShapeRadius> {
@@ -121,8 +121,6 @@ abstract class CustomCornerProvider(
  */
 abstract class AutoCornerProvider : CornersProvider.Adaptive() {
 
-    private val detector = CornerDetector()
-
     override val dependsOn: Set<ProviderKey<*>>
         get() = setOf(OffsetProvider.key, SizeProvider.key)
 
@@ -135,7 +133,7 @@ abstract class AutoCornerProvider : CornersProvider.Adaptive() {
     }
 
     private fun detectCornerFor(digit: Int, rects: Array<Rect>): List<ShapeRadius> {
-        val cornerProfileArray = detector.getCornerProfile(
+        val cornerProfileArray = getCornerProfile(
             rects = rects,
             modifyProfile = { idx, profile -> modifyCornerProfile(digit, idx, profile) }
         )
@@ -161,6 +159,7 @@ abstract class AutoCornerProvider : CornersProvider.Adaptive() {
             CornerType.JointInline -> jointInlineRadius
             CornerType.Joint -> jointRadius
             CornerType.Inner -> innerRadius
+            else -> error("Unknown corner-type = $type")
         }
 
     /**

@@ -3,12 +3,33 @@ package io.github.beankitk.numberbricks.utils
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.util.packInts
 import io.github.beankitk.numberbricks.data.CornerPoint
 import io.github.beankitk.numberbricks.data.CornerProfile
 import io.github.beankitk.numberbricks.data.CornerType
 
-typealias CornerEntry = Pair<Int, CornerPoint>
-typealias CornerRegistry = Map<String, List<CornerEntry>>
+private typealias CornerKey = Long
+private typealias CornerRegistry = Map<CornerKey, List<CornerEntry>>
+
+/**
+ * Computes corner profiles for an array of rectangles.
+ *
+ * Analyzes the spatial relationships between rectangles and classifies
+ * each corner based on its neighbors. Optionally allows custom modification
+ * of computed profiles.
+ *
+ * @param rects Array of rectangles to analyze
+ * @param modifyProfile Optional function to customize the computed profile for each rectangle
+ * @return Array of corner profiles, one per input rectangle
+ * @see CornerDetector
+ */
+@Suppress("NOTHING_TO_INLINE")
+inline fun getCornerProfile(
+    rects: Array<Rect>,
+    noinline modifyProfile: ((Int, CornerProfile) -> CornerProfile)? = null
+): Array<CornerProfile> {
+    return CornerDetector.getCornerProfile(rects, modifyProfile)
+}
 
 /**
  * Computes corner topology for a set of rectangles as [CornerProfile] by analyzing how their
@@ -40,7 +61,7 @@ typealias CornerRegistry = Map<String, List<CornerEntry>>
  * @see CornerPoint
  */
 @Immutable
-class CornerDetector {
+object CornerDetector {
     private val epsilon = 0.001f
     //Maps each corner to its (horizontal, vertical, diagonal) neighbor corners of other rects.
     private val cornerRelations: Map<CornerPoint, Triple<CornerPoint, CornerPoint, CornerPoint>> =
@@ -79,7 +100,7 @@ class CornerDetector {
      * @return Array of corner profiles, one per input rectangle
      */
     fun getCornerProfile(
-        rects: Array<Rect>, 
+        rects: Array<Rect>,
         modifyProfile: ((Int, CornerProfile) -> CornerProfile)? = null
     ): Array<CornerProfile> {
         val currentCornerRegistry: CornerRegistry = indexCornersFor(rects)
@@ -105,26 +126,27 @@ class CornerDetector {
 
     // Creates a spatial index of all rectangle corners. Multiple corners from
     // different rectangles may share the same position.
-    private fun indexCornersFor(rects: Array<Rect>): CornerRegistry = 
-        buildMap<String, MutableList<CornerEntry>> {
-            rects.forEachIndexed { index, rect ->
-                addCorner(index, rect.topLeft, CornerPoint.TopLeft, this)
-                addCorner(index, rect.topRight, CornerPoint.TopRight, this)
-                addCorner(index, rect.bottomLeft, CornerPoint.BottomLeft, this)
-                addCorner(index, rect.bottomRight, CornerPoint.BottomRight, this)
-            }
+    private fun indexCornersFor(rects: Array<Rect>): CornerRegistry {
+        val registryMap = HashMap<CornerKey, MutableList<CornerEntry>>(rects.size * 4)
+        rects.forEachIndexed { index, rect ->
+            addCorner(index, rect.topLeft, CornerPoint.TopLeft, registryMap)
+            addCorner(index, rect.topRight, CornerPoint.TopRight, registryMap)
+            addCorner(index, rect.bottomLeft, CornerPoint.BottomLeft, registryMap)
+            addCorner(index, rect.bottomRight, CornerPoint.BottomRight, registryMap)
         }
+        return registryMap
+    }
 
     // Adds a corner to the spatial index.
     private fun addCorner(
         index: Int,
         offset: Offset,
         cornerPoint: CornerPoint,
-        cornerRegistry: MutableMap<String, MutableList<CornerEntry>>
+        cornerRegistry: MutableMap<CornerKey, MutableList<CornerEntry>>
     ) {
         val key = keyFrom(offset)
         cornerRegistry.getOrPut(key) { mutableListOf() }
-            .add(index to cornerPoint)
+            .add(CornerEntry.of(index, cornerPoint))
     }
 
     // Determines the corner type by analyzing neighbors at the same position.
@@ -138,16 +160,29 @@ class CornerDetector {
             CornerPoint.TopRight -> rect.topRight
             CornerPoint.BottomRight -> rect.bottomRight
             CornerPoint.BottomLeft -> rect.bottomLeft
+            else -> error("Unknown cornerpoint : $cornerPoint")
         }
         val (horizontalCorner, verticalCorner, diagonalCorner) = cornerRelations.getValue(cornerPoint)
 
         val currentOffsetKey = keyFrom(cornerOffset)
-        val cornersAtOffset = this[currentOffsetKey] ?: emptyList()
-        val cornerNeighbors = cornersAtOffset.filter { (index, _ ) -> index != rectIndex }
+        val cornersEntryAtOffset = this[currentOffsetKey] ?: return CornerType.Outer
 
-        val hasHorizontalNeighbor = cornerNeighbors.any { (_, cp) -> cp == horizontalCorner }
-        val hasVerticalNeighbor = cornerNeighbors.any { (_, cp) -> cp == verticalCorner }
-        val hasDiagonalNeighbor = cornerNeighbors.any { (_, cp) -> cp == diagonalCorner }
+        var hasHorizontalNeighbor = false
+        var hasVerticalNeighbor = false
+        var hasDiagonalNeighbor = false
+
+        for ((index, cornerPoint) in cornersEntryAtOffset) {
+            if (index == rectIndex) continue
+
+            when (cornerPoint) {
+                horizontalCorner -> hasHorizontalNeighbor = true
+                verticalCorner -> hasVerticalNeighbor = true
+                diagonalCorner -> hasDiagonalNeighbor = true
+                else -> Unit
+            }
+
+            if (hasHorizontalNeighbor && hasVerticalNeighbor && hasDiagonalNeighbor) break
+        }
 
         return classifyCorner(hasHorizontalNeighbor, hasVerticalNeighbor, hasDiagonalNeighbor)
     }
@@ -164,16 +199,46 @@ class CornerDetector {
 
     // If this corner is Outer but has a neighboring corner
     // with diagonal contact, it's classified as CornerNeighbor.
-    private inline fun findCornerNeighbor(
+    private fun findCornerNeighbor(
         currentCorner: CornerType,
         hNeighbor: CornerType,
         vNeighbor: CornerType
-    ) = if (currentCorner == CornerType.Outer && setOf(hNeighbor, vNeighbor).contains(CornerType.Corner))
-        CornerType.CornerNeighbor else currentCorner
+    ): CornerType {
+        return if (
+            currentCorner == CornerType.Outer &&
+            (hNeighbor == CornerType.Corner || vNeighbor == CornerType.Corner)
+        ) CornerType.CornerNeighbor else currentCorner
+    }
 
-    private fun keyFrom(position: Offset): String {
-        val x = (position.x / epsilon).toInt() * epsilon
-        val y = (position.y / epsilon).toInt() * epsilon
-        return "${x}_${y}"
+    private fun keyFrom(position: Offset): CornerKey {
+        val xi = (position.x / epsilon).toInt()
+        val yi = (position.y / epsilon).toInt()
+        return packInts(xi, yi)
+    }
+}
+
+/**
+ * Maps the index of a rectangle to [CornerPoint] packed as Int with the
+ * lower 4 bits for [CornerPoint] and upper 28 bits for index of rectangle.
+ * Used internally by [CornerDetector] to index the corners of rectangle for
+ * spatial analysis.
+ */
+@JvmInline
+private value class CornerEntry(val packed: Int) {
+    val rectIndex: Int
+        get() = packed ushr 4
+
+    val cornerPoint: CornerPoint
+        get() = CornerPoint.from(packed and 0xF)
+
+    operator fun component1(): Int = rectIndex
+
+    operator fun component2(): CornerPoint = cornerPoint
+
+    companion object {
+        fun of(rectIndex: Int, cornerPoint: CornerPoint): CornerEntry {
+            require(rectIndex >= 0) { "rectIndex must be >= 0" }
+            return CornerEntry((rectIndex shl 4) or cornerPoint.ordinal)
+        }
     }
 }
