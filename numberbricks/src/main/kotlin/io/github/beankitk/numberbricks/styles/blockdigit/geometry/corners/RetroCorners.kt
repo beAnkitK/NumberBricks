@@ -11,7 +11,7 @@ import io.github.beankitk.numberbricks.data.ShapeRadius
  *
  * **Note:** This may does apply rounding to some bricks based on the digit layouts.
  * Use the modifying hooks available to adjust rounding based on specific layout. For example,
- * this is incompatible with [io.github.beankitk.numberbricks.blockdigit.geometry.offset.AbstractOffset]
+ * this is incompatible with [io.github.beankitk.numberbricks.blockdigit.geometry.position.AbstractPosition]
  * that sometimes produce different result.
  */
 class RetroCorners(

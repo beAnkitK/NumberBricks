@@ -1,11 +1,11 @@
-package io.github.beankitk.numberbricks.blockdigit.geometry.offset
+package io.github.beankitk.numberbricks.blockdigit.geometry.position
 
 /**
- * Provides offsets for minimal styled digit
+ * Provides positions for minimal styled digit
  *
- * @see ClassicOffset
+ * @see ClassicPosition
  */
-class MinimalOffset : ClassicOffset() {
+class MinimalPosition: ClassicPosition() {
 
     override val digit1 = listOf(
         g3, g3, g3,

@@ -1,11 +1,11 @@
-package io.github.beankitk.numberbricks.blockdigit.geometry.offset
+package io.github.beankitk.numberbricks.blockdigit.geometry.position
 
 /**
- * Provides offsets for abstracted styled digit
+ * Provides positions for abstracted styled digit
  *
- * @see ClassicOffset
+ * @see ClassicPosition
  */
-class AbstractOffset : ClassicOffset() {
+class AbstractPosition: ClassicPosition() {
 
     override val digit0 = listOf(
         g1, g2, g2,

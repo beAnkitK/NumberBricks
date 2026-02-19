@@ -24,7 +24,7 @@ package io.github.beankitk.numberbricks.data
  * val colorForInvalid = digitColors[-1]  // Returns default color
  * ```
  *
- * @see io.github.beankitk.numberbricks.blockdigit.geometry.offset.ClassicOffset
+ * @see io.github.beankitk.numberbricks.blockdigit.geometry.position.ClassicPosition
  *
  */
 interface DigitData<T> {

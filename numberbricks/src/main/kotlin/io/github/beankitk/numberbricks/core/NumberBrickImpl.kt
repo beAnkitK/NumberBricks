@@ -42,6 +42,7 @@ import io.github.beankitk.numberbricks.blockdigit.geometry.Block
 import io.github.beankitk.numberbricks.blockdigit.geometry.BlockDigitBuilder
 import io.github.beankitk.numberbricks.blockdigit.geometry.corners.*
 import io.github.beankitk.numberbricks.blockdigit.geometry.offset.*
+import io.github.beankitk.numberbricks.blockdigit.geometry.position.*
 import io.github.beankitk.numberbricks.blockdigit.geometry.size.*
 import io.github.beankitk.numberbricks.blockdigit.geometry.lerp
 
@@ -67,9 +68,10 @@ internal fun NumberBricksImpl(
             initialNumber = digit,
             properties = geometryPropeties,
             digitBuilder = BlockDigitBuilder(
-                offsetProvider = AbstractOffset(),
+                positionProvider = ClassicPosition(),
+                offsetProvider = DirectOffset(),
                 sizeProvider = DefaultSize.uniform(1f),
-                cornersProvider = AbstractCorners.vintage()
+                cornersProvider = DefaultCorners.zero
             )
         ).apply { initiate() }
     }

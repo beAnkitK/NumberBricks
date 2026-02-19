@@ -1,14 +1,13 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry.size
 
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import io.github.beankitk.numberbricks.core.geometry.Consent
 import io.github.beankitk.numberbricks.core.geometry.GeometryProps
+import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.core.geometry.ProviderStore
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.core.geometry.buildProviderData
-import io.github.beankitk.numberbricks.blockdigit.geometry.offset.OffsetProvider
-import io.github.beankitk.numberbricks.utils.toIntOffset
+import io.github.beankitk.numberbricks.blockdigit.geometry.position.PositionProvider
 
 /**
  * Provides variable brick sizes based on column and row dimensions.
@@ -18,9 +17,7 @@ import io.github.beankitk.numberbricks.utils.toIntOffset
  * or columns have different dimensions.
  *
  * **Requirements:**
- * 1. Depends on [OffsetProvider] to determine each brick's grid position. The offset
- *    provider must return positions in grid coordinates (not scaled), where integer
- *    parts represent row/column indices.
+ * 1. Depends on [PositionProvider] to determine each brick's grid position.
  * 2. Input arrays use the [Block] coordinate scale where values are relative proportions.
  *    Arrays are automatically normalized so column widths sum to the column count and
  *    row heights sum to the row count. All elements must be non-negative.
@@ -51,7 +48,7 @@ class VariableSize(
     private lateinit var normalizedRowHeight: FloatArray
 
     override val dependsOn: Set<ProviderKey<*>>
-        get() = setOf(OffsetProvider.key)
+        get() = setOf(PositionProvider.key)
 
     override fun matchesWith(properties: GeometryProps): Consent {
         val layoutConfig = properties.config
@@ -77,12 +74,12 @@ class VariableSize(
     }
 
     override fun getProviderData(digit: Int, providerStore: ProviderStore): List<Size> {
-        val bricksOffset = providerStore.get<Offset>(OffsetProvider.key)
+        val bricksPosition = providerStore.get<Position>(PositionProvider.key)
         return buildProviderData { index ->
-            val position = bricksOffset[index].toIntOffset()
+            val position = bricksPosition[index]
             Size(
-                width = normalizedColWidth[position.x],
-                height = normalizedRowHeight[position.y]
+                width = normalizedColWidth[position.col],
+                height = normalizedRowHeight[position.row]
             )
         }
     }

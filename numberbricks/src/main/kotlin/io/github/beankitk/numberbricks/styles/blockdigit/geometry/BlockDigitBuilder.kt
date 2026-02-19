@@ -4,16 +4,19 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import io.github.beankitk.numberbricks.core.geometry.BaseDigitBuilder
+import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.core.geometry.ProviderStore
 import io.github.beankitk.numberbricks.blockdigit.geometry.corners.CornersProvider
 import io.github.beankitk.numberbricks.blockdigit.geometry.offset.OffsetProvider
+import io.github.beankitk.numberbricks.blockdigit.geometry.position.PositionProvider
 import io.github.beankitk.numberbricks.blockdigit.geometry.size.SizeProvider
 import io.github.beankitk.numberbricks.data.ShapeRadius
 
 /**
  * Digit builder for block-style digit representations.
  *
- * Constructs [Block] instances by coordinating three geometry providers:
+ * Constructs [Block] instances by coordinating four geometry providers:
+ * - [PositionProvider]: Computes brick position in grid
  * - [OffsetProvider]: Computes brick offset
  * - [SizeProvider]: Computes brick dimensions
  * - [CornersProvider]: Computes brick corner radii
@@ -21,17 +24,20 @@ import io.github.beankitk.numberbricks.data.ShapeRadius
  * The builder assembles data from these providers to create fully-specified
  * rounded rectangle bricks for each digit.
  *
- * @property offsetProvider Provider that computes brick positions
+ * @property positionProvider Provider that computes brick position
+ * @property offsetProvider Provider that computes brick offset
  * @property sizeProvider Provider that computes brick sizes
  * @property cornersProvider Provider that computes corner radii
  */
 class BlockDigitBuilder(
+    private val positionProvider: PositionProvider,
     private val offsetProvider: OffsetProvider,
     private val sizeProvider: SizeProvider,
     private val cornersProvider: CornersProvider,
 ) : BaseDigitBuilder<Block>() {
 
     override fun bindProviders() {
+        registerProvider(positionProvider)
         registerProvider(offsetProvider)
         registerProvider(sizeProvider)
         registerProvider(cornersProvider)
@@ -48,6 +54,7 @@ class BlockDigitBuilder(
      * @return List of blocks forming the digit representation
      */
     protected override fun buildBricks(digit: Int, store: ProviderStore): List<Block> {
+        val positionList = store.get<Position>(PositionProvider.key)
         val offsetList = store.get<Offset>(OffsetProvider.key)
         val sizeList = store.get<Size>(SizeProvider.key)
         val cornersRadiusList = store.get<ShapeRadius>(CornersProvider.key)
@@ -55,6 +62,7 @@ class BlockDigitBuilder(
         return List(properties.config.bricks) { index ->
             Block(
                 index = index,
+                position = positionList[index],
                 offset = offsetList[index],
                 size = sizeList[index],
                 cornerRadius = cornersRadiusList[index]

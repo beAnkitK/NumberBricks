@@ -15,11 +15,11 @@ package io.github.beankitk.numberbricks.core.geometry
  * must be `key` for consistent discovery and access. for example,
  *
  * ```kotlin
- * class PositionProvider : GeometryProvider<Offset> {
- *     override val key = PositionProvider.key
+ * class OffsetProvider : GeometryProvider<Offset> {
+ *     override val key = OffsetProvider.key
  *
  *     companion object {
- *         val key = ProviderKey<Offset>("provider.position.base")
+ *         val key = ProviderKey<Offset>("provider.offset.base")
  *     }
  * }
  *

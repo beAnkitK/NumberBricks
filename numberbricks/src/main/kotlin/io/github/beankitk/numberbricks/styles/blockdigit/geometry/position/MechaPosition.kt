@@ -1,11 +1,11 @@
-package io.github.beankitk.numberbricks.blockdigit.geometry.offset
+package io.github.beankitk.numberbricks.blockdigit.geometry.position
 
 /**
- * Provides offsets for modern-mechanical looking styled digit
+ * Provides positions for modern-mechanical looking styled digit
  *
- * @see ClassicOffset
+ * @see ClassicPosition
  */
-class MechaOffset : ClassicOffset() {
+class MechaPosition: ClassicPosition() {
 
     override val digit1 = listOf(
         g4, g2, g2,

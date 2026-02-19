@@ -8,6 +8,7 @@ import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.lerp
 import io.github.beankitk.numberbricks.core.geometry.Brick
+import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.data.ShapeRadius
 import io.github.beankitk.numberbricks.data.lerp
 import kotlin.math.min
@@ -29,17 +30,19 @@ import kotlin.math.min
  * Example brick with normalized values:
  * ```
  * // Normalized values
- * offset = Offset(2f, 3f)
+ * offset = Offset(2.5f, 3f)
  * size = Size(1.5f, 1f)
  * cornerRadius = 0.8f
  *
  * // After scaling (rendered values)
- * actualOffset = (80dp, 120dp)      // 2f × 40dp, 3f × 40dp
+ * actualOffset = (100dp, 120dp)      // 2.5f × 40dp, 3f × 40dp
  * actualSize = (60dp, 40dp)         // 1.5f × 40dp, 1f × 40dp
  * actualRadius = 32dp               // 0.8f × min(60dp, 40dp)
  * ```
  *
  * **Property Ranges:**
+ * - **index**: [0, brickCount)
+ * - **position**: row ∈ [0, rows), cols ∈ [0, cols)
  * - **offset**: x ∈ [0f, cols], y ∈ [0f, rows]
  * - **size**: width ∈ [0f, cols], height ∈ [0f, rows]
  * - **cornerRadius**: [0f, 1f]
@@ -47,9 +50,13 @@ import kotlin.math.min
  *   - 1f = maximum rounding (clamped to min(width, height))
  *   - Values > 1f are treated as 1f
  *
- * Negative values are not allowed for any property.
+ * **Note:**
+ * 1. Only [offset], [size], and [cornerRadius] are subject to scaling. The [index] and
+ *   [position] values represent absolute block values and are therefore not scaled.
+ * 2. Negative values are not allowed for any property.
  *
- * @property index The brick's index in the ordered brick list, range [0, brickCount)
+ * @property index The brick's index in the ordered brick list
+ * @property position The brick's position in the two dimensional digit layout/grid
  * @property offset The brick's top-left position in normalized grid coordinates
  * @property size The brick's dimensions in normalized grid units
  * @property cornerRadius The corner radii as percentages of the brick's actual size
@@ -57,6 +64,7 @@ import kotlin.math.min
 @Immutable
 data class Block(
     override val index: Int,
+    override val position: Position,
     override val offset: Offset,
     override val size: Size,
     val cornerRadius: ShapeRadius
@@ -100,14 +108,14 @@ data class Block(
     /**
      * Converts this block to a simple rectangle.
      *
-     * @return A [Rect] with this block's position and size
+     * @return A [Rect] with this block's offset and size
      */
     fun toRect() = asRect
 
     /**
      * Converts this block to a rounded rectangle.
      *
-     * @return A [RoundRect] with this block's position, size, and corner radii
+     * @return A [RoundRect] with this block's offset, size, and corner radii
      */
     fun toRoundRect() = asRoundRect
 }
@@ -124,8 +132,9 @@ data class Block(
 fun lerp(start: Block, end: Block, t: Float): Block {
     return Block(
         index = end.index,
-        size = lerp(start.size, end.size, t),
+        position = end.position,
         offset = lerp(start.offset, end.offset, t),
+        size = lerp(start.size, end.size, t),
         cornerRadius = lerp(start.cornerRadius, end.cornerRadius, t)
     )
 }

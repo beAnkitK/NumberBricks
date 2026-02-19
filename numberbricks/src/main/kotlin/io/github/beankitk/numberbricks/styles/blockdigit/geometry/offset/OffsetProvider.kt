@@ -7,7 +7,7 @@ import io.github.beankitk.numberbricks.core.geometry.GeometryProvider
 import io.github.beankitk.numberbricks.core.geometry.GeometryProps
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 
-/** Provides position data for bricks in a digit layout relative to top-left corner positions. */
+/** Provides offset data for bricks in a digit layout relative to top-left corner positions. */
 sealed interface OffsetProvider: GeometryProvider<Offset> {
 
     companion object {

@@ -22,14 +22,21 @@ interface Brick<T : Brick<T>> {
     val index: Int
 
     /**
+     * This defines the canonical (row, column) cell position of [Brick] in the two-dimensional
+     * digit layout/grid. During animation, it must always reflect the brick’s final target
+     * cell rather than its transient visual position.
+     */
+    val position: Position
+
+    /**
      * The coordinates of this brick's top-left corner in [Offset] from the digit's top-left corner(i.e. origin).
-     * This defines where the brick is drawm on canvas and may differ during animations.
+     * This defines where the brick is drawm on canvas and can be animated.
      */
     val offset: Offset
 
     /**
      * The dimensions (width and height) of this brick in [Size]. This defines the size of [Brick]
-     * rendered on screen and may differ during animations. This can also be used to control the size of digit.
+     * rendered on screen and can be animated. This can also be used to control the size of digit.
      */
     val size: Size
 

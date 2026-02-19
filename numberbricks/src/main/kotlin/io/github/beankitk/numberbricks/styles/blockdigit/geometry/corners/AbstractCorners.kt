@@ -1,13 +1,13 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry.corners
 
 import androidx.compose.ui.geometry.CornerRadius
-import io.github.beankitk.numberbricks.blockdigit.geometry.offset.AbstractOffset
+import io.github.beankitk.numberbricks.blockdigit.geometry.position.AbstractPosition
 import io.github.beankitk.numberbricks.data.CornerType
 import io.github.beankitk.numberbricks.data.CornerProfile
 
 /**
  * Provides shape-corner radii to all bricks for a abstracted look. This is only
- * compatible with [AbstractOffset]. For other providers this may produce different
+ * compatible with [AbstractPosition]. For other providers this may produce different
  * result. Use modifying hooks for correct roundings based on digit layouts.
  */
 class AbstractCorners(
@@ -67,7 +67,7 @@ class AbstractCorners(
         ) = AbstractCorners(outerRadius = CornerRadius(rX, rY))
 
         /**
-         * Provides rounded corner each corner types of abstract offset block differently. This allows
+         * Provides rounded corner each corner types of abstract position block differently. This allows
          * to create a wide range of styles for digit. For achieving [RetroCorners.soloCurve], use
          * `AbstractCorners.vintage(outer = 0.2f, cornerNeighbor = 0.85f) to achieve same look.
          *
