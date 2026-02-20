@@ -6,10 +6,10 @@ import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 
 /**
- * Provides uniform offset for all bricks.
+ * Provides uniform offset for all blocks.
  *
- * All bricks in the digit layout receive the same position. Used
- * for the constructing default bricks or as intermediate offset during
+ * All blocks in the digit layout receive the same position. Used
+ * for the constructing default blocks or as intermediate offset during
  * animations. The offset is cached after first computation.
  */
 class DefaultOffset private constructor(
@@ -27,14 +27,14 @@ class DefaultOffset private constructor(
     }
 
     companion object {
-        /** An offset provider with zero offset for all bricks. */
+        /** An offset provider with zero offset for all blocks. */
         val Zero = DefaultOffset(Offset.Zero)
 
         /**
-         * Creates an offset provider with uniform position for all bricks.
+         * Creates an offset provider with uniform position for all blocks.
          *
-         * @param offset The offset to apply to all bricks
-         * @return An offset provider with the specified uniform position
+         * @param offset The offset to apply to all blocks
+         * @return An offset provider with the specified uniform offset
          */
         fun of(offset: Offset): DefaultOffset =
             DefaultOffset(offset)

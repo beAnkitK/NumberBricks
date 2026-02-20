@@ -6,9 +6,9 @@ import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 import io.github.beankitk.numberbricks.data.ShapeRadius
 
 /**
- * Provides uniform corner radii for all bricks.
+ * Provides uniform corner radii for all blocks.
  *
- * All bricks in the digit layout receive the same corner radii configuration.
+ * All blocks in the digit layout receives the same corner radii value.
  * The radii are cached after first computation for efficiency.
  */
 class DefaultCorners private constructor(
@@ -30,21 +30,19 @@ class DefaultCorners private constructor(
         val zero = DefaultCorners(ShapeRadius.Zero)
 
         /**
-        * Corner provider with full rounding applied to all corners.
+        * A corner provider with full rounding applied to all corners.
         *
-        * Uses the maximum radius for every corner to produce a fully rounded shape.
+        * **Note:** This assumes a block size of `1f`. If the actual block size
+        * differs, the radius must be scaled accordingly.
         *
-        * **Note:** This configuration assumes a brick size of `1f`. If the actual brick
-        * size differs, the radius must be scaled accordingly.
-        *
-        * @see Block Describes how corner radius scaling is applied.
+        * @see Block describes how corner radius scaling is applied.
         */
         val full = DefaultCorners(ShapeRadius.all(1f))
 
         /**
-         * Creates a corner provider with uniform rounding for all brick corners.
+         * Creates a corner provider with uniform rounding for all block corners.
          *
-         * @param cornerRadius The radius to apply to all corners of all bricks
+         * @param cornerRadius The radius to apply to all corners of all blocks
          * @return A corner provider with the specified uniform radii
          */
         fun uniform(cornerRadius: Float) = DefaultCorners(ShapeRadius.all(cornerRadius))

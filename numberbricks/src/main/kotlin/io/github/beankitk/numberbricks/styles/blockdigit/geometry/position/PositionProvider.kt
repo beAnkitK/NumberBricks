@@ -7,7 +7,7 @@ import io.github.beankitk.numberbricks.core.geometry.GeometryProvider
 import io.github.beankitk.numberbricks.core.geometry.GeometryProps
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 
-/** Provides position data for bricks in a digit layout. */
+/** Provides position data for blocks in a digit layout. */
 sealed interface PositionProvider: GeometryProvider<Position> {
 
     companion object {

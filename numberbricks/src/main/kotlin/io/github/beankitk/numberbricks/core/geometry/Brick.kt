@@ -7,8 +7,9 @@ import androidx.compose.ui.geometry.Size
  * Represents a single visual brick element in the number display system.
  *
  * A brick is the fundamental building block used to construct digit representations.
- * Each brick is uniquely identified by its index in the brick list.
- * It represents a frame in the grid having its own offset and a size.
+ * Each brick is uniquely identified by its index in the brick list. It represents
+ * a frame in the grid having its own offset and a size with a position in the digit
+ * layout grid.
  *
  * @param T The concrete brick implementation type.
  */

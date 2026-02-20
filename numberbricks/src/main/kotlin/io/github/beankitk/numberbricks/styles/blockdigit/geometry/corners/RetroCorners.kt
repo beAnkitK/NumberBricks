@@ -6,13 +6,17 @@ import io.github.beankitk.numberbricks.data.CornerProfile
 import io.github.beankitk.numberbricks.data.ShapeRadius
 
 /**
- * Provides shape-corner radii to all bricks rounding outer corners of bricks
- * differently for single outer corner giving a retro style looking digit.
+ * Provides corner radii to all blocks, rounding outer corners of blocks differently
+ * from single outer corners giving a retro style looking digit.
  *
- * **Note:** This may does apply rounding to some bricks based on the digit layouts.
+ * **Note:** This may does not apply rounding to some blocks based on the digit layouts.
  * Use the modifying hooks available to adjust rounding based on specific layout. For example,
  * this is incompatible with [io.github.beankitk.numberbricks.blockdigit.geometry.position.AbstractPosition]
  * that sometimes produce different result.
+ *
+ * @param outerRadius The radius applied to Outer cornertype of block
+ * @param singleCornerRadius The radius applied to Outer cornertype when block has exactly one outer corner
+ * @see io.github.beankitk.numberbricks.data.CornerType
  */
 class RetroCorners(
     outerRadius: CornerRadius,
@@ -53,16 +57,20 @@ class RetroCorners(
 
     companion object {
         /**
-         * Retro Rounded style that applies equal rounding to both single & double outer corners.
+         * Rounded corner style that applies equal rounding to both outer & single outer corners.
          *
-         * **Note:** This defines offsets assuming 1f brick size, aligned with the [Block] coordinate scale.
+         * **Note:** This defines corner-radius assuming 1f block size, aligned with the [Block] coordinate scale.
          */
         val bubble = RetroCorners(CornerRadius(0.5f))
 
         /**
-         * Retro style that differently rounds single and double outer corners creating a sleek look.
+         * Retro corner style that differently rounds outer and single outer corners creating a sleek look.
          *
-         * **Note:** This defines offsets assuming 1f brick size, aligned with the [Block] coordinate scale.
+         * **Note:** This, by default, defines corner-radius assuming 1f block size, aligned with the [Block] coordinate scale.
+         *
+         * @param outerRadius The uniform radius applied to Outer cornertype
+         * @param singleCornerRadius The uniform radius applied to Outer cornertype when block has exactly one outer corner
+         * @return A [RetroCorners] provider with uneven rounding for outer & single outer corners
          */
         fun soloCurve(
             outerRadius: Float = 0.2f,

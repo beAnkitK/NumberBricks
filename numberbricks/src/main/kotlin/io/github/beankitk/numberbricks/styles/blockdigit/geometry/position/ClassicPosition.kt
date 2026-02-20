@@ -11,10 +11,10 @@ import io.github.beankitk.numberbricks.data.DigitData
 /**
  * Provides positions for classical styled digit.
  *
- * Provides brick positions for a 5×3 grid with 13 bricks, subclasses define specific
- * visual styles with different brick arrangements. Implements [DigitData], enabling
- * per-digit position configuration using a list of brick-count positions
- * (i.e., size = 13 position for each brick).
+ * Provides block positions for a 5×3 grid with 13 blocks, subclasses define specific
+ * visual styles with different block arrangements. Implements [DigitData], enabling
+ * per-digit position configuration using a list of brick-count positions.
+ * (i.e., size = 13 position for each digit).
  */
 open class ClassicPosition : PositionProvider.Fixed(), DigitData<List<Position>> {
 

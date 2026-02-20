@@ -16,18 +16,18 @@ import io.github.beankitk.numberbricks.data.ShapeRadius
  * Digit builder for block-style digit representations.
  *
  * Constructs [Block] instances by coordinating four geometry providers:
- * - [PositionProvider]: Computes brick position in grid
- * - [OffsetProvider]: Computes brick offset
- * - [SizeProvider]: Computes brick dimensions
- * - [CornersProvider]: Computes brick corner radii
+ * - [PositionProvider]: Computes block position in grid
+ * - [OffsetProvider]: Computes block offset
+ * - [SizeProvider]: Computes block dimensions
+ * - [CornersProvider]: Computes block corner radii
  *
  * The builder assembles data from these providers to create fully-specified
- * rounded rectangle bricks for each digit.
+ * [Block]s for each digit.
  *
- * @property positionProvider Provider that computes brick position
- * @property offsetProvider Provider that computes brick offset
- * @property sizeProvider Provider that computes brick sizes
- * @property cornersProvider Provider that computes corner radii
+ * @property positionProvider Provider that computes block position
+ * @property offsetProvider Provider that computes block offset
+ * @property sizeProvider Provider that computes block size
+ * @property cornersProvider Provider that computes block corner radii
  */
 class BlockDigitBuilder(
     private val positionProvider: PositionProvider,

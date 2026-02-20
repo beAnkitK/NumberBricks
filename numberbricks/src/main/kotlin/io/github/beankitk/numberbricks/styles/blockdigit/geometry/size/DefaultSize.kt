@@ -6,13 +6,13 @@ import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 
 /**
- * Provides uniform size for all bricks.
+ * Provides uniform size for all blocks.
  *
- * All bricks in the digit layout receive the same dimensions. The size
+ * All blocks in the digit layout receive the same dimensions. The size
  * is cached after first computation for efficiency.
  */
 class DefaultSize private constructor(
-    private val brickSize: Size
+    private val blockSize: Size
 ) : SizeProvider.Adaptive() {
 
     private var cachedSize: List<Size>? = null
@@ -20,28 +20,28 @@ class DefaultSize private constructor(
     override val dependsOn = emptySet<ProviderKey<*>>()
 
     override fun getProviderData(digit: Int, providerStore: ProviderStore): List<Size> {
-        return cachedSize ?: buildProviderData { brickSize }.also {
+        return cachedSize ?: buildProviderData { blockSize }.also {
             cachedSize = it
         }
     }
 
     companion object {
-        /** A size provider with zero dimensions for all bricks. */
+        /** A size provider with zero dimensions for all blocks. */
         val Zero = DefaultSize(Size.Zero)
 
         /**
-         * Creates a size provider with uniform dimensions for all bricks.
+         * Creates a size provider with uniform dimensions for all blocks.
          *
-         * @param brickSize The size to apply to all bricks
+         * @param blockSize The size to apply to all blocks
          * @return A size provider with the specified uniform size
          */
-        fun uniform(brickSize: Size) = DefaultSize(brickSize)
+        fun uniform(blockSize: Size) = DefaultSize(blockSize)
 
         /**
-         * Creates a size provider with uniform dimensions for all bricks.
+         * Creates a size provider with uniform dimensions for all blocks.
          *
-         * @param width The width for all bricks
-         * @param height The height for all bricks (defaults to width for square bricks)
+         * @param width The width for all blocks
+         * @param height The height for all blocks (defaults to width for square blocks)
          * @return A size provider with the specified uniform dimensions
          */
         fun uniform(width: Float, height: Float = width) = DefaultSize(Size(width, height))

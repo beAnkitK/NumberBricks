@@ -16,18 +16,18 @@ import kotlin.math.min
  /**
  * A rectangular brick with rounded corners for block-style digit display.
  *
- * Represents a single visual element in a block digit layout. It extends [Brick] with corner radius
- * to support rounded rectangle drawing. Used in block digit styles, here, all geometric properties
+ * Represents a single visual element in a block-digit layout style. It extends [Brick] with corner
+ * radius to support rounded rectangle drawing. Used in block digit styles, here, all geometric properties
  * ([offset], [size], [cornerRadius]) are specified in a normalized coordinate system relative to 1f
  * where 1f represents one grid cell. All properties are stored as grid-relative values and scaled to
- * pixels during rendering.
+ * actual size during rendering.
  *
  * **Coordinate System:**
  * Grid: 5 rows × 3 cols
  * Canvas: 200dp height × 120dp width
- * Unit brick size: width = 120dp/3 = 40dp, height = 200dp/5 = 40dp
+ * Unit block size: width = 120dp/3 = 40dp, height = 200dp/5 = 40dp
  *
- * Example brick with normalized values:
+ * Example block with normalized values:
  * ```
  * // Normalized values
  * offset = Offset(2.5f, 3f)
@@ -55,11 +55,11 @@ import kotlin.math.min
  *   [position] values represent absolute block values and are therefore not scaled.
  * 2. Negative values are not allowed for any property.
  *
- * @property index The brick's index in the ordered brick list
- * @property position The brick's position in the two dimensional digit layout/grid
- * @property offset The brick's top-left position in normalized grid coordinates
- * @property size The brick's dimensions in normalized grid units
- * @property cornerRadius The corner radii as percentages of the brick's actual size
+ * @property index The block's index in the ordered block list for a single digit
+ * @property position The block's position in the two dimensional digit layout/grid
+ * @property offset The block's top-left position in normalized grid units from origin
+ * @property size The block's dimensions (height and width) in normalized grid units
+ * @property cornerRadius The corner radius of all corners as percentages of the block's size
  */
 @Immutable
 data class Block(
@@ -121,8 +121,8 @@ data class Block(
 }
 
 /**
- * Linearly interpolates between two blocks. The index of the resulting block
- *  is taken from the end block.
+ * Linearly interpolates between two blocks. The index and position of the
+ * resulting block is taken from the end block.
  *
  * @param start The starting block (at t = 0.0)
  * @param end The ending block (at t = 1.0)

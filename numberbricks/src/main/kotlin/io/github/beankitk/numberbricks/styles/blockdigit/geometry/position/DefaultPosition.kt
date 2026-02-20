@@ -6,10 +6,10 @@ import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 
 /**
- * Provides uniform position for all bricks.
+ * Provides uniform position for all blocks.
  *
- * All bricks in the digit layout receive the same position. Used
- * for the constructing default bricks or as intermediate position during
+ * All blocks in the digit layout receive the same position. Used
+ * for the constructing default blocks or as intermediate position during
  * animations. The position is cached after first computation.
  */
 class DefaultPosition private constructor(
@@ -27,13 +27,13 @@ class DefaultPosition private constructor(
     }
 
     companion object {
-        /** A position provider with zero position for all bricks. */
+        /** A position provider with zero position for all blocks. */
         val Zero = DefaultPosition(Position.Zero)
 
         /**
-         * Creates a position provider with uniform position for all bricks.
+         * Creates a position provider with uniform position for all blocks.
          *
-         * @param position The position to apply to all bricks
+         * @param position The position to apply to all blocks
          * @return An position provider with the specified uniform position
          */
         fun of(position: Position): DefaultPosition =

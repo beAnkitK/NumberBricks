@@ -10,14 +10,14 @@ import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 import io.github.beankitk.numberbricks.blockdigit.geometry.position.PositionProvider
 
 /**
- * Provides variable brick sizes based on column and row dimensions.
+ * Provides variable block size based on column and row dimensions.
  *
- * Each brick's size is determined by its grid position, using per-column widths
- * and per-row heights. This allows non-uniform brick sizing where different rows
+ * Each block's size is determined by its grid position, using per-column widths
+ * and per-row heights. This allows non-uniform block sizing where different rows
  * or columns have different dimensions.
  *
  * **Requirements:**
- * 1. Depends on [PositionProvider] to determine each brick's grid position.
+ * 1. Depends on [PositionProvider] to determine each block's grid position.
  * 2. Input arrays use the [Block] coordinate scale where values are relative proportions.
  *    Arrays are automatically normalized so column widths sum to the column count and
  *    row heights sum to the row count. All elements must be non-negative.
@@ -32,10 +32,10 @@ import io.github.beankitk.numberbricks.blockdigit.geometry.position.PositionProv
  * //             widths [1.385f, 0.231f, 1.385f]
  * ```
  *
- * @property eachColWidth Relative widths for each column. The array size must be equals to cols
- *                        and the values will be normalized to sum to cols.
- * @property eachRowHeight Relative heights for each row. The array size must be equals to rows
- *                        and the values will be normalized to sum to rows.
+ * @property eachColWidth Relative widths for each column. The array size must be equals to total
+ *                        columns. The values are normalized so their sum equals the column count.
+ * @property eachRowHeight Relative heights for each row. The array size must be equals to total
+ *                         rows. The values are normalized so their sum equals the row count.
  */
 class VariableSize(
     eachColWidth: FloatArray,

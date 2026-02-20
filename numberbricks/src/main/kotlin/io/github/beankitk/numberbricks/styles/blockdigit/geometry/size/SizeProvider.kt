@@ -7,7 +7,7 @@ import io.github.beankitk.numberbricks.core.geometry.GeometryProvider
 import io.github.beankitk.numberbricks.core.geometry.GeometryProps
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 
-/** Provides the dimensions (width and height) for bricks in a digit layout. */
+/** Provides the dimensions (width and height) for blocks in a digit layout. */
 sealed interface SizeProvider : GeometryProvider<Size> {
 
     companion object {

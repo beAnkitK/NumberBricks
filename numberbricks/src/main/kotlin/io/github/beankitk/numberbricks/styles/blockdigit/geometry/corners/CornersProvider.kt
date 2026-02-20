@@ -18,7 +18,7 @@ import io.github.beankitk.numberbricks.data.DigitData
 import io.github.beankitk.numberbricks.data.ShapeRadius
 import io.github.beankitk.numberbricks.utils.getCornerProfile
 
-/** Provides corner radius data for bricks in a digit layout.*/
+/** Provides corner radius data for blocks in a digit layout.*/
 sealed interface CornersProvider: GeometryProvider<ShapeRadius> {
 
     companion object {
@@ -42,14 +42,14 @@ sealed interface CornersProvider: GeometryProvider<ShapeRadius> {
 }
 
 /**
- * Base class for manually defining corner radii per digit.
+ * Base class for manually defining corner radii per block for each digit.
  *
  * Provides predefined corner radius configurations for all possible combinations
  * of corners in the block. Subclasses implement [DigitData] to specify exact
- * corner radii for each brick in each digit representation.
+ * corner radii for all block in each digit representation.
  *
  * This approach gives full control over corner styling but requires
- * manually defining radii for all bricks across all digits.
+ * manually defining radii for all blocks across all digits.
  *
  * **Helper radius configurations:**
  * - [zero]: No rounding on any corner
@@ -104,13 +104,13 @@ abstract class CustomCornerProvider(
 }
 
 /**
- * Base class for automatically detecting corner radii based on brick adjacency.
+ * Base class for automatically detecting corner radii based on block adjacency.
  *
- * Uses [CornerDetector] to analyze how bricks connect and applies appropriate
- * corner radii based on neighbor relationships. Each [CornerType] is mapped
- * to a specific corner radius, allowing consistent styling across all digits.
- * Subclasses define radius values for each corner type. Depends on [OffsetProvider]
- * and [SizeProvider] to construct brick rectangles for corner detection.
+ * Uses [CornerDetector] to analyze how blocks connect and applies appropriate
+ * corner radii based on neighbor relationships. It depends on [OffsetProvider]
+ * and [SizeProvider] to construct block rectangles for corner detection. Each
+ * [CornerType] is mapped to a specific corner radius, allowing consistent styling
+ * across all digits. Subclasses define [CornerRadius] values for each corner type.
  *
  * **Customization hooks:**
  * - [modifyCornerProfile]
@@ -165,10 +165,10 @@ abstract class AutoCornerProvider : CornersProvider.Adaptive() {
     /**
      * Allows modifying detected corner profiles before radius mapping.
      *
-     * Override to adjust corner type classifications for specific bricks or digits.
+     * Override to adjust corner type classifications for specific block or digits.
      *
      * @param digit The digit being processed (0-9, or -1 for default)
-     * @param index The brick index
+     * @param index The block index
      * @param profile The detected corner profile
      * @return The modified corner profile (or original if unchanged)
      */
@@ -179,12 +179,12 @@ abstract class AutoCornerProvider : CornersProvider.Adaptive() {
     ): CornerProfile = profile
 
     /**
-     * Allows modifying final corner radii for specific bricks.
+     * Allows modifying final corner radii for specific block.
      *
-     * Override to apply digit-specific or brick-specific adjustments to radii.
+     * Override to apply digit-specific or block-specific adjustments to corner-radii.
      *
      * @param digit The digit being processed (0-9, or -1 for default)
-     * @param index The brick index
+     * @param index The block index
      * @param shapeRadius The computed shape radius
      * @return The modified shape radius (or original if unchanged)
      */
