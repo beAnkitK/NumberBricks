@@ -1,10 +1,5 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry.position
 
-/**
- * Provides positions for abstracted styled digit
- *
- * @see ClassicPosition
- */
 class AbstractPosition: ClassicPosition() {
 
     override val digit0 = listOf(

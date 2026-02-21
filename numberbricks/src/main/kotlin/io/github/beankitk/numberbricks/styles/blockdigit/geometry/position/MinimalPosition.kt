@@ -1,10 +1,5 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry.position
 
-/**
- * Provides positions for minimal styled digit
- *
- * @see ClassicPosition
- */
 class MinimalPosition: ClassicPosition() {
 
     override val digit1 = listOf(

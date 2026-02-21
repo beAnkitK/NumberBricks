@@ -1,10 +1,5 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry.position
 
-/**
- * Provides positions for modern-mechanical looking styled digit
- *
- * @see ClassicPosition
- */
 class MechaPosition: ClassicPosition() {
 
     override val digit1 = listOf(

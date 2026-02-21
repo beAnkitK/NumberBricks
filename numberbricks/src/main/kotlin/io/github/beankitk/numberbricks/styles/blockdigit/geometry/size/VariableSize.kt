@@ -9,34 +9,6 @@ import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 import io.github.beankitk.numberbricks.blockdigit.geometry.position.PositionProvider
 
-/**
- * Provides variable block size based on column and row dimensions.
- *
- * Each block's size is determined by its grid position, using per-column widths
- * and per-row heights. This allows non-uniform block sizing where different rows
- * or columns have different dimensions.
- *
- * **Requirements:**
- * 1. Depends on [PositionProvider] to determine each block's grid position.
- * 2. Input arrays use the [Block] coordinate scale where values are relative proportions.
- *    Arrays are automatically normalized so column widths sum to the column count and
- *    row heights sum to the row count. All elements must be non-negative.
- *
- * **Example:**
- * ```
- * // Grid: 5 rows × 3 columns
- * // Input: heights [2f, 3f, 2f, 3f, 2f], widths [3f, 0.5f, 3f]
- * // Sum: heights = 12f, widths = 6.5f
- * // Target: heights sum to 5, widths sum to 3
- * // Normalized: heights [0.833f, 1.25f, 0.833f, 1.25f, 0.833f]
- * //             widths [1.385f, 0.231f, 1.385f]
- * ```
- *
- * @property eachColWidth Relative widths for each column. The array size must be equals to total
- *                        columns. The values are normalized so their sum equals the column count.
- * @property eachRowHeight Relative heights for each row. The array size must be equals to total
- *                         rows. The values are normalized so their sum equals the row count.
- */
 class VariableSize(
     eachColWidth: FloatArray,
     eachRowHeight: FloatArray
