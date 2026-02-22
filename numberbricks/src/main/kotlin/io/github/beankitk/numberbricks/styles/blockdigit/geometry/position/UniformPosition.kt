@@ -5,7 +5,7 @@ import io.github.beankitk.numberbricks.core.geometry.ProviderStore
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 
-class DefaultPosition private constructor(
+class UniformPosition(
     private val position: Position
 ) : PositionProvider.Adaptive() {
 
@@ -20,9 +20,8 @@ class DefaultPosition private constructor(
     }
 
     companion object {
-        val Zero = DefaultPosition(Position.Zero)
+        val Zero = UniformPosition(Position.Zero)
 
-        fun of(position: Position): DefaultPosition =
-            DefaultPosition(position)
+        fun of(row: Int, col: Int) = UniformPosition(Position(row, col))
     }
 }

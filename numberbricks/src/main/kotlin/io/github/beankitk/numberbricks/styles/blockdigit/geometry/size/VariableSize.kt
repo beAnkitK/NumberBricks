@@ -6,16 +6,13 @@ import io.github.beankitk.numberbricks.core.geometry.GeometryProps
 import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.core.geometry.ProviderStore
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
-import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 import io.github.beankitk.numberbricks.blockdigit.geometry.position.PositionProvider
 
 class VariableSize(
-    eachColWidth: FloatArray,
-    eachRowHeight: FloatArray
+    private val eachColWidth: FloatArray,
+    private val eachRowHeight: FloatArray
 ): SizeProvider.Adaptive() {
 
-    private val eachColWidth = eachColWidth
-    private val eachRowHeight = eachRowHeight
     private lateinit var normalizedColWidth: FloatArray
     private lateinit var normalizedRowHeight: FloatArray
 
@@ -46,9 +43,8 @@ class VariableSize(
     }
 
     override fun getProviderData(digit: Int, providerStore: ProviderStore): List<Size> {
-        val bricksPosition = providerStore.get<Position>(PositionProvider.key)
-        return buildProviderData { index ->
-            val position = bricksPosition[index]
+        val positions = providerStore.get<Position>(PositionProvider.key)
+        return positions.map { position ->
             Size(
                 width = normalizedColWidth[position.col],
                 height = normalizedRowHeight[position.row]

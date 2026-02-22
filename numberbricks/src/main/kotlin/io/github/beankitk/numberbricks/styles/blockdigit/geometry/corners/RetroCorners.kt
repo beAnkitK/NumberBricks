@@ -5,22 +5,33 @@ import io.github.beankitk.numberbricks.data.CornerType
 import io.github.beankitk.numberbricks.data.CornerProfile
 import io.github.beankitk.numberbricks.data.ShapeRadius
 
-class RetroCorners(
-    outerRadius: CornerRadius,
-    private val singleCornerRadius: CornerRadius = outerRadius
-): AutoCornerProvider() {
+open class RetroCorners(
+    outerRadius: CornerRadius = CornerRadius(0.2f),
+    singleOuterRadius: CornerRadius = CornerRadius(0.85f)
+): AutoCornersProvider() {
 
-    override val edgeRadius = CornerRadius.Zero
-    override val outerRadius = outerRadius
-    override val cornerNeighborRadius = CornerRadius.Zero
-    override val cornerRadius = CornerRadius.Zero
-    override val jointInlineRadius = CornerRadius.Zero
-    override val jointRadius = CornerRadius.Zero
-    override val innerRadius = CornerRadius.Zero
+    constructor(
+        outerRadius: Float = 0.2f,
+		singleOuterRadius: Float = 0.85f
+    ) : this(CornerRadius(outerRadius), CornerRadius(singleOuterRadius))
+
+    final override val edgeRadius = CornerRadius.Zero
+    final override val outerRadius = outerRadius
+    final override val cornerNeighborRadius = CornerRadius.Zero
+    final override val cornerRadius = CornerRadius.Zero
+    final override val jointInlineRadius = CornerRadius.Zero
+    final override val jointRadius = CornerRadius.Zero
+    final override val innerRadius = CornerRadius.Zero
+
+    protected val singleOuterRadius = singleOuterRadius
 
     protected override fun modifyShapeRadius(
         digit: Int,
         index: Int,
+        shapeRadius: ShapeRadius
+    ): ShapeRadius = applySingleOuterRadiusPolicy(shapeRadius)
+
+    protected fun applySingleOuterRadiusPolicy(
         shapeRadius: ShapeRadius
     ): ShapeRadius = with(shapeRadius) {
         var outerRadiusCount = 0
@@ -40,14 +51,6 @@ class RetroCorners(
         } else this
     }
 
-    private val outerToSingleRadius: (CornerRadius) -> CornerRadius = { if (it == outerRadius) singleCornerRadius else it }
-
-    companion object {
-        val bubble = RetroCorners(CornerRadius(0.5f))
-
-        fun soloCurve(
-            outerRadius: Float = 0.2f,
-            singleCornerRadius: Float = 0.85f
-        ) = RetroCorners(CornerRadius(outerRadius), CornerRadius(singleCornerRadius))
-    }
+    private val outerToSingleRadius: (CornerRadius) -> CornerRadius =
+        { if (it == outerRadius) singleOuterRadius else it }
 }

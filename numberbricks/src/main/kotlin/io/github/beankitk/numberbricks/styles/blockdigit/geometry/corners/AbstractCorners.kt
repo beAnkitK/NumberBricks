@@ -10,7 +10,19 @@ class AbstractCorners(
     cornerNeighborRadius: CornerRadius = CornerRadius.Zero,
     cornerRadius: CornerRadius = CornerRadius.Zero,
     jointRadius: CornerRadius = CornerRadius.Zero
-): AutoCornerProvider() {
+): AutoCornersProvider() {
+
+    constructor(
+        outerRadius: Float = 0f,
+        cornerNeighborRadius: Float = 0f,
+        cornerRadius: Float = 0f,
+        jointRadius: Float = 0f
+    ) : this(
+        outerRadius = CornerRadius(outerRadius),
+        cornerNeighborRadius = CornerRadius(cornerNeighborRadius),
+        cornerRadius = CornerRadius(cornerRadius),
+        jointRadius = CornerRadius(jointRadius)
+    )
 
     override val edgeRadius = CornerRadius.Zero
     override val outerRadius = outerRadius
@@ -32,24 +44,22 @@ class AbstractCorners(
         }
 
     companion object {
-        val squared = AbstractCorners()
-
-        val bubble = AbstractCorners(
+        val Bubble = AbstractCorners(
             outerRadius = CornerRadius(1f),
             cornerNeighborRadius = CornerRadius(0.5f)
         )
 
         fun rounded(
-            rX: Float = 0.5f,
-            rY: Float = rX
-        ) = AbstractCorners(outerRadius = CornerRadius(rX, rY))
+            radiusX: Float = 0.5f,
+            radiusY: Float = radiusX
+        ) = AbstractCorners(outerRadius = CornerRadius(radiusX, radiusY))
 
-        fun vintage(
-            outer: Float = 1f,
-            cornerNeighbor: Float = 1f
-        ) = AbstractCorners(
-            outerRadius = CornerRadius(outer),
-            cornerNeighborRadius = CornerRadius(cornerNeighbor)
-        )
+        fun retro(
+            outerRadius: Float = 0.2f,
+            cornerNeighborRadius: Float = 0.85f
+         ) = AbstractCorners(
+            outerRadius = CornerRadius(outerRadius),
+            cornerNeighborRadius = CornerRadius(cornerNeighborRadius)
+         )
     }
 }

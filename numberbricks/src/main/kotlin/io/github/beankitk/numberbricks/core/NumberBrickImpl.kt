@@ -70,8 +70,8 @@ internal fun NumberBricksImpl(
             digitBuilder = BlockDigitBuilder(
                 positionProvider = ClassicPosition(),
                 offsetProvider = DirectOffset(),
-                sizeProvider = DefaultSize.uniform(1f),
-                cornersProvider = DefaultCorners.zero
+                sizeProvider = UniformSize.of(1f),
+                cornersProvider = UniformCorners.Zero
             )
         ).apply { initiate() }
     }

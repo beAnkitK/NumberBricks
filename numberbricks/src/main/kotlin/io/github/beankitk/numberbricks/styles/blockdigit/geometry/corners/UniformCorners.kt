@@ -5,25 +5,25 @@ import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 import io.github.beankitk.numberbricks.data.ShapeRadius
 
-class DefaultCorners private constructor(
-    private val cornerRadius: ShapeRadius
+class UniformCorners(
+    private val shapeRadius: ShapeRadius
 ): CornersProvider.Adaptive() {
 
-    private var cachedCornerRadius: List<ShapeRadius>? = null
+    private var cachedShapeRadius: List<ShapeRadius>? = null
 
     override val dependsOn = emptySet<ProviderKey<*>>()
 
     override fun getProviderData(digit: Int, providerStore: ProviderStore): List<ShapeRadius> {
-        return cachedCornerRadius ?: buildProviderData { cornerRadius }.also {
-            cachedCornerRadius = it
+        return cachedShapeRadius ?: buildProviderData { shapeRadius }.also {
+            cachedShapeRadius = it
         }
     }
 
     companion object {
-        val zero = DefaultCorners(ShapeRadius.Zero)
+        val Zero = UniformCorners(ShapeRadius.Zero)
 
-        val full = DefaultCorners(ShapeRadius.all(1f))
+        val Full = UniformCorners(ShapeRadius.all(1f))
 
-        fun uniform(cornerRadius: Float) = DefaultCorners(ShapeRadius.all(cornerRadius))
+        fun of(cornerRadius: Float) = UniformCorners(ShapeRadius.all(cornerRadius))
     }
 }

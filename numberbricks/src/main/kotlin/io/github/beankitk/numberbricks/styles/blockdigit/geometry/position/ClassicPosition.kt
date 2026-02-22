@@ -10,10 +10,6 @@ import io.github.beankitk.numberbricks.data.DigitData
 
 open class ClassicPosition : PositionProvider.Fixed(), DigitData<List<Position>> {
 
-    final override val providerConfig = GridConfig(
-        rows = 5, cols = 3, bricks = 13
-    )
-
     private val c0 = 0
     private val c1 = 1
     private val c2 = 2
@@ -39,6 +35,17 @@ open class ClassicPosition : PositionProvider.Fixed(), DigitData<List<Position>>
     protected val g13 = Position(r4, c0)
     protected val g14 = Position(r4, c1)
     protected val g15 = Position(r4, c2)
+
+    final override val providerConfig = GridConfig(
+        rows = 5, cols = 3, bricks = 13
+    )
+
+    final override val dependsOn = emptySet<ProviderKey<*>>()
+
+    final override fun getProviderData(
+        digit: Int,
+        providerStore: ProviderStore
+    ): List<Position> = this@ClassicPosition[digit]
 
     override val default = buildProviderData { g8 }
 
@@ -121,9 +128,4 @@ open class ClassicPosition : PositionProvider.Fixed(), DigitData<List<Position>>
         g13, g12,
         g13, g14, g15
     )
-
-    override val dependsOn = emptySet<ProviderKey<*>>()
-    
-    override fun getProviderData(digit: Int, providerStore: ProviderStore): List<Position> =
-        this@ClassicPosition[digit]
 }

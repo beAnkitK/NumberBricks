@@ -37,9 +37,9 @@ sealed interface CornersProvider: GeometryProvider<ShapeRadius> {
     }
 }
 
-abstract class CustomCornerProvider(
+abstract class CustomCornersProvider(
     val radiusX: Float,
-    val radiusY: Float
+    val radiusY: Float = radiusX
 ): CornersProvider.Fixed(), DigitData<List<ShapeRadius>> {
 
     private val cornerRadius = CornerRadius(radiusX, radiusY)
@@ -54,7 +54,6 @@ abstract class CustomCornerProvider(
 
     protected val bl = ShapeRadius(bottomLeft = cornerRadius)
 
-
     protected val tbl = ShapeRadius(topLeft = cornerRadius, bottomLeft = cornerRadius)
 
     protected val tbr = ShapeRadius(topRight = cornerRadius, bottomRight = cornerRadius)
@@ -67,21 +66,21 @@ abstract class CustomCornerProvider(
 
     override val dependsOn = emptySet<ProviderKey<*>>()
 
-    override fun getProviderData(digit: Int, providerStore: ProviderStore) = this@CustomCornerProvider[digit]
+    final override fun getProviderData(digit: Int, providerStore: ProviderStore) = this@CustomCornersProvider[digit]
 
 }
 
-abstract class AutoCornerProvider : CornersProvider.Adaptive() {
+abstract class AutoCornersProvider : CornersProvider.Adaptive() {
 
-    override val dependsOn: Set<ProviderKey<*>>
+    final override val dependsOn: Set<ProviderKey<*>>
         get() = setOf(OffsetProvider.key, SizeProvider.key)
 
-    override fun getProviderData(digit: Int, providerStore: ProviderStore): List<ShapeRadius> {
-        val offsetList = providerStore.get<Offset>(OffsetProvider.key)
-        val sizeList = providerStore.get<Size>(SizeProvider.key)
-        val rectsArray = Array(providerConfig.bricks) { index -> Rect(offsetList[index], sizeList[index]) }
+    final override fun getProviderData(digit: Int, providerStore: ProviderStore): List<ShapeRadius> {
+        val offsets = providerStore.get<Offset>(OffsetProvider.key)
+        val sizes = providerStore.get<Size>(SizeProvider.key)
+        val rects = Array(providerConfig.bricks) { index -> Rect(offsets[index], sizes[index]) }
 
-        return detectCornerFor(digit, rectsArray)
+        return detectCornerFor(digit, rects)
     }
 
     private fun detectCornerFor(digit: Int, rects: Array<Rect>): List<ShapeRadius> {

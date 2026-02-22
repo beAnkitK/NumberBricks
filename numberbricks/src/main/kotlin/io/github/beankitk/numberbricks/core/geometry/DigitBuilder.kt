@@ -36,7 +36,7 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
         checkConstructed()
         val providerStore = DefaultProviderStore(digit, properties.config)
         executionOrder.forEach { provider ->
-            computeDataFor(digit, provider, providerStore)
+            executeProvider(digit, provider, providerStore)
         }
         return buildBricks(digit, providerStore)
     }
@@ -72,7 +72,7 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
 
     //protected abstract fun buildDefaultBricks(digit: Int): List<T>
 
-    private fun <P> computeDataFor(
+    private fun <P> executeProvider(
         digit: Int,
         provider: GeometryProvider<P>,
         providerStore: DefaultProviderStore

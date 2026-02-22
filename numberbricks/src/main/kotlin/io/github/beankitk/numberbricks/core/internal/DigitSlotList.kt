@@ -1,3 +1,5 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
 package io.github.beankitk.numberbricks.core.internal
 
 import androidx.collection.MutableLongList

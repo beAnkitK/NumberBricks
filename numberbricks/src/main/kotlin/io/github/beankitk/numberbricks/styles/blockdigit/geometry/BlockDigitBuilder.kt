@@ -26,19 +26,19 @@ class BlockDigitBuilder(
         registerProvider(cornersProvider)
     }
 
-    protected override fun buildBricks(digit: Int, store: ProviderStore): List<Block> {
-        val positionList = store.get<Position>(PositionProvider.key)
-        val offsetList = store.get<Offset>(OffsetProvider.key)
-        val sizeList = store.get<Size>(SizeProvider.key)
-        val cornersRadiusList = store.get<ShapeRadius>(CornersProvider.key)
+    protected override fun buildBricks(digit: Int, providerStore: ProviderStore): List<Block> {
+        val positions = providerStore.get<Position>(PositionProvider.key)
+        val offsets = providerStore.get<Offset>(OffsetProvider.key)
+        val sizes = providerStore.get<Size>(SizeProvider.key)
+        val cornersRadii = providerStore.get<ShapeRadius>(CornersProvider.key)
 
         return List(properties.config.bricks) { index ->
             Block(
                 index = index,
-                position = positionList[index],
-                offset = offsetList[index],
-                size = sizeList[index],
-                cornerRadius = cornersRadiusList[index]
+                position = positions[index],
+                offset = offsets[index],
+                size = sizes[index],
+                cornerRadius = cornersRadii[index]
             )
         }
     }

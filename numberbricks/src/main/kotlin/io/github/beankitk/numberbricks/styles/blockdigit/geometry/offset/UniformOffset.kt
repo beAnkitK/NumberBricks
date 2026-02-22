@@ -5,7 +5,7 @@ import io.github.beankitk.numberbricks.core.geometry.ProviderStore
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 
-class DefaultOffset private constructor(
+class UniformOffset(
     private val offset: Offset
 ) : OffsetProvider.Adaptive() {
 
@@ -20,9 +20,8 @@ class DefaultOffset private constructor(
     }
 
     companion object {
-        val Zero = DefaultOffset(Offset.Zero)
+        val Zero = UniformOffset(Offset.Zero)
 
-        fun of(offset: Offset): DefaultOffset =
-            DefaultOffset(offset)
+        fun of(x: Float, y: Float) = UniformOffset(Offset(x, y))
     }
 }
