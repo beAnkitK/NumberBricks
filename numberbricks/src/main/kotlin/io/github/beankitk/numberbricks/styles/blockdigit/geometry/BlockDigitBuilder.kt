@@ -42,4 +42,16 @@ class BlockDigitBuilder(
             )
         }
     }
+
+    protected override fun buildDefaultBricks(): List<Block> {
+        return List(properties.config.bricks) { index ->
+            Block(
+                index = index,
+                position = Position(row = 2, col = 1),
+                offset = Offset(x = 1f, y = 2f),
+                size = Size(width = 1f, height = 1f),
+                cornerRadius = ShapeRadius.Zero
+            )
+        }
+    }
 }

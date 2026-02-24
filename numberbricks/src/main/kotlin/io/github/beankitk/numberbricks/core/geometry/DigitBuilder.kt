@@ -8,7 +8,7 @@ interface DigitBuilder<T : Brick<T>> {
 
     fun getBricksFor(digit: Int): List<T>
 
-     //TODO: Add digit parameter to return digit aware deafult bricks
+    //TODO: Add digit parameter to return digit aware default bricks
     fun defaultBricks(): List<T>
 
     fun destruct()
@@ -34,6 +34,11 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
 
     final override fun getBricksFor(digit: Int): List<T> {
         checkConstructed()
+
+        require(digit in 0..9 || digit == -1) {
+            "Builder accepts digit values from 0 to 9 to construct bricks and -1 for default bricks, but got $digit"
+        }
+
         val providerStore = DefaultProviderStore(digit, properties.config)
         executionOrder.forEach { provider ->
             executeProvider(digit, provider, providerStore)
@@ -41,10 +46,9 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
         return buildBricks(digit, providerStore)
     }
 
-    // TODO: Allow overriding in impl class when the interface todo is solved
     final override fun defaultBricks(): List<T> {
         checkConstructed()
-        return getBricksFor(-1)
+        return buildDefaultBricks()
     }
 
     override fun destruct() {
@@ -68,9 +72,9 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
         providersRegistry.add(provider)
     }
 
-    protected abstract fun buildBricks(digit: Int, store: ProviderStore): List<T>
+    protected abstract fun buildBricks(digit: Int, providerStore: ProviderStore): List<T>
 
-    //protected abstract fun buildDefaultBricks(digit: Int): List<T>
+    protected abstract fun buildDefaultBricks(): List<T>
 
     private fun <P> executeProvider(
         digit: Int,

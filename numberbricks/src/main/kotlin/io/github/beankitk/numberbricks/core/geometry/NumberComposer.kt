@@ -63,7 +63,11 @@ class DefaultNumberComposer<T : Brick<T>>(
 
     //TODO: setting current number to initial number without constructing the builder leads to digit mismatch
     private val _currentNumber = mutableIntStateOf(initialNumber.absoluteValue)
-    override val currentNumber: Int by _currentNumber
+    override val currentNumber: Int
+        get() {
+            check(isInitialized) { "currentNumber cannot be accessed before NumberComposer is initiated." }
+            return _currentNumber.value
+        }
 
     private val _previousNumber = mutableStateOf<Int?>(null)
     override val previousNumber: Int? by _previousNumber
@@ -78,9 +82,9 @@ class DefaultNumberComposer<T : Brick<T>>(
         require(!isInitialized) { "NumberComposer already initialized" }
         digitBuilder.construct(properties)
         defaultBricks = digitBuilder.defaultBricks()
-        isInitialized = true
 
         applyNumberChange(_currentNumber.value, isFirstUpdate = true)
+        isInitialized = true
     }
 
     override fun updateNumber(number: Int) {
@@ -113,10 +117,8 @@ class DefaultNumberComposer<T : Brick<T>>(
         // Update state tracking
         if (!isFirstUpdate) {
             _previousNumber.value = _currentNumber.value
-        } else {
-            _previousNumber.value = null
+            _currentNumber.value = newNumber
         }
-        _currentNumber.value = newNumber
         digitSlotCount = newDigitSequence.size
     }
 
