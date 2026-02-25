@@ -13,7 +13,7 @@ class UniformCorners(
 
     override val dependsOn = emptySet<ProviderKey<*>>()
 
-    override fun getProviderData(digit: Int, providerStore: ProviderStore): List<ShapeRadius> {
+    override fun provideData(digit: Int, providerStore: ProviderStore): List<ShapeRadius> {
         return cachedShapeRadius ?: buildProviderData { shapeRadius }.also {
             cachedShapeRadius = it
         }

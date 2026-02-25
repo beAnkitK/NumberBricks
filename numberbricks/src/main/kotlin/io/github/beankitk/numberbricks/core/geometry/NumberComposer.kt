@@ -21,13 +21,11 @@ interface NumberComposer<T : Brick<T>> {
 
     val previousNumber: Int?
 
-    val properties: GeometryProps
+    val digitGridSpec: GridSpec
 
-    val layoutConfig: GridConfig
+    val geometryProps: GeometryProps
 
     val digitBuilder: DigitBuilder<T>
-
-    val digitSequence: IntArray
 
     fun initiate()
 
@@ -46,7 +44,8 @@ interface NumberComposer<T : Brick<T>> {
 
 class DefaultNumberComposer<T : Brick<T>>(
     initialNumber: Int,
-    override val properties: GeometryProps,
+    override val digitGridSpec: GridSpec,
+    override val geometryProps: GeometryProps,
     override val digitBuilder: DigitBuilder<T>
 ) : NumberComposer<T> {
 
@@ -54,14 +53,15 @@ class DefaultNumberComposer<T : Brick<T>>(
 
     // Digit slot structure tracking per-position transitions
     private val digitSlotList: DigitSlotList = DigitSlotList()
-    private var _digitSequence: IntList = emptyIntList()
+    private var digitSequence: IntList = emptyIntList()
     private var digitSlotCount by mutableIntStateOf(0)
 
     // Brick cache: digit → brick list
     private val digitBricksCache: MutableIntObjectMap<List<T>> = mutableIntObjectMapOf()
     private var defaultBricks: List<T>? = null
 
-    //TODO: setting current number to initial number without constructing the builder leads to digit mismatch
+    // This holds currentNumber but does not allow any access until builder is constructed
+    // and bricks are available for the initial number.
     private val _currentNumber = mutableIntStateOf(initialNumber.absoluteValue)
     override val currentNumber: Int
         get() {
@@ -72,18 +72,12 @@ class DefaultNumberComposer<T : Brick<T>>(
     private val _previousNumber = mutableStateOf<Int?>(null)
     override val previousNumber: Int? by _previousNumber
 
-    override val layoutConfig: GridConfig
-        get() = properties.config
-
-    override val digitSequence: IntArray
-        get() = _digitSequence.toIntArray()
-
     override fun initiate() {
         require(!isInitialized) { "NumberComposer already initialized" }
-        digitBuilder.construct(properties)
+        digitBuilder.construct(digitGridSpec, geometryProps)
         defaultBricks = digitBuilder.defaultBricks()
 
-        applyNumberChange(_currentNumber.value, isFirstUpdate = true)
+        applyNumberChange(_currentNumber.value, isInitialUpdate = true)
         isInitialized = true
     }
 
@@ -98,7 +92,7 @@ class DefaultNumberComposer<T : Brick<T>>(
     // Applies a number change by parsing digits, updating slots, and caching bricks.
     private fun applyNumberChange(
         newNumber: Int,
-        isFirstUpdate: Boolean = false
+        isInitialUpdate: Boolean = false
     ) {
         val newDigitSequence = parseDigitsReversed(newNumber)
         val uniqueDigits = newDigitSequence.asIntSet()
@@ -112,10 +106,10 @@ class DefaultNumberComposer<T : Brick<T>>(
         }
 
         updateDigitSlotList(newDigitSequence)
-        _digitSequence = newDigitSequence
+        digitSequence = newDigitSequence
 
         // Update state tracking
-        if (!isFirstUpdate) {
+        if (!isInitialUpdate) {
             _previousNumber.value = _currentNumber.value
             _currentNumber.value = newNumber
         }
@@ -191,7 +185,7 @@ class DefaultNumberComposer<T : Brick<T>>(
     }
 
     override fun dispose() {
-        _digitSequence = emptyIntList()
+        digitSequence = emptyIntList()
         digitSlotList.clear()
         digitBricksCache.clear()
         defaultBricks = null
@@ -211,5 +205,3 @@ private fun IntList.asIntSet(): IntSet {
     forEach { set.add(it) }
     return set
 }
-
-private fun IntList.toIntArray(): IntArray = IntArray(size) { get(it) }

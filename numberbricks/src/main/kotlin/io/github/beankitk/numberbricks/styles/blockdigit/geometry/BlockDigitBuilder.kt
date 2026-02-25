@@ -32,7 +32,7 @@ class BlockDigitBuilder(
         val sizes = providerStore.get<Size>(SizeProvider.key)
         val cornersRadii = providerStore.get<ShapeRadius>(CornersProvider.key)
 
-        return List(properties.config.bricks) { index ->
+        return List(digitGridSpec.bricks) { index ->
             Block(
                 index = index,
                 position = positions[index],
@@ -44,7 +44,7 @@ class BlockDigitBuilder(
     }
 
     protected override fun buildDefaultBricks(): List<Block> {
-        return List(properties.config.bricks) { index ->
+        return List(digitGridSpec.bricks) { index ->
             Block(
                 index = index,
                 position = Position(row = 2, col = 1),

@@ -4,7 +4,7 @@ interface ProviderStore {
 
     val digit: Int
 
-    val layoutConfig: GridConfig
+    val gridSpec: GridSpec
 
     fun <T> has(key: ProviderKey<T>): Boolean
 
@@ -13,7 +13,7 @@ interface ProviderStore {
 
 class DefaultProviderStore(
     override val digit: Int,
-    override val layoutConfig: GridConfig
+    override val gridSpec: GridSpec
 ) : ProviderStore {
 
     private val providerDataStore = mutableMapOf<ProviderKey<*>, List<*>>()
@@ -24,12 +24,12 @@ class DefaultProviderStore(
     @Suppress("UNCHECKED_CAST")
     override fun <T> get(key: ProviderKey<T>): List<T> {
         return providerDataStore[key] as? List<T>
-            ?: error("No data found for key '${key.id}'. Provider may not have executed yet.")
+            ?: error("No data found for key $key. Provider may not have executed yet.")
     }
 
     internal fun <T> store(key: ProviderKey<T>, providerData: List<T>) {
-        require(providerData.size == layoutConfig.bricks) {
-            "Provider data list must have $layoutConfig.bricks size, but was ${providerData.size} for $key"
+        require(providerData.size == gridSpec.bricks) {
+            "Provider data list must have $gridSpec.bricks size, but was ${providerData.size} for $key"
         }
         providerDataStore[key] = providerData
     }

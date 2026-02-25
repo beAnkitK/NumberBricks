@@ -4,58 +4,58 @@ interface GeometryProvider<T> {
 
     val key: ProviderKey<T>
 
-    val providerConfig: GridConfig
-
     val isAdaptive: Boolean
+
+    val providerGridSpec: GridSpec
 
     val dependsOn: Set<ProviderKey<*>>
 
-    fun matchesWith(properties: GeometryProps): Consent
+    fun matchesWith(digitGridSpec: GridSpec): Consent
 
-    fun attachWith(properties: GeometryProps)
+    fun attachWith(digitGridSpec: GridSpec, geometryProps: GeometryProps)
 
-    fun getProviderData(
-        digit: Int,
-        providerStore: ProviderStore
-    ): List<T>
+    fun provideData(digit: Int, providerStore: ProviderStore): List<T>
 }
 
 abstract class AdaptiveProvider<T>: GeometryProvider<T> {
 
     final override val isAdaptive = true
 
-    private var _providerConfig: GridConfig? = null
-    final override val providerConfig
-        get() = _providerConfig ?: error("providerConfig accessed before attachWith() was called.")
+    private var _providerGridSpec: GridSpec? = null
+    final override val providerGridSpec
+        get() = _providerGridSpec ?: error("providerGridSpec accessed before attachWith() was called.")
 
-    override fun matchesWith(properties: GeometryProps): Consent = Consent.Accept
+    override fun matchesWith(digitGridSpec: GridSpec): Consent = Consent.Accept
 
-    final override fun attachWith(properties: GeometryProps) {
-        _providerConfig = properties.config
-        onAttachWith(properties)
+    final override fun attachWith(digitGridSpec: GridSpec, geometryProps: GeometryProps) {
+        _providerGridSpec = digitGridSpec
+        onAttachWith(digitGridSpec, geometryProps)
     }
 
-    protected abstract fun onAttachWith(properties: GeometryProps)
+    protected abstract fun onAttachWith(digitGridSpec: GridSpec, geometryProps: GeometryProps)
 }
 
 abstract class FixedProvider<T>: GeometryProvider<T> {
 
     final override val isAdaptive = false
 
-    override fun matchesWith(properties: GeometryProps): Consent {
-        val matches = providerConfig == properties.config
+    override fun matchesWith(digitGridSpec: GridSpec): Consent {
+        val matches = providerGridSpec.rows == digitGridSpec.rows
+            && providerGridSpec.cols == digitGridSpec.cols
+            && providerGridSpec.bricks == digitGridSpec.bricks
+
         if (!matches) {
-            return Consent.Reject("Provider requires layout ${providerConfig} but got ${properties.config}")
+            return Consent.Reject("Provider requires gridSpec ${providerGridSpec.asString()} but got ${digitGridSpec.asString()}")
         }
 
         return Consent.Accept
     }
 
-    final override fun attachWith(properties: GeometryProps) {
-        onAttachWith(properties)
+    final override fun attachWith(digitGridSpec: GridSpec, geometryProps: GeometryProps) {
+        onAttachWith(digitGridSpec, geometryProps)
     }
 
-    protected abstract fun onAttachWith(properties: GeometryProps)
+    protected abstract fun onAttachWith(digitGridSpec: GridSpec, geometryProps: GeometryProps)
 }
 
 sealed interface Consent {
@@ -68,5 +68,5 @@ sealed interface Consent {
 fun Consent.getRejectionReason(): String? = (this as? Consent.Reject)?.reason
 
 inline fun <reified T> GeometryProvider<T>.buildProviderData(factory: (Int) -> T): List<T> {
-    return List(providerConfig.bricks) { factory(it) }
+    return List(providerGridSpec.bricks) { factory(it) }
 }

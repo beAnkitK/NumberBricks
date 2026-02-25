@@ -5,6 +5,7 @@ import io.github.beankitk.numberbricks.core.geometry.AdaptiveProvider
 import io.github.beankitk.numberbricks.core.geometry.FixedProvider
 import io.github.beankitk.numberbricks.core.geometry.GeometryProvider
 import io.github.beankitk.numberbricks.core.geometry.GeometryProps
+import io.github.beankitk.numberbricks.core.geometry.GridSpec
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 
 sealed interface PositionProvider: GeometryProvider<Position> {
@@ -16,12 +17,12 @@ sealed interface PositionProvider: GeometryProvider<Position> {
     abstract class Fixed: FixedProvider<Position>(), PositionProvider {
         final override val key = PositionProvider.key
 
-        protected override fun onAttachWith(properties: GeometryProps) {}
+        protected override fun onAttachWith(digitGridSpec: GridSpec, geometryProps: GeometryProps) {}
     }
 
     abstract class Adaptive: AdaptiveProvider<Position>(), PositionProvider {
         final override val key = PositionProvider.key
 
-        protected override fun onAttachWith(properties: GeometryProps) {}
+        protected override fun onAttachWith(digitGridSpec: GridSpec, geometryProps: GeometryProps) {}
     }
 }

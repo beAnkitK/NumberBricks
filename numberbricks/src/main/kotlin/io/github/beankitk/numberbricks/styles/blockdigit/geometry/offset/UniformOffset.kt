@@ -13,7 +13,7 @@ class UniformOffset(
 
     override val dependsOn = emptySet<ProviderKey<*>>()
 
-    override fun getProviderData(digit: Int, providerStore: ProviderStore): List<Offset> {
+    override fun provideData(digit: Int, providerStore: ProviderStore): List<Offset> {
         return cachedOffsets ?: buildProviderData { offset }.also {
             cachedOffsets = it
         }

@@ -37,7 +37,7 @@ import io.github.beankitk.numberbricks.utils.animatableSaver
 import io.github.beankitk.numberbricks.core.geometry.DigitSlot
 import io.github.beankitk.numberbricks.core.geometry.DefaultNumberComposer
 import io.github.beankitk.numberbricks.core.geometry.GeometryProps
-import io.github.beankitk.numberbricks.core.geometry.GridConfig
+import io.github.beankitk.numberbricks.core.geometry.GridSpec
 import io.github.beankitk.numberbricks.blockdigit.geometry.Block
 import io.github.beankitk.numberbricks.blockdigit.geometry.BlockDigitBuilder
 import io.github.beankitk.numberbricks.blockdigit.geometry.corners.*
@@ -57,16 +57,14 @@ internal fun NumberBricksImpl(
     animationSpec: AnimationSpec<Float>,
     animateOnFirstVisible: Boolean
 ) {
-    val geometryPropeties = remember {
-        object : GeometryProps {
-            override val config = GridConfig(rows = 5, cols = 3, bricks = 13)
-        }
-    }
+    val gridSpec = remember { GridSpec(rows = 5, cols = 3, bricks = 13) }
+    val geometryPropeties = remember { object : GeometryProps {} }
 
     val numberComposer = remember {
         DefaultNumberComposer<Block>(
             initialNumber = digit,
-            properties = geometryPropeties,
+            digitGridSpec = gridSpec,
+            geometryProps = geometryPropeties,
             digitBuilder = BlockDigitBuilder(
                 positionProvider = ClassicPosition(),
                 offsetProvider = DirectOffset(),
@@ -76,7 +74,7 @@ internal fun NumberBricksImpl(
         ).apply { initiate() }
     }
 
-    val layoutConfig = numberComposer.layoutConfig
+    val layoutConfig = numberComposer.digitGridSpec
     val digitCount = numberComposer.getDigitCount()
     val totalWidth = brickWidth?.let { it * layoutConfig.cols } ?: NumberbrickWidth
     val totalHeight = brickHeight?.let { it * layoutConfig.rows } ?: NumberbrickHeight
@@ -184,13 +182,13 @@ private fun SingleDigitBrick(
                 val blendMode = digitStyle.blendMode
 
                 val brickSize = Size(
-                    width = size.width / numberComposer.layoutConfig.cols,
-                    height = size.height / numberComposer.layoutConfig.rows
+                    width = size.width / numberComposer.digitGridSpec.cols,
+                    height = size.height / numberComposer.digitGridSpec.rows
                 )
 
                 onDrawBehind {
                     digitPath.reset()
-                    for (i in 0 until numberComposer.layoutConfig.bricks) {
+                    for (i in 0 until numberComposer.digitGridSpec.bricks) {
                         val animatedBrick = lerp(
                             startBricks[i],
                             endBricks[i],

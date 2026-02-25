@@ -2,7 +2,10 @@ package io.github.beankitk.numberbricks.core.geometry
 
 interface DigitBuilder<T : Brick<T>> {
 
-    fun construct(properties: GeometryProps)
+    fun construct(
+        digitGridSpec: GridSpec,
+        geometryProps: GeometryProps
+    )
 
     fun bindProviders()
 
@@ -20,15 +23,22 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
     private val providersRegistry = mutableListOf<GeometryProvider<*>>()
     private var executionOrder: List<GeometryProvider<*>> = emptyList()
 
-    protected lateinit var properties: GeometryProps
+    protected lateinit var digitGridSpec: GridSpec
         private set
 
-    override fun construct(properties: GeometryProps) {
+    protected lateinit var geometryProps: GeometryProps
+        private set
+
+    override fun construct(
+        digitGridSpec: GridSpec,
+        geometryProps: GeometryProps
+    ) {
         require(!isConstructed) { "Builder already constructed" }
-        this.properties = properties
+        this.digitGridSpec = digitGridSpec
+        this.geometryProps = geometryProps
         bindProviders()
         executionOrder = computeExecutionOrder()
-        providersRegistry.forEach { it.attachWith(properties) }
+        providersRegistry.forEach { it.attachWith(digitGridSpec, geometryProps) }
         isConstructed = true
     }
 
@@ -39,7 +49,7 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
             "Builder accepts digit values from 0 to 9 to construct bricks and -1 for default bricks, but got $digit"
         }
 
-        val providerStore = DefaultProviderStore(digit, properties.config)
+        val providerStore = DefaultProviderStore(digit, digitGridSpec)
         executionOrder.forEach { provider ->
             executeProvider(digit, provider, providerStore)
         }
@@ -63,7 +73,7 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
             "Provider with ${provider.key} already registered"
         }
 
-        val providerConsent = provider.matchesWith(properties)
+        val providerConsent = provider.matchesWith(digitGridSpec)
         if (providerConsent.hasRejected()) {
             error(providerConsent.getRejectionReason() ?:
                 "Provider '${provider.key}' incompatible with layout")
@@ -81,7 +91,7 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
         provider: GeometryProvider<P>,
         providerStore: DefaultProviderStore
     ) {
-        val providerData = provider.getProviderData(digit, providerStore)
+        val providerData = provider.provideData(digit, providerStore)
         providerStore.store<P>(provider.key, providerData)
     }
 

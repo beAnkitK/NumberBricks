@@ -13,7 +13,7 @@ class UniformSize(
 
     override val dependsOn = emptySet<ProviderKey<*>>()
 
-    override fun getProviderData(digit: Int, providerStore: ProviderStore): List<Size> {
+    override fun provideData(digit: Int, providerStore: ProviderStore): List<Size> {
         return cachedSize ?: buildProviderData { size }.also {
             cachedSize = it
         }

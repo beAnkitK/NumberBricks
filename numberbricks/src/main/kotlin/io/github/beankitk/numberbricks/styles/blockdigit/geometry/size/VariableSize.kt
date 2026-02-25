@@ -3,6 +3,7 @@ package io.github.beankitk.numberbricks.blockdigit.geometry.size
 import androidx.compose.ui.geometry.Size
 import io.github.beankitk.numberbricks.core.geometry.Consent
 import io.github.beankitk.numberbricks.core.geometry.GeometryProps
+import io.github.beankitk.numberbricks.core.geometry.GridSpec
 import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.core.geometry.ProviderStore
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
@@ -19,13 +20,12 @@ class VariableSize(
     override val dependsOn: Set<ProviderKey<*>>
         get() = setOf(PositionProvider.key)
 
-    override fun matchesWith(properties: GeometryProps): Consent {
-        val layoutConfig = properties.config
-        if (eachColWidth.size != layoutConfig.cols) {
-            return Consent.Reject("Column widths array size (${eachColWidth.size}) must match layout columns (${layoutConfig.cols})")
+    override fun matchesWith(digitGridSpec: GridSpec): Consent {
+        if (eachColWidth.size != digitGridSpec.cols) {
+            return Consent.Reject("Column widths array size (${eachColWidth.size}) must match layout columns (${digitGridSpec.cols})")
         }
-        if (eachRowHeight.size != layoutConfig.rows) {
-            return Consent.Reject("Row heights array size (${eachRowHeight.size}) must match rows (${layoutConfig.rows})")
+        if (eachRowHeight.size != digitGridSpec.rows) {
+            return Consent.Reject("Row heights array size (${eachRowHeight.size}) must match rows (${digitGridSpec.rows})")
         }
 
         eachColWidth.indexOfFirst { it < 0f }.takeIf { it >= 0 }
@@ -37,12 +37,12 @@ class VariableSize(
         return Consent.Accept
     }
 
-    override fun onAttachWith(properties: GeometryProps) {
-        normalizedColWidth = normalizeArray(eachColWidth, providerConfig.cols.toFloat())
-        normalizedRowHeight = normalizeArray(eachRowHeight, providerConfig.rows.toFloat())
+    override fun onAttachWith(digitGridSpec: GridSpec, geometryProps: GeometryProps) {
+        normalizedColWidth = normalizeArray(eachColWidth, providerGridSpec.cols.toFloat())
+        normalizedRowHeight = normalizeArray(eachRowHeight, providerGridSpec.rows.toFloat())
     }
 
-    override fun getProviderData(digit: Int, providerStore: ProviderStore): List<Size> {
+    override fun provideData(digit: Int, providerStore: ProviderStore): List<Size> {
         val positions = providerStore.get<Position>(PositionProvider.key)
         return positions.map { position ->
             Size(

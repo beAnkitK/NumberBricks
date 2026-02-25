@@ -13,7 +13,7 @@ class UniformPosition(
 
     override val dependsOn = emptySet<ProviderKey<*>>()
 
-    override fun getProviderData(digit: Int, providerStore: ProviderStore): List<Position> {
+    override fun provideData(digit: Int, providerStore: ProviderStore): List<Position> {
         return cachedPositions ?: buildProviderData { position }.also {
             cachedPositions = it
         }
