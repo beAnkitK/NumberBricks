@@ -26,7 +26,7 @@ class BlockDigitBuilder(
         registerProvider(cornersProvider)
     }
 
-    protected override fun buildBricks(digit: Int, providerStore: ProviderStore): List<Block> {
+    protected override fun assembleBricks(digit: Int, providerStore: ProviderStore): List<Block> {
         val positions = providerStore.get<Position>(PositionProvider.key)
         val offsets = providerStore.get<Offset>(OffsetProvider.key)
         val sizes = providerStore.get<Size>(SizeProvider.key)
@@ -43,7 +43,7 @@ class BlockDigitBuilder(
         }
     }
 
-    protected override fun buildDefaultBricks(): List<Block> {
+    protected override fun assembleDefaultBricks(): List<Block> {
         return List(digitGridSpec.bricks) { index ->
             Block(
                 index = index,

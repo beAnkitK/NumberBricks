@@ -144,10 +144,10 @@ private fun SingleDigitBrick(
             startBricks = if(!wasFirstVisible || previousDigit == null) {
                 numberComposer.getDefaultBricks()
             } else {
-                numberComposer.getBricksFor(previousDigit) ?: error("No bricks for digit $previousDigit")
+                numberComposer.getBricks(previousDigit) ?: error("No bricks for digit $previousDigit")
             }
             
-            endBricks = numberComposer.getBricksFor(currentDigit) ?: error("No bricks for digit $currentDigit")
+            endBricks = numberComposer.getBricks(currentDigit) ?: error("No bricks for digit $currentDigit")
         }
 
         val shouldAnimate = when {

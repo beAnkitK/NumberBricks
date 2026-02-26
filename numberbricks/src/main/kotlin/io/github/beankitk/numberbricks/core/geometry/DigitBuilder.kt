@@ -9,10 +9,10 @@ interface DigitBuilder<T : Brick<T>> {
 
     fun bindProviders()
 
-    fun getBricksFor(digit: Int): List<T>
+    fun buildBricks(digit: Int): List<T>
 
     //TODO: Add digit parameter to return digit aware default bricks
-    fun defaultBricks(): List<T>
+    fun buildDefaultBricks(): List<T>
 
     fun destruct()
 }
@@ -42,7 +42,7 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
         isConstructed = true
     }
 
-    final override fun getBricksFor(digit: Int): List<T> {
+    final override fun buildBricks(digit: Int): List<T> {
         checkConstructed()
 
         require(digit in 0..9 || digit == -1) {
@@ -53,12 +53,12 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
         executionOrder.forEach { provider ->
             executeProvider(digit, provider, providerStore)
         }
-        return buildBricks(digit, providerStore)
+        return assembleBricks(digit, providerStore)
     }
 
-    final override fun defaultBricks(): List<T> {
+    final override fun buildDefaultBricks(): List<T> {
         checkConstructed()
-        return buildDefaultBricks()
+        return assembleDefaultBricks()
     }
 
     override fun destruct() {
@@ -82,9 +82,9 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
         providersRegistry.add(provider)
     }
 
-    protected abstract fun buildBricks(digit: Int, providerStore: ProviderStore): List<T>
+    protected abstract fun assembleBricks(digit: Int, providerStore: ProviderStore): List<T>
 
-    protected abstract fun buildDefaultBricks(): List<T>
+    protected abstract fun assembleDefaultBricks(): List<T>
 
     private fun <P> executeProvider(
         digit: Int,

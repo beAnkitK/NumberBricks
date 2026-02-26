@@ -35,7 +35,7 @@ interface NumberComposer<T : Brick<T>> {
 
     fun getDigitSlotAt(index: Int): DigitSlot?
 
-    fun getBricksFor(digit: Int): List<T>?
+    fun getBricks(digit: Int): List<T>?
 
     fun getDefaultBricks(): List<T>
 
@@ -75,7 +75,7 @@ class DefaultNumberComposer<T : Brick<T>>(
     override fun initiate() {
         require(!isInitialized) { "NumberComposer already initialized" }
         digitBuilder.construct(digitGridSpec, geometryProps)
-        defaultBricks = digitBuilder.defaultBricks()
+        defaultBricks = digitBuilder.buildDefaultBricks()
 
         applyNumberChange(_currentNumber.value, isInitialUpdate = true)
         isInitialized = true
@@ -100,7 +100,7 @@ class DefaultNumberComposer<T : Brick<T>>(
         // Ensure bricks for all digits are cached
         uniqueDigits.forEach { digit ->
             if (!digitBricksCache.containsKey(digit)) {
-                val bricks = digitBuilder.getBricksFor(digit)
+                val bricks = digitBuilder.buildBricks(digit)
                 digitBricksCache[digit] = bricks
             }
         }
@@ -173,7 +173,7 @@ class DefaultNumberComposer<T : Brick<T>>(
         return digitSlotList[index]
     }
 
-    override fun getBricksFor(digit: Int): List<T>? {
+    override fun getBricks(digit: Int): List<T>? {
         checkInitialized()
         require(digit in 0..9) { "Digit must be in range 0-9" }
         return digitBricksCache[digit]
@@ -181,7 +181,8 @@ class DefaultNumberComposer<T : Brick<T>>(
 
     override fun getDefaultBricks(): List<T> {
         checkInitialized()
-        return defaultBricks ?: digitBuilder.defaultBricks().also { defaultBricks = it }
+        return defaultBricks ?: digitBuilder.buildDefaultBricks()
+            .also { defaultBricks = it }
     }
 
     override fun dispose() {
