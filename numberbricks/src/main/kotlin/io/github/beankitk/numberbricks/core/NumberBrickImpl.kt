@@ -57,8 +57,16 @@ internal fun NumberBricksImpl(
     animationSpec: AnimationSpec<Float>,
     animateOnFirstVisible: Boolean
 ) {
+
     val gridSpec = remember { GridSpec(rows = 5, cols = 3, bricks = 13) }
     val geometryPropeties = remember { object : GeometryProps {} }
+
+    val variableSize = remember {
+        VariableSize(
+            eachColWidth = floatArrayOf(1.3f, 0.4f, 1.3f), //floatArrayOf(0.2f, 2.6f, 0.2f),
+            eachRowHeight = floatArrayOf(0.2f, 2.2f, 0.2f, 2.2f, 0.2f)
+        )
+    }
 
     val numberComposer = remember {
         DefaultNumberComposer<Block>(
@@ -67,8 +75,8 @@ internal fun NumberBricksImpl(
             geometryProps = geometryPropeties,
             digitBuilder = BlockDigitBuilder(
                 positionProvider = ClassicPosition(),
-                offsetProvider = DirectOffset(),
-                sizeProvider = UniformSize.of(1f),
+                offsetProvider = GridOffset(),
+                sizeProvider = variableSize,
                 cornersProvider = UniformCorners.Zero
             )
         ).apply { initiate() }
