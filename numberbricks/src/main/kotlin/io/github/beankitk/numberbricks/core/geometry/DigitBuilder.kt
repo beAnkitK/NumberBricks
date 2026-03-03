@@ -44,16 +44,14 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
 
     final override fun buildBricks(digit: Int): List<T> {
         checkConstructed()
-
         require(digit in 0..9 || digit == -1) {
             "Builder accepts digit values from 0 to 9 to construct bricks and -1 for default bricks, but got $digit"
         }
 
-        val providerStore = DefaultProviderStore(digit, digitGridSpec)
-        executionOrder.forEach { provider ->
-            executeProvider(digit, provider, providerStore)
+        return ProviderScope(digit).use { providerScope ->
+            executionOrder.forEach { provider -> executeProvider(provider, providerScope) }
+            providerScope.assembleBricks()
         }
-        return assembleBricks(digit, providerStore)
     }
 
     final override fun buildDefaultBricks(): List<T> {
@@ -82,17 +80,21 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
         providersRegistry.add(provider)
     }
 
-    protected abstract fun assembleBricks(digit: Int, providerStore: ProviderStore): List<T>
+    protected abstract fun ProviderScope.assembleBricks(): List<T>
 
     protected abstract fun assembleDefaultBricks(): List<T>
 
     private fun <P> executeProvider(
-        digit: Int,
         provider: GeometryProvider<P>,
-        providerStore: DefaultProviderStore
+        providerScope: DefaultProviderScope
     ) {
-        val providerData = provider.provideData(digit, providerStore)
-        providerStore.store<P>(provider.key, providerData)
+        providerScope.withProvider(provider) {
+            val providerResult = providerScope.provideData()
+            check(providerResult.size == digitGridSpec.bricks) {
+                "Provider result must have ${digitGridSpec.bricks} size, but was ${providerResult.size} for ${provider.key}"
+            }
+            providerScope.commitResult<P>(key, providerResult)
+        }
     }
 
     private fun computeExecutionOrder(): List<GeometryProvider<*>> {

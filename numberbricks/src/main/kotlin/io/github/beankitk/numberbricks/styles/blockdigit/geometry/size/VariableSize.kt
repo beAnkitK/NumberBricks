@@ -5,7 +5,7 @@ import io.github.beankitk.numberbricks.core.geometry.Consent
 import io.github.beankitk.numberbricks.core.geometry.GeometryProps
 import io.github.beankitk.numberbricks.core.geometry.GridSpec
 import io.github.beankitk.numberbricks.core.geometry.Position
-import io.github.beankitk.numberbricks.core.geometry.ProviderStore
+import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.blockdigit.geometry.position.PositionProvider
 
@@ -42,8 +42,9 @@ class VariableSize(
         normalizedRowHeight = normalizeArray(eachRowHeight, providerGridSpec.rows.toFloat())
     }
 
-    override fun provideData(digit: Int, providerStore: ProviderStore): List<Size> {
-        val positions = providerStore.get<Position>(PositionProvider.key)
+    override fun ProviderScope.provideData(): List<Size> {
+        val positions = resultOf<Position>(PositionProvider.key)
+
         return positions.map { position ->
             Size(
                 width = normalizedColWidth[position.col],

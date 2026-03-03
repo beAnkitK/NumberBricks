@@ -14,7 +14,7 @@ interface GeometryProvider<T> {
 
     fun attachWith(digitGridSpec: GridSpec, geometryProps: GeometryProps)
 
-    fun provideData(digit: Int, providerStore: ProviderStore): List<T>
+    fun ProviderScope.provideData(): List<T>
 }
 
 abstract class AdaptiveProvider<T>: GeometryProvider<T> {

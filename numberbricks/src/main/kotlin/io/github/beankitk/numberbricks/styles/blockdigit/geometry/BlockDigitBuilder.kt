@@ -5,7 +5,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import io.github.beankitk.numberbricks.core.geometry.BaseDigitBuilder
 import io.github.beankitk.numberbricks.core.geometry.Position
-import io.github.beankitk.numberbricks.core.geometry.ProviderStore
+import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.blockdigit.geometry.corners.CornersProvider
 import io.github.beankitk.numberbricks.blockdigit.geometry.offset.OffsetProvider
 import io.github.beankitk.numberbricks.blockdigit.geometry.position.PositionProvider
@@ -26,11 +26,11 @@ class BlockDigitBuilder(
         registerProvider(cornersProvider)
     }
 
-    protected override fun assembleBricks(digit: Int, providerStore: ProviderStore): List<Block> {
-        val positions = providerStore.get<Position>(PositionProvider.key)
-        val offsets = providerStore.get<Offset>(OffsetProvider.key)
-        val sizes = providerStore.get<Size>(SizeProvider.key)
-        val cornersRadii = providerStore.get<ShapeRadius>(CornersProvider.key)
+    protected override fun ProviderScope.assembleBricks(): List<Block> {
+        val positions = resultOf<Position>(PositionProvider.key)
+        val offsets = resultOf<Offset>(OffsetProvider.key)
+        val sizes = resultOf<Size>(SizeProvider.key)
+        val cornersRadii = resultOf<ShapeRadius>(CornersProvider.key)
 
         return List(digitGridSpec.bricks) { index ->
             Block(

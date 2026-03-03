@@ -5,7 +5,7 @@ import androidx.compose.ui.geometry.Size
 import io.github.beankitk.numberbricks.blockdigit.geometry.position.PositionProvider
 import io.github.beankitk.numberbricks.blockdigit.geometry.size.SizeProvider
 import io.github.beankitk.numberbricks.core.geometry.Position
-import io.github.beankitk.numberbricks.core.geometry.ProviderStore
+import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 
 class GridOffset(): OffsetProvider.Adaptive() {
@@ -13,9 +13,9 @@ class GridOffset(): OffsetProvider.Adaptive() {
     override val dependsOn: Set<ProviderKey<*>>
         get() = setOf(PositionProvider.key, SizeProvider.key)
 
-    override fun provideData(digit: Int, providerStore: ProviderStore): List<Offset> {
-        val positions = providerStore.get<Position>(PositionProvider.key)
-        val sizes = providerStore.get<Size>(SizeProvider.key)
+    override fun ProviderScope.provideData(): List<Offset> {
+        val positions = resultOf<Position>(PositionProvider.key)
+        val sizes = resultOf<Size>(SizeProvider.key)
 
         val eachColWidth = FloatArray(providerGridSpec.cols) { -1f }
         val eachRowHeight = FloatArray(providerGridSpec.rows) { -1f }

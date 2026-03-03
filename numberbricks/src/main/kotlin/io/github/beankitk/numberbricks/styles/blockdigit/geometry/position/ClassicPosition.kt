@@ -3,7 +3,7 @@ package io.github.beankitk.numberbricks.blockdigit.geometry.position
 import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.blockdigit.geometry.Block
 import io.github.beankitk.numberbricks.core.geometry.GridSpec
-import io.github.beankitk.numberbricks.core.geometry.ProviderStore
+import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 import io.github.beankitk.numberbricks.data.DigitData
@@ -42,10 +42,7 @@ open class ClassicPosition : PositionProvider.Fixed(), DigitData<List<Position>>
 
     final override val dependsOn = emptySet<ProviderKey<*>>()
 
-    final override fun provideData(
-        digit: Int,
-        providerStore: ProviderStore
-    ): List<Position> = this@ClassicPosition[digit]
+    final override fun ProviderScope.provideData(): List<Position> = this@ClassicPosition[digit]
 
     override val default = buildProviderData { g8 }
 
