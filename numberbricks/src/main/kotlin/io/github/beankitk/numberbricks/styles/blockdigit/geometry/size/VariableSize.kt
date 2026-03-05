@@ -8,19 +8,20 @@ import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.blockdigit.geometry.position.PositionProvider
+import kotlin.math.abs
 
-class VariableSize(
+open class VariableSize(
     private val eachColWidth: FloatArray,
     private val eachRowHeight: FloatArray
 ): SizeProvider.Adaptive() {
 
-    private lateinit var normalizedColWidth: FloatArray
-    private lateinit var normalizedRowHeight: FloatArray
+    private lateinit var normalizedColWidths: FloatArray
+    private lateinit var normalizedRowHeights: FloatArray
 
-    override val dependsOn: Set<ProviderKey<*>>
+    final override val dependsOn: Set<ProviderKey<*>>
         get() = setOf(PositionProvider.key)
 
-    override fun matchesWith(digitGridSpec: GridSpec): Consent {
+    final override fun matchesWith(digitGridSpec: GridSpec): Consent {
         if (eachColWidth.size != digitGridSpec.cols) {
             return Consent.Reject("Column widths array size (${eachColWidth.size}) must match layout columns (${digitGridSpec.cols})")
         }
@@ -37,35 +38,66 @@ class VariableSize(
         return Consent.Accept
     }
 
-    override fun onAttachWith(digitGridSpec: GridSpec, geometryProps: GeometryProps) {
-        normalizedColWidth = normalizeArray(eachColWidth, providerGridSpec.cols.toFloat())
-        normalizedRowHeight = normalizeArray(eachRowHeight, providerGridSpec.rows.toFloat())
+    final override fun onAttachWith(digitGridSpec: GridSpec, geometryProps: GeometryProps) {
+        normalizedColWidths = normalizeArray(eachColWidth, providerGridSpec.cols.toFloat())
+        normalizedRowHeights = normalizeArray(eachRowHeight, providerGridSpec.rows.toFloat())
     }
 
-    override fun ProviderScope.provideData(): List<Size> {
+    final override fun ProviderScope.provideData(): List<Size> {
         val positions = resultOf<Position>(PositionProvider.key)
+        val colWidths = modifyColumnWidths(digit, normalizedColWidths)
+        val rowHeights = modifyRowHeights(digit, normalizedRowHeights)
 
         return positions.map { position ->
-            Size(
-                width = normalizedColWidth[position.col],
-                height = normalizedRowHeight[position.row]
+            val size = Size(
+                width = colWidths[position.col],
+                height = rowHeights[position.row]
             )
+
+            modifyBlockSize(digit, position, size)
         }
     }
 
-    private fun normalizeArray(input: FloatArray, target: Float): FloatArray {
-        val size = input.size
-        var sum = input.sum()
-        val out = FloatArray(size)
+    protected open fun modifyBlockSize(
+        digit: Int,
+        position: Position,
+        baseSize: Size
+    ): Size = baseSize
 
-        if (sum <= 0f || sum.isNaN()) {
-            val even = target / size
-            for (i in 0 until size) out[i] = even
-            return out
-        }
+    protected open fun modifyColumnWidths(
+        digit: Int,
+        colWidths: FloatArray
+    ): FloatArray = colWidths
 
-        val scale = target / sum
-        for (i in 0 until size) out[i] = input[i] * scale
-        return out
+    protected open fun modifyRowHeights(
+        digit: Int,
+        rowHeights: FloatArray
+    ): FloatArray = rowHeights
+
+    // Helper to normalize custom width/height arrays in modification hooks.
+    // Base arrays are already normalized; use only if a hook replaces them.
+    protected fun normalizeRowHeights(input: FloatArray): FloatArray =
+        normalizeArray(input, providerGridSpec.rows.toFloat())
+
+    protected fun normalizeColWidths(input: FloatArray): FloatArray =
+        normalizeArray(input, providerGridSpec.cols.toFloat())
+}
+
+private const val epsilon = 0.001f
+
+private fun normalizeArray(input: FloatArray, target: Float): FloatArray {
+    val size = input.size
+    var sum = input.sum()
+
+    if (!sum.isNaN() && abs(sum - target) < epsilon) {
+        return input
     }
+
+    if (sum <= 0f || sum.isNaN()) {
+        val even = target / size
+        return FloatArray(size) { even }
+    }
+
+    val scale = target / sum
+    return FloatArray(size) { input[it] * scale }
 }

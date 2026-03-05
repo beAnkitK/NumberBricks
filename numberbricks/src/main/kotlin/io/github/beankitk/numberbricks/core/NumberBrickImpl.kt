@@ -62,10 +62,13 @@ internal fun NumberBricksImpl(
     val geometryPropeties = remember { object : GeometryProps {} }
 
     val variableSize = remember {
-        VariableSize(
-            eachColWidth = floatArrayOf(1.3f, 0.4f, 1.3f), //floatArrayOf(0.2f, 2.6f, 0.2f),
+        object: VariableSize(
+            eachColWidth = floatArrayOf(1.3f, 0.4f, 1.3f),
             eachRowHeight = floatArrayOf(0.2f, 2.2f, 0.2f, 2.2f, 0.2f)
-        )
+        ) {
+            protected override fun modifyColumnWidths(digit: Int, colWidths: FloatArray) =
+                if (digit == 1) floatArrayOf(0.85f, 1.3f, 0.85f) else colWidths
+        }
     }
 
     val numberComposer = remember {
