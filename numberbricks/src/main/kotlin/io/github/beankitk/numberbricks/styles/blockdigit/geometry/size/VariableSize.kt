@@ -1,7 +1,10 @@
+@file:OptIn(ExperimentalProviderMetaApi::class)
+
 package io.github.beankitk.numberbricks.blockdigit.geometry.size
 
 import androidx.compose.ui.geometry.Size
 import io.github.beankitk.numberbricks.core.geometry.Consent
+import io.github.beankitk.numberbricks.core.geometry.ExperimentalProviderMetaApi
 import io.github.beankitk.numberbricks.core.geometry.GeometryProps
 import io.github.beankitk.numberbricks.core.geometry.GridSpec
 import io.github.beankitk.numberbricks.core.geometry.MetaGroup

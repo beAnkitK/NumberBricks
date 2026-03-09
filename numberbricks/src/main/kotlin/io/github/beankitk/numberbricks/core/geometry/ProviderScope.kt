@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalProviderMetaApi::class)
+
 package io.github.beankitk.numberbricks.core.geometry
 
 import androidx.collection.MutableScatterMap
@@ -106,6 +108,7 @@ class DefaultProviderScope(
     override fun close() = dispose()
 }
 
+@ExperimentalProviderMetaApi
 interface MetaScope<P : GeometryProvider<*>> {
     infix fun <M> Meta<P, M>.providedBy(value: M)
 }

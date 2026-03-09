@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalProviderMetaApi::class)
+
 package io.github.beankitk.numberbricks.blockdigit.geometry.offset
 
 import androidx.compose.ui.geometry.Offset
@@ -5,6 +7,7 @@ import androidx.compose.ui.geometry.Size
 import io.github.beankitk.numberbricks.blockdigit.geometry.position.PositionProvider
 import io.github.beankitk.numberbricks.blockdigit.geometry.size.VariableSize.Meta
 import io.github.beankitk.numberbricks.blockdigit.geometry.size.SizeProvider
+import io.github.beankitk.numberbricks.core.geometry.ExperimentalProviderMetaApi
 import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
