@@ -3,6 +3,7 @@ package io.github.beankitk.numberbricks.blockdigit.geometry.offset
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import io.github.beankitk.numberbricks.blockdigit.geometry.position.PositionProvider
+import io.github.beankitk.numberbricks.blockdigit.geometry.size.VariableSize.Meta
 import io.github.beankitk.numberbricks.blockdigit.geometry.size.SizeProvider
 import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.core.geometry.ProviderScope
@@ -15,23 +16,17 @@ class GridOffset(): OffsetProvider.Adaptive() {
 
     override fun ProviderScope.provideData(): List<Offset> {
         val positions = resultOf<Position>(PositionProvider.key)
-        val sizes = resultOf<Size>(SizeProvider.key)
+        val eachColWidth = metaOf<FloatArray>(Meta.ColWidths)
+        val eachRowHeight = metaOf<FloatArray>(Meta.RowHeights)
 
-        val eachColWidth = FloatArray(providerGridSpec.cols) { -1f }
-        val eachRowHeight = FloatArray(providerGridSpec.rows) { -1f }
-
-        for (index in 0 until providerGridSpec.bricks) {
-            val position = positions[index]
-
-            if (eachColWidth[position.col] == -1f)
-                eachColWidth[position.col] = sizes[index].width
-
-            if (eachRowHeight[position.row] == -1f)
-                eachRowHeight[position.row] = sizes[index].height
-         }
-
-        fillEmpty(eachColWidth, providerGridSpec.cols)
-        fillEmpty(eachRowHeight, providerGridSpec.rows)
+        if (eachColWidth == null || eachRowHeight == null) {
+            return positions.map { position ->
+                Offset(
+                    x = position.col.toFloat(),
+                    y = position.row.toFloat()
+                )
+            }
+        }
 
         val eachColStartX = toPrefix(eachColWidth)
         val eachRowStartY = toPrefix(eachRowHeight)
@@ -41,30 +36,6 @@ class GridOffset(): OffsetProvider.Adaptive() {
                 x = eachColStartX[position.col],
                 y = eachRowStartY[position.row]
             )
-        }
-    }
-
-    private fun fillEmpty(dimens: FloatArray, totalSize: Int) {
-        var occupiedSize = 0f
-        var emptyCount = 0
-
-        dimens.forEach { item ->
-            if (item != -1f) {
-                occupiedSize += item
-            } else {
-                emptyCount++
-            }
-        }
-
-        if (emptyCount > 0) {
-            val remaining = totalSize.toFloat() - occupiedSize
-            val sizePerEmpty = if (remaining > 0f) remaining / emptyCount else 0f
-
-            for (i in dimens.indices) {
-                if (dimens[i] == -1f) {
-                    dimens[i] = sizePerEmpty
-                }
-            }
         }
     }
 

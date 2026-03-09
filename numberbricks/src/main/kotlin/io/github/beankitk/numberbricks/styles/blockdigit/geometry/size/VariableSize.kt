@@ -4,6 +4,7 @@ import androidx.compose.ui.geometry.Size
 import io.github.beankitk.numberbricks.core.geometry.Consent
 import io.github.beankitk.numberbricks.core.geometry.GeometryProps
 import io.github.beankitk.numberbricks.core.geometry.GridSpec
+import io.github.beankitk.numberbricks.core.geometry.MetaGroup
 import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
@@ -48,6 +49,11 @@ open class VariableSize(
         val colWidths = modifyColumnWidths(digit, normalizedColWidths)
         val rowHeights = modifyRowHeights(digit, normalizedRowHeights)
 
+        provideMeta {
+            Meta.ColWidths providedBy colWidths
+            Meta.RowHeights providedBy rowHeights
+        }
+
         return positions.map { position ->
             val size = Size(
                 width = colWidths[position.col],
@@ -81,6 +87,11 @@ open class VariableSize(
 
     protected fun normalizeColWidths(input: FloatArray): FloatArray =
         normalizeArray(input, providerGridSpec.cols.toFloat())
+
+    companion object Meta : MetaGroup<VariableSize>() {
+        val ColWidths = defineMeta<FloatArray> { FloatArray(5) { 1f } }
+        val RowHeights = defineMeta<FloatArray> { FloatArray(5) { 1f } }
+    }
 }
 
 private const val epsilon = 0.001f
