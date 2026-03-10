@@ -21,6 +21,24 @@ value class Position(val packedValue: Long) {
     val col: Int
         get() = (packedValue and 0xFFFFFFFF).toInt()
 
+    /**
+    * Checks whether this position occupies the specified row, column, or exact cell.
+    *
+    * Unlike [equals], which requires an exact position match, this returns `true`
+    * if the position lies on the specified row, column, or the exact `(row, col)` cell.
+    *
+    * @param row The row index to match, or `null` to ignore the row.
+    * @param col The column index to match, or `null` to ignore the column.
+    * @return `true` if this position occupies the given row, column, or exact cell.
+    * @throws IllegalArgumentException if both `row` and `col` are `null`.
+    */
+    fun occupies(row: Int? = null, col: Int? = null): Boolean {
+        require(row != null || col != null) {
+            "Either 'row' or 'col' must be provided to check position occupancy."
+        }
+        return (row == this.row) || (col == this.col)
+    }
+
     override fun toString() = "Position($row, $col)"
 
     companion object {
