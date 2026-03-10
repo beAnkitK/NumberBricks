@@ -20,10 +20,10 @@ package io.github.beankitk.numberbricks.data
  *
  * Where edges overlap: BC-PS, DC-KL, SR-XY, LM-XZ
  *
- * For [CornerPoint.BottomRight] C of rect ABCD:
- * - [CornerPoint.BottomLeft] S (from PQRS) is the horizontal neighbor (shares edge BC-PS)
- * - [CornerPoint.TopRight] L (from KLMN) is the vertical neighbor (shares edge DC-KL)
- * - [CornerPoint.TopLeft] X (from XYWZ) is the diagonal neighbor (touches at point C)
+ * For [CornerPosition.BottomRight] C of rect ABCD:
+ * - [CornerPosition.BottomLeft] S (from PQRS) is the horizontal neighbor (shares edge BC-PS)
+ * - [CornerPosition.TopRight] L (from KLMN) is the vertical neighbor (shares edge DC-KL)
+ * - [CornerPosition.TopLeft] X (from XYWZ) is the diagonal neighbor (touches at point C)
  * ```
  *
  * The corner type describes the structural role of that corner in the overall
@@ -128,7 +128,7 @@ value class CornerType private constructor(val ordinal: Int) {
         val values: List<CornerType> =
             listOf(Outer, Edge, CornerNeighbor, Corner, JointInline, Joint, Inner)
 
-        /** Create [CornerPoint] from its ordinal value. */
+        /** Create [CornerType] from its ordinal value. */
         fun from(ordinal: Int): CornerType =
             when(ordinal) {
                 0 -> Outer
