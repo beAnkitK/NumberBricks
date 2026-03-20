@@ -3,54 +3,57 @@ package io.github.beankitk.numberbricks.blockdigit.geometry.corners
 import androidx.compose.ui.geometry.CornerRadius
 import io.github.beankitk.numberbricks.data.CornerType
 import io.github.beankitk.numberbricks.data.CornerProfile
-import io.github.beankitk.numberbricks.data.ShapeRadius
+import io.github.beankitk.numberbricks.data.RectCorners
+import io.github.beankitk.numberbricks.data.CornerShape
+import io.github.beankitk.numberbricks.data.CornerStyle
 
 open class RetroCorners(
-    outerRadius: CornerRadius = CornerRadius(0.2f),
-    singleOuterRadius: CornerRadius = CornerRadius(0.85f)
+    outerCornerStyle: CornerStyle = CornerStyle(0.2f, CornerShape.Round),
+    singleOuterCornerStyle: CornerStyle = CornerStyle(0.85f, CornerShape.Round)
 ): AutoCornersProvider() {
 
     constructor(
         outerRadius: Float = 0.2f,
-		singleOuterRadius: Float = 0.85f
-    ) : this(CornerRadius(outerRadius), CornerRadius(singleOuterRadius))
+		singleOuterRadius: Float = 0.85f,
+        cornerShape: CornerShape = CornerShape.Round
+    ) : this(CornerStyle(outerRadius, cornerShape), CornerStyle(singleOuterRadius, cornerShape))
 
-    final override val edgeRadius = CornerRadius.Zero
-    final override val outerRadius = outerRadius
-    final override val cornerNeighborRadius = CornerRadius.Zero
-    final override val cornerRadius = CornerRadius.Zero
-    final override val jointInlineRadius = CornerRadius.Zero
-    final override val jointRadius = CornerRadius.Zero
-    final override val innerRadius = CornerRadius.Zero
+    final override val edgeCornerStyle = CornerStyle.None
+    final override val outerCornerStyle = outerCornerStyle
+    final override val cornerNeighborCornerStyle = CornerStyle.None
+    final override val cornerCornerStyle = CornerStyle.None
+    final override val jointInlineCornerStyle = CornerStyle.None
+    final override val jointCornerStyle = CornerStyle.None
+    final override val innerCornerStyle = CornerStyle.None
 
-    protected val singleOuterRadius = singleOuterRadius
+    protected val singleOuterCornerStyle = singleOuterCornerStyle
 
-    protected override fun modifyShapeRadius(
+    protected override fun modifyRectCorners(
         digit: Int,
         index: Int,
-        shapeRadius: ShapeRadius
-    ): ShapeRadius = applySingleOuterRadiusPolicy(shapeRadius)
+        rectCorners: RectCorners
+    ): RectCorners = applySingleOuterCornerStylePolicy(rectCorners)
 
-    protected fun applySingleOuterRadiusPolicy(
-        shapeRadius: ShapeRadius
-    ): ShapeRadius = with(shapeRadius) {
-        var outerRadiusCount = 0
+    protected fun applySingleOuterCornerStylePolicy(
+        rectCorners: RectCorners
+    ): RectCorners = with(rectCorners) {
+        var outerCornerStyleCount = 0
 
-        if (topLeft == outerRadius) outerRadiusCount++
-        if (topRight == outerRadius) outerRadiusCount++
-        if (bottomRight == outerRadius) outerRadiusCount++
-        if (bottomLeft == outerRadius) outerRadiusCount++
+        if (topLeft == outerCornerStyle) outerCornerStyleCount++
+        if (topRight == outerCornerStyle) outerCornerStyleCount++
+        if (bottomRight == outerCornerStyle) outerCornerStyleCount++
+        if (bottomLeft == outerCornerStyle) outerCornerStyleCount++
 
-        if (outerRadiusCount == 1) {
+        if (outerCornerStyleCount == 1) {
             copy(
-                topLeft = outerToSingleRadius(topLeft),
-                topRight = outerToSingleRadius(topRight),
-                bottomRight = outerToSingleRadius(bottomRight),
-                bottomLeft = outerToSingleRadius(bottomLeft)
+                topLeft = outerToSingleCornerStyle(topLeft),
+                topRight = outerToSingleCornerStyle(topRight),
+                bottomRight = outerToSingleCornerStyle(bottomRight),
+                bottomLeft = outerToSingleCornerStyle(bottomLeft)
             )
         } else this
     }
 
-    private val outerToSingleRadius: (CornerRadius) -> CornerRadius =
-        { if (it == outerRadius) singleOuterRadius else it }
+    private val outerToSingleCornerStyle: (CornerStyle) -> CornerStyle =
+        { if (it == outerCornerStyle) singleOuterCornerStyle else it }
 }

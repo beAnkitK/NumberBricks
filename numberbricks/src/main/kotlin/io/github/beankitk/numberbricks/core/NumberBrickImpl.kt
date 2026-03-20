@@ -80,7 +80,7 @@ internal fun NumberBricksImpl(
                 positionProvider = ClassicPosition(),
                 offsetProvider = GridOffset(),
                 sizeProvider = variableSize,
-                cornersProvider = UniformCorners.Zero
+                cornersProvider = UniformCorners.Sharp
             )
         ).apply { initiate() }
     }
@@ -157,7 +157,7 @@ private fun SingleDigitBrick(
             } else {
                 numberComposer.getBricks(previousDigit) ?: error("No bricks for digit $previousDigit")
             }
-            
+
             endBricks = numberComposer.getBricks(currentDigit) ?: error("No bricks for digit $currentDigit")
         }
 
@@ -206,10 +206,13 @@ private fun SingleDigitBrick(
                             progress.value
                         ).scaledBy(size, brickSize)
 
-                        if (animatedBrick.cornerRadius.isZero()) {
-                            digitPath.addRect(animatedBrick.toRect())
-                        } else {
-                            digitPath.addRoundRect(animatedBrick.toRoundRect())
+                        when {
+                            animatedBrick.corners.isRect() -> digitPath.addRect(animatedBrick.toRect())
+                            animatedBrick.corners.isRoundRect() ->  digitPath.addRoundRect(animatedBrick.toRoundRect())
+                            else -> {
+                                // TODO: For future shapes, implement custom path drawing
+                                error("Unsupported corner shape: ${animatedBrick.corners}")
+                            }
                         }
                     }
 

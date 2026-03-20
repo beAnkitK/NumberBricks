@@ -3,7 +3,6 @@ package io.github.beankitk.numberbricks.blockdigit.geometry.corners
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.geometry.CornerRadius
 import io.github.beankitk.numberbricks.core.geometry.AdaptiveProvider
 import io.github.beankitk.numberbricks.core.geometry.FixedProvider
 import io.github.beankitk.numberbricks.core.geometry.GeometryProvider
@@ -15,23 +14,24 @@ import io.github.beankitk.numberbricks.blockdigit.geometry.offset.OffsetProvider
 import io.github.beankitk.numberbricks.blockdigit.geometry.size.SizeProvider
 import io.github.beankitk.numberbricks.data.CornerType
 import io.github.beankitk.numberbricks.data.CornerProfile
+import io.github.beankitk.numberbricks.data.CornerStyle
 import io.github.beankitk.numberbricks.data.DigitData
-import io.github.beankitk.numberbricks.data.ShapeRadius
+import io.github.beankitk.numberbricks.data.RectCorners
 import io.github.beankitk.numberbricks.utils.getCornerProfile
 
-sealed interface CornersProvider: GeometryProvider<ShapeRadius> {
+sealed interface CornersProvider: GeometryProvider<RectCorners> {
 
     companion object {
-        val key = ProviderKey<ShapeRadius>("provider.corners.base")
+        val key = ProviderKey<RectCorners>("provider.corners.base")
     }
 
-    abstract class Fixed: FixedProvider<ShapeRadius>(), CornersProvider {
+    abstract class Fixed: FixedProvider<RectCorners>(), CornersProvider {
         final override val key = CornersProvider.key
 
         protected override fun onAttachWith(digitGridSpec: GridSpec, geometryProps: GeometryProps) {}
     }
 
-    abstract class Adaptive: AdaptiveProvider<ShapeRadius>(), CornersProvider {
+    abstract class Adaptive: AdaptiveProvider<RectCorners>(), CornersProvider {
         final override val key = CornersProvider.key
 
         protected override fun onAttachWith(digitGridSpec: GridSpec, geometryProps: GeometryProps) {}
@@ -39,36 +39,32 @@ sealed interface CornersProvider: GeometryProvider<ShapeRadius> {
 }
 
 abstract class CustomCornersProvider(
-    val radiusX: Float,
-    val radiusY: Float = radiusX
-): CornersProvider.Fixed(), DigitData<List<ShapeRadius>> {
+    protected val cornerStyle: CornerStyle
+): CornersProvider.Fixed(), DigitData<List<RectCorners>> {
 
-    private val cornerRadius = CornerRadius(radiusX, radiusY)
+    protected val zero = RectCorners()
 
-    protected val zero = ShapeRadius()
+    protected val tl = RectCorners(topLeft = cornerStyle)
 
-    protected val tl = ShapeRadius(topLeft = cornerRadius)
+    protected val tr = RectCorners(topRight = cornerStyle)
 
-    protected val tr = ShapeRadius(topRight = cornerRadius)
+    protected val br = RectCorners(bottomRight = cornerStyle)
 
-    protected val br = ShapeRadius(bottomRight = cornerRadius)
+    protected val bl = RectCorners(bottomLeft = cornerStyle)
 
-    protected val bl = ShapeRadius(bottomLeft = cornerRadius)
+    protected val tbl = RectCorners(topLeft = cornerStyle, bottomLeft = cornerStyle)
 
-    protected val tbl = ShapeRadius(topLeft = cornerRadius, bottomLeft = cornerRadius)
+    protected val tbr = RectCorners(topRight = cornerStyle, bottomRight = cornerStyle)
 
-    protected val tbr = ShapeRadius(topRight = cornerRadius, bottomRight = cornerRadius)
+    protected val tlr = RectCorners(topLeft = cornerStyle, topRight = cornerStyle)
 
-    protected val tlr = ShapeRadius(topLeft = cornerRadius, topRight = cornerRadius)
+    protected val blr = RectCorners(bottomLeft = cornerStyle, bottomRight = cornerStyle)
 
-    protected val blr = ShapeRadius(bottomLeft = cornerRadius, bottomRight = cornerRadius)
-
-    protected val full = ShapeRadius.all(cornerRadius)
+    protected val full = RectCorners(cornerStyle)
 
     override val dependsOn = emptySet<ProviderKey<*>>()
 
     final override fun ProviderScope.provideData() = this@CustomCornersProvider[digit]
-
 }
 
 abstract class AutoCornersProvider : CornersProvider.Adaptive() {
@@ -76,67 +72,63 @@ abstract class AutoCornersProvider : CornersProvider.Adaptive() {
     final override val dependsOn: Set<ProviderKey<*>>
         get() = setOf(OffsetProvider.key, SizeProvider.key)
 
-    final override fun ProviderScope.provideData(): List<ShapeRadius> {
+    final override fun ProviderScope.provideData(): List<RectCorners> {
         val offsets = resultOf<Offset>(OffsetProvider.key)
         val sizes = resultOf<Size>(SizeProvider.key)
         val rects = Array(providerGridSpec.bricks) { index -> Rect(offsets[index], sizes[index]) }
 
-        return detectCornerFor(digit, rects)
-    }
-
-    private fun detectCornerFor(digit: Int, rects: Array<Rect>): List<ShapeRadius> {
         val cornerProfileArray = getCornerProfile(
             rects = rects,
             modifyProfile = { idx, profile -> modifyCornerProfile(digit, idx, profile) }
         )
 
-        return cornerProfileArray.mapIndexed { index, cp ->
-            val shapeRadius = ShapeRadius(
-                radiusForType(cp.topLeft),
-                radiusForType(cp.topRight),
-                radiusForType(cp.bottomRight),
-                radiusForType(cp.bottomLeft)
+        return cornerProfileArray.mapIndexed { index, profile ->
+            val rectCorners = RectCorners(
+                topLeft = findCornerStyle(profile.topLeft),
+                topRight = findCornerStyle(profile.topRight),
+                bottomRight = findCornerStyle(profile.bottomRight),
+                bottomLeft = findCornerStyle(profile.bottomLeft)
             )
 
-            modifyShapeRadius(digit, index, shapeRadius)
+            modifyRectCorners(digit, index, rectCorners)
         }
     }
 
-    private fun radiusForType(type: CornerType) =
-        when (type) {
-            CornerType.Edge -> edgeRadius
-            CornerType.Outer -> outerRadius
-            CornerType.CornerNeighbor -> cornerNeighborRadius
-            CornerType.Corner -> cornerRadius
-            CornerType.JointInline -> jointInlineRadius
-            CornerType.Joint -> jointRadius
-            CornerType.Inner -> innerRadius
-            else -> error("Unknown corner-type = $type")
+    private fun findCornerStyle(cornerType: CornerType): CornerStyle =
+        when (cornerType) {
+            CornerType.Edge -> edgeCornerStyle
+            CornerType.Outer -> outerCornerStyle
+            CornerType.CornerNeighbor -> cornerNeighborCornerStyle
+            CornerType.Corner -> cornerCornerStyle
+            CornerType.JointInline -> jointInlineCornerStyle
+            CornerType.Joint -> jointCornerStyle
+            CornerType.Inner -> innerCornerStyle
+            else -> error("Unknown corner-type = $cornerType")
         }
 
     protected open fun modifyCornerProfile(
         digit: Int,
         index: Int,
-        profile: CornerProfile
-    ): CornerProfile = profile
+        cornerProfile: CornerProfile
+    ): CornerProfile = cornerProfile
 
-    protected open fun modifyShapeRadius(
+    protected open fun modifyRectCorners(
         digit: Int,
         index: Int,
-        shapeRadius: ShapeRadius
-    ): ShapeRadius = shapeRadius
+        rectCorners: RectCorners
+    ): RectCorners = rectCorners
 
-    abstract val edgeRadius: CornerRadius
+    abstract val edgeCornerStyle: CornerStyle
 
-    abstract val outerRadius: CornerRadius
+    abstract val outerCornerStyle: CornerStyle
 
-    abstract val cornerNeighborRadius: CornerRadius
+    abstract val cornerNeighborCornerStyle: CornerStyle
 
-    abstract val cornerRadius: CornerRadius
+    abstract val cornerCornerStyle: CornerStyle
 
-    abstract val jointInlineRadius: CornerRadius
+    abstract val jointInlineCornerStyle: CornerStyle
 
-    abstract val jointRadius: CornerRadius
+    abstract val jointCornerStyle: CornerStyle
 
-    abstract val innerRadius: CornerRadius
+    abstract val innerCornerStyle: CornerStyle
 }

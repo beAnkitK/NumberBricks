@@ -1,7 +1,6 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry
 
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import io.github.beankitk.numberbricks.core.geometry.BaseDigitBuilder
 import io.github.beankitk.numberbricks.core.geometry.Position
@@ -10,7 +9,7 @@ import io.github.beankitk.numberbricks.blockdigit.geometry.corners.CornersProvid
 import io.github.beankitk.numberbricks.blockdigit.geometry.offset.OffsetProvider
 import io.github.beankitk.numberbricks.blockdigit.geometry.position.PositionProvider
 import io.github.beankitk.numberbricks.blockdigit.geometry.size.SizeProvider
-import io.github.beankitk.numberbricks.data.ShapeRadius
+import io.github.beankitk.numberbricks.data.RectCorners
 
 class BlockDigitBuilder(
     private val positionProvider: PositionProvider,
@@ -30,7 +29,7 @@ class BlockDigitBuilder(
         val positions = resultOf<Position>(PositionProvider.key)
         val offsets = resultOf<Offset>(OffsetProvider.key)
         val sizes = resultOf<Size>(SizeProvider.key)
-        val cornersRadii = resultOf<ShapeRadius>(CornersProvider.key)
+        val rectCorners = resultOf<RectCorners>(CornersProvider.key)
 
         return List(digitGridSpec.bricks) { index ->
             Block(
@@ -38,7 +37,7 @@ class BlockDigitBuilder(
                 position = positions[index],
                 offset = offsets[index],
                 size = sizes[index],
-                cornerRadius = cornersRadii[index]
+                corners = rectCorners[index]
             )
         }
     }
@@ -50,7 +49,7 @@ class BlockDigitBuilder(
                 position = Position(row = 2, col = 1),
                 offset = Offset(x = 1f, y = 2f),
                 size = Size(width = 1f, height = 1f),
-                cornerRadius = ShapeRadius.Zero
+                corners = RectCorners.Sharp
             )
         }
     }

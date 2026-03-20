@@ -9,7 +9,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.lerp
 import io.github.beankitk.numberbricks.core.geometry.Brick
 import io.github.beankitk.numberbricks.core.geometry.Position
-import io.github.beankitk.numberbricks.data.ShapeRadius
+import io.github.beankitk.numberbricks.data.RectCorners
 import io.github.beankitk.numberbricks.data.lerp
 import kotlin.math.min
 
@@ -19,17 +19,17 @@ data class Block(
     override val position: Position,
     override val offset: Offset,
     override val size: Size,
-    val cornerRadius: ShapeRadius
+    val corners: RectCorners
 ): Brick<Block> {
 
     private val asRect = Rect(offset, size)
 
     private val asRoundRect = RoundRect(
         asRect,
-        cornerRadius.topLeft,
-        cornerRadius.topRight,
-        cornerRadius.bottomRight,
-        cornerRadius.bottomLeft
+        corners.topLeft.radius,
+        corners.topRight.radius,
+        corners.bottomRight.radius,
+        corners.bottomLeft.radius
     )
 
     override fun scaledBy(totalSize: Size, brickSize: Size): Block {
@@ -46,11 +46,11 @@ data class Block(
                 width = size.width * width,
                 height = size.height * height
             ),
-            cornerRadius = ShapeRadius(
-                topLeft = cornerRadius.topLeft * radius,
-                topRight = cornerRadius.topRight * radius,
-                bottomRight = cornerRadius.bottomRight * radius,
-                bottomLeft = cornerRadius.bottomLeft * radius
+            corners = RectCorners(
+                topLeft = corners.topLeft.copy(corners.topLeft.radius * radius),
+                topRight = corners.topRight.copy(corners.topRight.radius * radius),
+                bottomRight = corners.bottomRight.copy(corners.bottomRight.radius * radius),
+                bottomLeft = corners.bottomLeft.copy(corners.bottomLeft.radius * radius)
             )
         )
     }
@@ -66,6 +66,6 @@ fun lerp(start: Block, end: Block, t: Float): Block {
         position = end.position,
         offset = lerp(start.offset, end.offset, t),
         size = lerp(start.size, end.size, t),
-        cornerRadius = lerp(start.cornerRadius, end.cornerRadius, t)
+        corners = lerp(start.corners, end.corners, t)
     )
 }
