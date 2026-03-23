@@ -77,7 +77,7 @@ internal fun NumberBricksImpl(
             digitGridSpec = gridSpec,
             geometryProps = geometryPropeties,
             digitBuilder = BlockDigitBuilder(
-                positionProvider = ClassicPosition(),
+                positionProvider = ClassicPosition,
                 offsetProvider = GridOffset(),
                 sizeProvider = variableSize,
                 cornersProvider = UniformCorners.Sharp

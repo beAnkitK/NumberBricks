@@ -62,7 +62,7 @@ abstract class CustomCornersProvider(
 
     protected val full = RectCorners(cornerStyle)
 
-    override val dependsOn = emptySet<ProviderKey<*>>()
+    final override val dependsOn = emptySet<ProviderKey<*>>()
 
     final override fun ProviderScope.provideData() = this@CustomCornersProvider[digit]
 }

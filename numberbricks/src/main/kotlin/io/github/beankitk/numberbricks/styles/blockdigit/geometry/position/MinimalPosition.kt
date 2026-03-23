@@ -1,6 +1,10 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry.position
 
-class MinimalPosition: ClassicPosition() {
+import io.github.beankitk.numberbricks.core.geometry.Position
+import io.github.beankitk.numberbricks.data.DigitData
+
+object MinimalPosition : BaseBlockPosition(),
+    DigitData<List<Position>> by ClassicPosition {
 
     override val digit1 = listOf(
         g3, g3, g3,

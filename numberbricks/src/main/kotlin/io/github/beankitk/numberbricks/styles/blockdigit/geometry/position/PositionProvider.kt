@@ -7,6 +7,8 @@ import io.github.beankitk.numberbricks.core.geometry.GeometryProvider
 import io.github.beankitk.numberbricks.core.geometry.GeometryProps
 import io.github.beankitk.numberbricks.core.geometry.GridSpec
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
+import io.github.beankitk.numberbricks.core.geometry.ProviderScope
+import io.github.beankitk.numberbricks.data.DigitData
 
 sealed interface PositionProvider: GeometryProvider<Position> {
 
@@ -25,4 +27,15 @@ sealed interface PositionProvider: GeometryProvider<Position> {
 
         protected override fun onAttachWith(digitGridSpec: GridSpec, geometryProps: GeometryProps) {}
     }
+}
+
+abstract class CustomPositionProvider(
+    providerGridSpec: GridSpec
+) : PositionProvider.Fixed(), DigitData<List<Position>> {
+
+    final override val providerGridSpec = providerGridSpec
+
+    final override val dependsOn = emptySet<ProviderKey<*>>()
+
+    final override fun ProviderScope.provideData(): List<Position> = this@CustomPositionProvider[digit]
 }

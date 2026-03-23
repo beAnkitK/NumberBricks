@@ -12,7 +12,7 @@ import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 
-class GridOffset(): OffsetProvider.Adaptive() {
+class GridOffset : OffsetProvider.Adaptive() {
 
     override val dependsOn: Set<ProviderKey<*>>
         get() = setOf(PositionProvider.key, SizeProvider.key)

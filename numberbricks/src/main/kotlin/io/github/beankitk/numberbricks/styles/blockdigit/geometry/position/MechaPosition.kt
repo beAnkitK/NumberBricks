@@ -1,6 +1,10 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry.position
 
-class MechaPosition: ClassicPosition() {
+import io.github.beankitk.numberbricks.core.geometry.Position
+import io.github.beankitk.numberbricks.data.DigitData
+
+object MechaPosition : BaseBlockPosition(),
+    DigitData<List<Position>> by ClassicPosition {
 
     override val digit1 = listOf(
         g4, g2, g2,

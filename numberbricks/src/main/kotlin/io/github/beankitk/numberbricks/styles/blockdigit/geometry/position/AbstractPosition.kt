@@ -1,6 +1,8 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry.position
 
-class AbstractPosition: ClassicPosition() {
+import io.github.beankitk.numberbricks.core.geometry.buildProviderData
+
+object AbstractPosition: BaseBlockPosition() {
 
     override val digit0 = listOf(
         g1, g2, g2,
@@ -81,4 +83,6 @@ class AbstractPosition: ClassicPosition() {
         g12, g12,
         g15, g15, g15
     )
+
+    override val default = buildProviderData { g8 }
 }

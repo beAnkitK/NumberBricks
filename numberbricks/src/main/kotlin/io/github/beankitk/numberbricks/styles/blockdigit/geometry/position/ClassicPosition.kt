@@ -1,24 +1,22 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry.position
 
 import io.github.beankitk.numberbricks.core.geometry.Position
-import io.github.beankitk.numberbricks.blockdigit.geometry.Block
 import io.github.beankitk.numberbricks.core.geometry.GridSpec
-import io.github.beankitk.numberbricks.core.geometry.ProviderScope
-import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.core.geometry.buildProviderData
-import io.github.beankitk.numberbricks.data.DigitData
 
-open class ClassicPosition : PositionProvider.Fixed(), DigitData<List<Position>> {
+private const val c0 = 0
+private const val c1 = 1
+private const val c2 = 2
 
-    private val c0 = 0
-    private val c1 = 1
-    private val c2 = 2
+private const val r0 = 0
+private const val r1 = 1
+private const val r2 = 2
+private const val r3 = 3
+private const val r4 = 4
 
-    private val r0 = 0
-    private val r1 = 1
-    private val r2 = 2
-    private val r3 = 3
-    private val r4 = 4
+private val gridSpec = GridSpec(rows = 5, cols = 3, bricks = 13)
+
+abstract class BaseBlockPosition : CustomPositionProvider(gridSpec) {
 
     protected val g1 = Position(r0, c0)
     protected val g2 = Position(r0, c1)
@@ -35,16 +33,9 @@ open class ClassicPosition : PositionProvider.Fixed(), DigitData<List<Position>>
     protected val g13 = Position(r4, c0)
     protected val g14 = Position(r4, c1)
     protected val g15 = Position(r4, c2)
+}
 
-    final override val providerGridSpec = GridSpec(
-        rows = 5, cols = 3, bricks = 13
-    )
-
-    final override val dependsOn = emptySet<ProviderKey<*>>()
-
-    final override fun ProviderScope.provideData(): List<Position> = this@ClassicPosition[digit]
-
-    override val default = buildProviderData { g8 }
+object ClassicPosition : BaseBlockPosition() {
 
     override val digit0 = listOf(
         g1, g2, g3,
@@ -125,4 +116,6 @@ open class ClassicPosition : PositionProvider.Fixed(), DigitData<List<Position>>
         g13, g12,
         g13, g14, g15
     )
+
+    override val default = buildProviderData { g8 }
 }
