@@ -38,6 +38,7 @@ import io.github.beankitk.numberbricks.core.geometry.DigitSlot
 import io.github.beankitk.numberbricks.core.geometry.DefaultNumberComposer
 import io.github.beankitk.numberbricks.core.geometry.GeometryProps
 import io.github.beankitk.numberbricks.core.geometry.GridSpec
+import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.blockdigit.geometry.Block
 import io.github.beankitk.numberbricks.blockdigit.geometry.BlockDigitBuilder
 import io.github.beankitk.numberbricks.blockdigit.geometry.corners.*
@@ -61,6 +62,12 @@ internal fun NumberBricksImpl(
     val gridSpec = remember { GridSpec(rows = 5, cols = 3, bricks = 13) }
     val geometryPropeties = remember { object : GeometryProps {} }
 
+    val gridOffset = remember {
+        GridOffset { digit, pos, baseOffset ->
+            if ((digit == 3 || digit == 7) && pos == Position(2, 1)) baseOffset.copy(x = 1f) else baseOffset
+        }
+    }
+
     val variableSize = remember {
         object: VariableSize(
             eachColWidth = floatArrayOf(1.3f, 0.4f, 1.3f),
@@ -68,6 +75,9 @@ internal fun NumberBricksImpl(
         ) {
             protected override fun modifyColumnWidths(digit: Int, colWidths: FloatArray) =
                 if (digit == 1) floatArrayOf(0.85f, 1.3f, 0.85f) else colWidths
+
+            protected override fun modifyBlockSize(digit: Int, position: Position, baseSize: Size) =
+                if ((digit == 3 || digit == 7) && position == Position(2, 1)) baseSize.copy(width = 0.7f) else baseSize
         }
     }
 
@@ -78,7 +88,7 @@ internal fun NumberBricksImpl(
             geometryProps = geometryPropeties,
             digitBuilder = BlockDigitBuilder(
                 positionProvider = ClassicPosition,
-                offsetProvider = GridOffset(),
+                offsetProvider = gridOffset,
                 sizeProvider = variableSize,
                 cornersProvider = UniformCorners.Sharp
             )

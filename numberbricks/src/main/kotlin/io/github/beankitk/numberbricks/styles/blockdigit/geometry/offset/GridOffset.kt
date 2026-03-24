@@ -12,7 +12,9 @@ import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 
-class GridOffset : OffsetProvider.Adaptive() {
+class GridOffset(
+    private val offsetModifier: GridOffsetModifier
+) : OffsetProvider.Adaptive() {
 
     override val dependsOn: Set<ProviderKey<*>>
         get() = setOf(PositionProvider.key, SizeProvider.key)
@@ -35,19 +37,29 @@ class GridOffset : OffsetProvider.Adaptive() {
         val eachRowStartY = toPrefix(eachRowHeight)
 
         return positions.map { position ->
-            Offset(
+            val offset = Offset(
                 x = eachColStartX[position.col],
                 y = eachRowStartY[position.row]
             )
+
+            offsetModifier.modify(digit, position, offset)
         }
     }
 
     private fun toPrefix(dimens: FloatArray): FloatArray {
-        var comulative = 0f
+        var cumulative = 0f
         return FloatArray(dimens.size) { idx ->
-            val element = comulative
-            comulative += dimens[idx]
+            val element = cumulative
+            cumulative += dimens[idx]
             element
         }
     }
+
+    companion object {
+        val Fixed: GridOffset = GridOffset { _, _, baseOffset -> baseOffset }
+    }
+}
+
+fun interface GridOffsetModifier {
+    fun modify(digit: Int, position: Position, baseOffset: Offset): Offset
 }
