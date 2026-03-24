@@ -6,6 +6,7 @@ import io.github.beankitk.numberbricks.blockdigit.geometry.position.PositionProv
 import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
+import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 
 object DirectOffset : OffsetProvider.Adaptive() {
 
@@ -14,10 +15,12 @@ object DirectOffset : OffsetProvider.Adaptive() {
 
     override fun ProviderScope.provideData(): List<Offset> {
          val positions = resultOf<Position>(PositionProvider.key)
-         return positions.map { pos ->
+         return buildProviderData { index ->
+            val position = positions[index]
+
             Offset(
-                x = pos.col.toFloat(),
-                y = pos.row.toFloat()
+                x = position.col.toFloat(),
+                y = position.row.toFloat()
             )
          }
     }

@@ -11,6 +11,7 @@ import io.github.beankitk.numberbricks.core.geometry.MetaGroup
 import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
+import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 import io.github.beankitk.numberbricks.blockdigit.geometry.position.PositionProvider
 import kotlin.math.abs
 
@@ -57,7 +58,8 @@ open class VariableSize(
             Meta.RowHeights providedBy rowHeights
         }
 
-        return positions.map { position ->
+        return buildProviderData { index ->
+            val position = positions[index]
             val size = Size(
                 width = colWidths[position.col],
                 height = rowHeights[position.row]

@@ -11,6 +11,7 @@ import io.github.beankitk.numberbricks.core.geometry.ExperimentalProviderMetaApi
 import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
+import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 
 class GridOffset(
     private val offsetModifier: GridOffsetModifier
@@ -36,7 +37,8 @@ class GridOffset(
         val eachColStartX = toPrefix(eachColWidth)
         val eachRowStartY = toPrefix(eachRowHeight)
 
-        return positions.map { position ->
+        return buildProviderData { index ->
+            val position = positions[index]
             val offset = Offset(
                 x = eachColStartX[position.col],
                 y = eachRowStartY[position.row]
