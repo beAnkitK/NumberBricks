@@ -42,7 +42,7 @@ abstract class FixedProvider<T>: GeometryProvider<T> {
     override fun matchesWith(digitGridSpec: GridSpec): Consent {
         val matches = providerGridSpec.rows == digitGridSpec.rows
             && providerGridSpec.cols == digitGridSpec.cols
-            && providerGridSpec.bricks == digitGridSpec.bricks
+            && providerGridSpec.brickCount == digitGridSpec.brickCount
 
         if (!matches) {
             return Consent.Reject("Provider requires gridSpec ${providerGridSpec.asString()} but got ${digitGridSpec.asString()}")
@@ -68,5 +68,5 @@ sealed interface Consent {
 fun Consent.getRejectionReason(): String? = (this as? Consent.Reject)?.reason
 
 inline fun <reified T> GeometryProvider<T>.buildProviderData(factory: (Int) -> T): List<T> {
-    return List(providerGridSpec.bricks) { factory(it) }
+    return List(providerGridSpec.brickCount) { factory(it) }
 }

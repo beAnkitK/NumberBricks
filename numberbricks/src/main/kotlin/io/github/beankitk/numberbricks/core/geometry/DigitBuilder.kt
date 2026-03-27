@@ -90,8 +90,8 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
     ) {
         providerScope.withProvider(provider) {
             val providerResult = providerScope.provideData()
-            check(providerResult.size == digitGridSpec.bricks) {
-                "Provider result must have ${digitGridSpec.bricks} size, but was ${providerResult.size} for ${provider.key}"
+            check(providerResult.size == digitGridSpec.brickCount) {
+                "Provider result must have ${digitGridSpec.brickCount} size, but was ${providerResult.size} for ${provider.key}"
             }
             providerScope.commitResult<P>(key, providerResult)
         }

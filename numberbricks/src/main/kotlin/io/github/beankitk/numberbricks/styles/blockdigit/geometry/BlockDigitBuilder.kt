@@ -31,7 +31,7 @@ class BlockDigitBuilder(
         val sizes = resultOf<Size>(SizeProvider.key)
         val rectCorners = resultOf<RectCorners>(CornersProvider.key)
 
-        return List(digitGridSpec.bricks) { index ->
+        return List(digitGridSpec.brickCount) { index ->
             Block(
                 index = index,
                 position = positions[index],
@@ -43,7 +43,7 @@ class BlockDigitBuilder(
     }
 
     protected override fun assembleDefaultBricks(): List<Block> {
-        return List(digitGridSpec.bricks) { index ->
+        return List(digitGridSpec.brickCount) { index ->
             Block(
                 index = index,
                 position = Position(row = 2, col = 1),

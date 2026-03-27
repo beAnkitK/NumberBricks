@@ -14,7 +14,7 @@ private const val r2 = 2
 private const val r3 = 3
 private const val r4 = 4
 
-private val gridSpec = GridSpec(rows = 5, cols = 3, bricks = 13)
+private val gridSpec = GridSpec(rows = 5, cols = 3, brickCount = 13)
 
 abstract class BaseBlockPosition : CustomPositionProvider(gridSpec) {
 

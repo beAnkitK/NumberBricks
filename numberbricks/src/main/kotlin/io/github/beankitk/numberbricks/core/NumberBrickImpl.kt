@@ -59,7 +59,7 @@ internal fun NumberBricksImpl(
     animateOnFirstVisible: Boolean
 ) {
 
-    val gridSpec = remember { GridSpec(rows = 5, cols = 3, bricks = 13) }
+    val gridSpec = remember { GridSpec(rows = 5, cols = 3, brickCount = 13) }
     val geometryPropeties = remember { object : GeometryProps {} }
 
     val gridOffset = remember {
@@ -209,7 +209,7 @@ private fun SingleDigitBrick(
 
                 onDrawBehind {
                     digitPath.reset()
-                    for (i in 0 until numberComposer.digitGridSpec.bricks) {
+                    for (i in 0 until numberComposer.digitGridSpec.brickCount) {
                         val animatedBrick = lerp(
                             startBricks[i],
                             endBricks[i],

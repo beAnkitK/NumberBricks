@@ -75,7 +75,7 @@ abstract class AutoCornersProvider : CornersProvider.Adaptive() {
     final override fun ProviderScope.provideData(): List<RectCorners> {
         val offsets = resultOf<Offset>(OffsetProvider.key)
         val sizes = resultOf<Size>(SizeProvider.key)
-        val rects = Array(providerGridSpec.bricks) { index -> Rect(offsets[index], sizes[index]) }
+        val rects = Array(providerGridSpec.brickCount) { index -> Rect(offsets[index], sizes[index]) }
 
         val cornerProfileArray = getCornerProfile(
             rects = rects,
