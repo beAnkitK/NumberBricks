@@ -33,7 +33,7 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
         digitGridSpec: GridSpec,
         geometryProps: GeometryProps
     ) {
-        require(!isConstructed) { "Builder already constructed" }
+        check(!isConstructed) { "Builder already constructed" }
         this.digitGridSpec = digitGridSpec
         this.geometryProps = geometryProps
         bindProviders()
@@ -60,21 +60,21 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
     }
 
     override fun destruct() {
+        checkConstructed()
         providersRegistry.clear()
         executionOrder = emptyList()
         isConstructed = false
     }
 
     protected final fun <P> registerProvider(provider: GeometryProvider<P>) {
-        require(!isConstructed) { "Cannot register providers after construction" }
+        check(!isConstructed) { "Cannot register providers after construction" }
         require(providersRegistry.none { it.key == provider.key }) {
             "Provider with ${provider.key} already registered"
         }
 
         val providerConsent = provider.matchesWith(digitGridSpec)
         if (providerConsent.hasRejected()) {
-            error(providerConsent.getRejectionReason() ?:
-                "Provider '${provider.key}' incompatible with layout")
+            error(providerConsent.getRejectionReason() ?: "Provider '${provider.key}' incompatible with layout")
         }
 
         providersRegistry.add(provider)
@@ -130,6 +130,6 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
     private enum class VisitState { VISITING, VISITED }
 
     private fun checkConstructed() {
-        require(isConstructed) { "Builder not constructed. Call construct() first" }
+        check(isConstructed) { "Builder not constructed. Call construct() first" }
     }
 }

@@ -62,7 +62,7 @@ class DefaultProviderScope(
     @Suppress("UNCHECKED_CAST")
     override fun <R> resultOf(providerKey: ProviderKey<R>): List<R> {
         return resultStore[providerKey] as? List<R>
-            ?: error("No result found for provider with $providerKey. Provider may not have executed yet.")
+            ?: error("Result for $providerKey not found. Ensure the provider is registered and dependencies are correctly declared.")
     }
 
     override fun <R> commitResult(providerKey: ProviderKey<R>, providerResult: List<R>) {

@@ -73,7 +73,7 @@ class DefaultNumberComposer<T : Brick<T>>(
     override val previousNumber: Int? by _previousNumber
 
     override fun initiate() {
-        require(!isInitialized) { "NumberComposer already initialized" }
+        check(!isInitialized) { "NumberComposer already initialized" }
         digitBuilder.construct(digitGridSpec, geometryProps)
         defaultBricks = digitBuilder.buildDefaultBricks()
 
@@ -186,6 +186,8 @@ class DefaultNumberComposer<T : Brick<T>>(
     }
 
     override fun dispose() {
+        if (!isInitialized) return
+
         digitSequence = emptyIntList()
         digitSlotList.clear()
         digitBricksCache.clear()
@@ -197,7 +199,7 @@ class DefaultNumberComposer<T : Brick<T>>(
     }
 
     private fun checkInitialized() {
-        require(isInitialized) { "Composer not initialized. Call initiate() first" }
+        check(isInitialized) { "Composer not initialized. Call initiate() first" }
     }
 }
 
