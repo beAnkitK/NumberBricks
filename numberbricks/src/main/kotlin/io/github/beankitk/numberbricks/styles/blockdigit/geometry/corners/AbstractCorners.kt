@@ -47,8 +47,6 @@ class AbstractCorners(
         }
 
     companion object {
-        val Bubble = AbstractCorners(outerRadius = 1f, cornerNeighborRadius = 0.5f)
-
         fun rounded(
             radius: Float = 0.5f,
             cornerShape: CornerShape = CornerShape.Round,
@@ -64,5 +62,17 @@ class AbstractCorners(
             cornerNeighborRadius = cornerNeighborRadius,
             cornerShape = cornerShape
          )
+
+        fun bubble(
+            outerRadius: Float = 1f,
+            cornerNeighborRadius: Float = 0.5f,
+            cornerRadius: Float = 1f,
+            cornerShape: CornerShape = CornerShape.Round
+         ) = AbstractCorners(
+            outerRadius = outerRadius,
+            cornerNeighborRadius = cornerNeighborRadius,
+            cornerRadius = cornerRadius,
+            cornerShape = cornerShape
+        )
     }
 }

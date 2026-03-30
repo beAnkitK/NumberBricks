@@ -42,7 +42,7 @@ abstract class CustomCornersProvider(
     protected val cornerStyle: CornerStyle
 ): CornersProvider.Fixed(), DigitData<List<RectCorners>> {
 
-    protected val zero = RectCorners()
+    protected val none = RectCorners()
 
     protected val tl = RectCorners(topLeft = cornerStyle)
 
@@ -60,7 +60,7 @@ abstract class CustomCornersProvider(
 
     protected val blr = RectCorners(bottomLeft = cornerStyle, bottomRight = cornerStyle)
 
-    protected val full = RectCorners(cornerStyle)
+    protected val all = RectCorners(cornerStyle)
 
     final override val dependsOn = emptySet<ProviderKey<*>>()
 
