@@ -8,6 +8,20 @@ import io.github.beankitk.numberbricks.data.CornerShape
 import io.github.beankitk.numberbricks.data.CornerStyle
 import io.github.beankitk.numberbricks.data.RectCorners
 
+/**
+ * Provides uniform [RectCorners] for all blocks during geometry composition.
+ *
+ * This [CornersProvider] returns the same corner styling for every block
+ * for a given digit. This can be used for consistent visual appearance
+ * in a uniform geometry. Corner radius values must be defined in grid-relative
+ * fractional units, where `1f` represents the maximum radius constrained by
+ * the block size.
+ *
+ * The computed result is cached after first invocation and reused to avoid
+ * repeated allocations.
+ *
+ * @param rectCorners The uniform corner styling applied to all blocks
+ */
 class UniformCorners(
     private val rectCorners: RectCorners
 ): CornersProvider.Adaptive() {
@@ -23,12 +37,26 @@ class UniformCorners(
     }
 
     companion object {
+        /** A [CornersProvider] that provides sharp corners for all blocks. */
         val Sharp = UniformCorners(RectCorners.Sharp)
 
+        /** A [CornersProvider] that provides fully rounded corners for all blocks. */
         val Round = UniformCorners(RectCorners(1f, CornerShape.Round))
 
+        /**
+         * Creates a [UniformCorners] provider with the given [CornerStyle].
+         *
+         * @param cornerStyle The corner style applied to all corners
+         */
         fun of(cornerStyle: CornerStyle) = UniformCorners(RectCorners(cornerStyle))
 
+        /**
+         * Creates a [UniformCorners] provider with uniform corner radius and shape.
+         *
+         * @param radius The horizontal corner radius (grid-relative)
+         * @param shape The corner shape
+         * @param radiusY The vertical corner radius (defaults to [radius])
+         */
         fun of(
             radius: Float,
             shape: CornerShape = CornerShape.Round,

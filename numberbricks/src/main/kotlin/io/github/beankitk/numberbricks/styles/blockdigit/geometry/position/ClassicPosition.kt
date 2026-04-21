@@ -14,8 +14,28 @@ private const val r2 = 2
 private const val r3 = 3
 private const val r4 = 4
 
+/**
+ * Defines the grid specification for block-style digits using a 5×3 layout with 13 active blocks
+ */
 private val gridSpec = GridSpec(rows = 5, cols = 3, brickCount = 13)
 
+/**
+ * Base [CustomPositionProvider] for composing block-style digit geometry on a fixed 5×3 grid.
+ *
+ * Establishes the grid and exposes precomputed positions (`g1`–`g15`)
+ * for each cell, arranged row-wise from top-left to bottom-right. These serve
+ * as building primitives for defining digit geometry, allowing subclasses to
+ * compose block geometry by selecting and ordering cells.
+ *
+ * The grid’s row-major cell arrangement is illustrated below :
+ * ```text
+ * g1   g2   g3
+ * g4   g5   g6
+ * g7   g8   g9
+ * g10  g11  g12
+ * g13  g14  g15
+ * ```
+ */
 abstract class BaseBlockPosition : CustomPositionProvider(gridSpec) {
 
     protected val g1 = Position(r0, c0)
@@ -35,6 +55,10 @@ abstract class BaseBlockPosition : CustomPositionProvider(gridSpec) {
     protected val g15 = Position(r4, c2)
 }
 
+/**
+ * Provides a [PositionProvider] for block digit geometry, defining positions
+ * for the classic style.
+ */
 object ClassicPosition : BaseBlockPosition() {
 
     override val digit0 = listOf(

@@ -2,6 +2,10 @@ package io.github.beankitk.numberbricks.blockdigit.geometry.position
 
 import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 
+/**
+ * Provides a [PositionProvider] for block digit geometry, defining positions
+ * for the abstract style.
+ */
 object AbstractPosition: BaseBlockPosition() {
 
     override val digit0 = listOf(

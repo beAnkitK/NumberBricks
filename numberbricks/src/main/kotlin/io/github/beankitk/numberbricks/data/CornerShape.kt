@@ -8,8 +8,8 @@ package io.github.beankitk.numberbricks.data
  * interpolation between different shape forms.
  *
  * Currently supported shapes:
- * - [Square]: sharp, unrounded corners
- * - [Round]: smooth, curved corners
+ * 1. [Square]: sharp, unrounded corners
+ * 2. [Round]: smooth, curved corners
  *
  * Additional shapes may be introduced in the future.
  *

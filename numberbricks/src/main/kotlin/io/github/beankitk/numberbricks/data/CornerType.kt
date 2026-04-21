@@ -5,26 +5,30 @@ package io.github.beankitk.numberbricks.data
  *
  * When rectangles are arranged in a grid with overlapping edges, each corner
  * can have up to three types of neighbors:
+ *
  * - **Horizontal (h)**: A rectangle sharing the horizontal edge at this corner
  * - **Vertical (v)**: A rectangle sharing the vertical edge at this corner
  * - **Diagonal (d)**: A rectangle touching only at this corner point
  *
  * **Reference diagram:**
- * ```
- *     A─────B   P─────Q
- *     │     │   │     │
- *     D─────C   S─────R
- *     K─────L   X─────Y
- *     │     │   │     │
- *     N─────M   Z─────W
+ * ```text
+ *     A─────B P─────Q
+ *     │      │ │      │
+ *     D─────C S─────R
+ *     K─────L X─────Y
+ *     │      │ │      │
+ *     N─────M Z─────W
+ *```
  *
  * Where edges overlap: BC-PS, DC-KL, SR-XY, LM-XZ
  *
- * For [CornerPosition.BottomRight] C of rect ABCD:
- * - [CornerPosition.BottomLeft] S (from PQRS) is the horizontal neighbor (shares edge BC-PS)
- * - [CornerPosition.TopRight] L (from KLMN) is the vertical neighbor (shares edge DC-KL)
- * - [CornerPosition.TopLeft] X (from XYWZ) is the diagonal neighbor (touches at point C)
- * ```
+ * For [CornerPosition.BottomRight] corner **C** of rectangle **ABCD**, the neighbors are:
+ *
+ * | Neighbor Type | Neighbor Corner                  | Source Rectangle | Relationship                |
+ * |---------------|----------------------------------|------------------|-----------------------------|
+ * | Horizontal (h)| [CornerPosition.BottomLeft] -> S | PQRS             | BC <-> PS (shared edge)     |
+ * | Vertical (v)  | [CornerPosition.TopRight]  -> L  | KLMN             | DC <-> KL (shared edge)     |
+ * | Diagonal (d)  | [CornerPosition.TopLeft]   -> X  | XYWZ             | C -> X (point contact only) |
  *
  * The corner type describes the structural role of that corner in the overall
  * brick formation, which determines appropriate styling like corner rounding.

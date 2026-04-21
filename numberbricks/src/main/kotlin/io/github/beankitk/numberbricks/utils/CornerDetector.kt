@@ -35,7 +35,7 @@ inline fun getCornerProfile(
  * Computes corner topology for a set of rectangles as [CornerProfile] by analyzing how their
  * corners overlap in 2D space.
  *
- *[CornerDetector] inspects how all corner points of the supplied rectangles coincide in
+ * [CornerDetector] inspects how all corner points of the supplied rectangles coincide in
  * 2D space and computes a [CornerProfile] for each rectangle. Each profile describes the
  * structural role of the rectangle’s four corners (for example, outer, edge,
  * joint, or inner) based on neighboring rectangles(horizontal, vertical, and diagonal)
@@ -53,9 +53,16 @@ inline fun getCornerProfile(
  * Typical usage is to pass all participating rectangles at once and receive a
  * one-to-one array of [CornerProfile] results:
  *
+ * ```kotlin
+ * val rects = Array<Rect>(15) { i ->
+ *     Rect(
+ *         offset = Offset(x = i % 3, y = i / 3)
+ *         size = Size(width = i % 3, height = i /3)
+ *     )
+ * }
+ * val profiles = CornerDetector.getCornerProfile(rects)
  * ```
- * val profiles = CornerDetector().getCornerProfile(rects)
- * ```
+ *
  * @see CornerProfile
  * @see CornerType
  * @see CornerPosition

@@ -16,10 +16,10 @@ fun CornerProfile(
  * Used by [io.github.beankitk.numberbricks.utils.CornerDetector] that inspects how
  * rectangles intersect or align in a layout.
  *
- * @property topLeft The classified type of the top-left corner.
- * @property topRight The classified type of the top-right corner.
- * @property bottomRight The classified type of the bottom-right corner.
- * @property bottomLeft The classified type of the bottom-left corner.
+ * @property topLeft The classified type of the top-left corner
+ * @property topRight The classified type of the top-right corner
+ * @property bottomRight The classified type of the bottom-right corner
+ * @property bottomLeft The classified type of the bottom-left corner
  * @see CornerType
  * @see io.github.beankitk.numberbricks.utils.CornerDetector
  */

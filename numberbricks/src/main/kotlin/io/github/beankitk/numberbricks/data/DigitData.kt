@@ -6,13 +6,12 @@ package io.github.beankitk.numberbricks.data
  * Provides a type-safe way to store and retrieve data specific to each digit,
  * with a fallback default value for invalid digits or placeholder states.
  *
- * Used by [GeometryProvider] for storing digit-specific styling (colors, shapes)
- * or geometry data that varies per digit.
- *
- * @param T The type of data associated with each digit
+ * Used by [io.github.beankitk.numberbricks.core.geometry.GeometryProvider]
+ * for storing digit-specific styling (colors, shapes) or geometry data that
+ * varies per digit.
  *
  * Example usage:
- * ```
+ * ```kotlin
  * val digitColors = object : DigitData<Color> {
  *     override val digit0 = Color.Red
  *     override val digit1 = Color.Blue
@@ -24,8 +23,8 @@ package io.github.beankitk.numberbricks.data
  * val colorForInvalid = digitColors[-1]  // Returns default color
  * ```
  *
+ * @param T The type of data associated with each digit
  * @see io.github.beankitk.numberbricks.blockdigit.geometry.position.ClassicPosition
- *
  */
 interface DigitData<T> {
     val digit0: T
@@ -41,7 +40,7 @@ interface DigitData<T> {
     val default: T
 
     /**
-     * Retrieves data for a specific digit.
+     * Returns the data for the given digit.
      *
      * @param digit The digit value (0-9), or any other value for default
      * @return The data associated with the digit, or [default] if out of range

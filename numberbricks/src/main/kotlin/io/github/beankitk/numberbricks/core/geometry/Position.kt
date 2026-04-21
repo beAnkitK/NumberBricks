@@ -27,10 +27,10 @@ value class Position(val packedValue: Long) {
     * Unlike [equals], which requires an exact position match, this returns `true`
     * if the position lies on the specified row, column, or the exact `(row, col)` cell.
     *
-    * @param row The row index to match, or `null` to ignore the row.
-    * @param col The column index to match, or `null` to ignore the column.
-    * @return `true` if this position occupies the given row, column, or exact cell.
-    * @throws IllegalArgumentException if both `row` and `col` are `null`.
+    * @param row The row index to match, or `null` to ignore the row
+    * @param col The column index to match, or `null` to ignore the column
+    * @return `true` if this position occupies the given row, column, or exact cell
+    * @throws IllegalArgumentException if both `row` and `col` are `null`
     */
     fun occupies(row: Int? = null, col: Int? = null): Boolean {
         require(row != null || col != null) {
@@ -51,7 +51,7 @@ value class Position(val packedValue: Long) {
  * Creates a grid position from row and column indices.
  *
  * @param row The non-negative row index in the grid
- * @param column The non-negative column index in the grid
+ * @param col The non-negative column index in the grid
  */
 @Suppress("NOTHING_TO_INLINE")
 inline fun Position(row: Int, col: Int) = Position(packInts(row, col))

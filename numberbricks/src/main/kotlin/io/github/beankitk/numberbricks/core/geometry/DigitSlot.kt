@@ -15,10 +15,8 @@ import androidx.compose.ui.util.packInts
  *
  * In `NumberBricks`, this tracking allows morphing between previous digit to current digit.
  *
- * @property packed The packed representation of previous and current digit values
- *
- * Example usage:
- * ```
+ * Example:
+ * ```kotlin
  * // Display "42" - ones place shows "2" (no previous state)
  * val onesPlace = DigitSlot(currentDigit = 2)
  *
@@ -26,6 +24,8 @@ import androidx.compose.ui.util.packInts
  * val updatedOnes = onesPlace.withCurrent(3)
  * // updatedOnes.previousDigit = 2, updatedOnes.currentDigit = 3
  * ```
+ *
+ * @property packed The packed representation of previous and current digit values
  */
 @JvmInline
 value class DigitSlot(val packed: Long) {
@@ -61,9 +61,9 @@ value class DigitSlot(val packed: Long) {
      * The digit value (0-9) that was at this place before the number update.
      *
      * Returns null if:
-     * - This is a newly created digit place with no prior state
-     * - The place didn't exist in the previous number (e.g., 99 → 100)
-     * - The slot was initialized without a previous digit
+     * 1. This is a newly created digit place with no prior state
+     * 2. The place didn't exist in the previous number (e.g., 99 -> 100)
+     * 3. The slot was initialized without a previous digit
      */
     val previousDigit: Int?
         get() {
@@ -84,12 +84,8 @@ value class DigitSlot(val packed: Long) {
      * The current digit becomes the previous digit, and the provided value becomes
      * the new current digit.
      *
-     * @param newDigit The new digit value (0-9) for this place
-     * @return A new [DigitSlot] with updated state
-     * @throws IllegalArgumentException if newDigit is not in the range [0-9]
-     *
      * Example:
-     * ```
+     * ```kotlin
      * val slot = DigitSlot(currentDigit = 5)
      * val updated = slot.withCurrent(6)
      * // updated.previousDigit = 5, updated.currentDigit = 6
@@ -97,6 +93,11 @@ value class DigitSlot(val packed: Long) {
      * val nextUpdate = updated.withCurrent(7)
      * // nextUpdate.previousDigit = 6, nextUpdate.currentDigit = 7
      * ```
+     *
+     * @param newDigit The new digit value (0-9) for this place
+     * @return A new [DigitSlot] with updated state
+     * @throws IllegalArgumentException if newDigit is not in the range [0-9]
+     *
      */
     fun withCurrent(newDigit: Int): DigitSlot {
         require(newDigit in 0..9) { "newDigit must be in range [0-9], got $newDigit" }

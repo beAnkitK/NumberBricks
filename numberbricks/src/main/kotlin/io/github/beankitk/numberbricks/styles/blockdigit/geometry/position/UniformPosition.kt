@@ -5,6 +5,18 @@ import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 
+/**
+ * Provides a uniform [Position] for all blocks during geometry composition.
+ *
+ * This [PositionProvider] returns the same position for every block for a given
+ * digit. This can be used for default geometry where all blocks share a common
+ * position.
+ *
+ * The computed result is cached after first invocation and reused to avoid
+ * repeated allocations.
+ *
+ * @param position The uniform grid position applied to all blocks
+ */
 class UniformPosition(
     private val position: Position
 ) : PositionProvider.Adaptive() {
@@ -20,8 +32,16 @@ class UniformPosition(
     }
 
     companion object {
+        /** A [PositionProvider] that provides zero position for all blocks. */
         val Zero = UniformPosition(Position.Zero)
 
+        /**
+         * Creates a [UniformPosition] provider with a uniform position.
+         *
+         * @param row The row index for all blocks
+         * @param col The column index for all blocks
+         * @return A [UniformPosition] provider with the specified position
+         */
         fun of(row: Int, col: Int) = UniformPosition(Position(row, col))
     }
 }

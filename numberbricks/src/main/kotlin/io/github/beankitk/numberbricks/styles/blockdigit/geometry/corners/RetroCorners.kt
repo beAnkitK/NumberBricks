@@ -7,11 +7,34 @@ import io.github.beankitk.numberbricks.data.RectCorners
 import io.github.beankitk.numberbricks.data.CornerShape
 import io.github.beankitk.numberbricks.data.CornerStyle
 
+/**
+ * Provides a [CornersProvider] that applies retro-style corner styling using
+ * distinct styles for outer and single outer corners.
+ *
+ * This extends [AutoCornersProvider] and applies [outerCornerStyle] to corners
+ * classified as [CornerType.Outer]. When a block has exactly one outer corner,
+ * that corner is replaced with [singleOuterCornerStyle], producing a sharper,
+ * retro-inspired appearance.
+ *
+ * All other corner types remain unstyled.
+ *
+ * @param outerCornerStyle The style applied to outer corners
+ * @param singleOuterCornerStyle The style applied when a block has exactly one outer corner
+ * @see io.github.beankitk.numberbricks.data.CornerType
+ */
 open class RetroCorners(
     outerCornerStyle: CornerStyle = CornerStyle(0.2f, CornerShape.Round),
     singleOuterCornerStyle: CornerStyle = CornerStyle(0.85f, CornerShape.Round)
 ): AutoCornersProvider() {
 
+    /**
+     * Creates a [RetroCorners] provider with corner radius values for outer and single outer
+     * corners and a common shape.
+     *
+     * @param outerRadius The radius used for outer corners
+     * @param singleOuterRadius The radius used when a block has exactly one outer corner
+     * @param cornerShape The shape applied to both styles (defaults to [CornerShape.Round])
+     */
     constructor(
         outerRadius: Float = 0.2f,
 		singleOuterRadius: Float = 0.85f,
@@ -26,6 +49,7 @@ open class RetroCorners(
     final override val jointCornerStyle = CornerStyle.None
     final override val innerCornerStyle = CornerStyle.None
 
+    /** Corner style applied when exactly one corner in a block is classified as [CornerType.Outer]. */
     protected val singleOuterCornerStyle = singleOuterCornerStyle
 
     protected override fun modifyRectCorners(
@@ -34,6 +58,12 @@ open class RetroCorners(
         rectCorners: RectCorners
     ): RectCorners = applySingleOuterCornerStylePolicy(rectCorners)
 
+    /**
+     * Applies single outer corner styling when exactly one corner is classified
+     * as outer within the given [RectCorners].
+     *
+     * @param rectCorners The corner styles to evaluate
+     */
     protected fun applySingleOuterCornerStylePolicy(
         rectCorners: RectCorners
     ): RectCorners = with(rectCorners) {

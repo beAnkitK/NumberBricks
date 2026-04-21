@@ -17,20 +17,39 @@ import io.github.beankitk.numberbricks.data.CornerProfile
 import io.github.beankitk.numberbricks.data.CornerStyle
 import io.github.beankitk.numberbricks.data.DigitData
 import io.github.beankitk.numberbricks.data.RectCorners
+import io.github.beankitk.numberbricks.utils.CornerDetector
 import io.github.beankitk.numberbricks.utils.getCornerProfile
 
+/**
+ * Provides [RectCorners] for each block during geometry composition.
+ *
+ * A [CornersProvider] is a [GeometryProvider] responsible for defining the
+ * corner styling (radius and shape) of each block. These values are used during
+ * block assembly to construct the final brick model with the desired corner
+ * appearance.
+ *
+ * Implementations must provide corner radius values as grid-relative fractions,
+ * where `1f` represents the maximum radius constrained by the block size.
+ *
+ * Two base implementations are provided:
+ * - [Fixed] -> for providers targeting a specific grid configuration
+ * - [Adaptive] -> for providers supporting any grid configuration
+ */
 sealed interface CornersProvider: GeometryProvider<RectCorners> {
 
     companion object {
+        /** Provider key for [CornersProvider]. */
         val key = ProviderKey<RectCorners>("provider.corners.base")
     }
 
+    /** Base class for [CornersProvider]s with fixed grid requirements. */
     abstract class Fixed: FixedProvider<RectCorners>(), CornersProvider {
         final override val key = CornersProvider.key
 
         protected override fun onAttachWith(digitGridSpec: GridSpec, geometryProps: GeometryProps) {}
     }
 
+    /** Base class for [CornersProvider]s that adapt to any grid configuration. */
     abstract class Adaptive: AdaptiveProvider<RectCorners>(), CornersProvider {
         final override val key = CornersProvider.key
 
@@ -38,28 +57,58 @@ sealed interface CornersProvider: GeometryProvider<RectCorners> {
     }
 }
 
+/**
+ * Base implementation of [CornersProvider] for manually defining per-block
+ * corner styling for each digit.
+ *
+ * This allows specifying [RectCorners] for all blocks per digit using [DigitData],
+ * giving full control over corner appearance during geometry composition. Subclasses
+ * define provider data as a list of [RectCorners] for each digit, aligned with the
+ * provider's [grid constraints][providerGridSpec].
+ *
+ * Predefined presets are provided to simplify common corner combinations based on
+ * the supplied [cornerStyle].
+ *
+ * **Helper presets:**
+ * - [none]: No corner styling applied
+ * - [all]: All corners styled
+ * - [tl], [tr], [br], [bl]: Single corner styled
+ * - [tbl], [tbr], [tlr], [blr]: Two corners styled
+ *
+ * @param cornerStyle The corner style used to construct corner presets
+ */
 abstract class CustomCornersProvider(
     protected val cornerStyle: CornerStyle
 ): CornersProvider.Fixed(), DigitData<List<RectCorners>> {
 
+    /** No corner styling applied. */
     protected val none = RectCorners()
 
+    /** Applies style to top-left corner. */
     protected val tl = RectCorners(topLeft = cornerStyle)
 
+    /** Applies style to top-right corner. */
     protected val tr = RectCorners(topRight = cornerStyle)
 
+    /** Applies style to bottom-right corner. */
     protected val br = RectCorners(bottomRight = cornerStyle)
 
+    /** Applies style to bottom-left corner. */
     protected val bl = RectCorners(bottomLeft = cornerStyle)
 
+    /** Applies style to top-left and bottom-left corners. */
     protected val tbl = RectCorners(topLeft = cornerStyle, bottomLeft = cornerStyle)
 
+    /** Applies style to top-right and bottom-right corners. */
     protected val tbr = RectCorners(topRight = cornerStyle, bottomRight = cornerStyle)
 
+    /** Applies style to top-left and top-right corners. */
     protected val tlr = RectCorners(topLeft = cornerStyle, topRight = cornerStyle)
 
+    /** Applies style to bottom-left and bottom-right corners. */
     protected val blr = RectCorners(bottomLeft = cornerStyle, bottomRight = cornerStyle)
 
+    /** Applies style to all corners. */
     protected val all = RectCorners(cornerStyle)
 
     final override val dependsOn = emptySet<ProviderKey<*>>()
@@ -67,6 +116,33 @@ abstract class CustomCornersProvider(
     final override fun ProviderScope.provideData() = this@CustomCornersProvider[digit]
 }
 
+/**
+ * Base [CornersProvider] that derives corner styling automatically from
+ * block adjacency and neighbor relationships.
+ *
+ * This provider analyzes how blocks are connected within the grid using
+ * [CornerDetector] and classifies each corner using [CornerType] based
+ * on its surrounding neighbors (edges, joints, inner corners, etc.).
+ * Each classified type is then mapped to a corresponding [CornerStyle],
+ * producing the final [RectCorners] for every block.
+ *
+ * It depends on [OffsetProvider] and [SizeProvider] to construct block
+ * bounds, which are used to evaluate spatial relationships between blocks.
+ *
+ * Subclasses define a [CornerStyle] for each [CornerType], controlling how
+ * different connection cases are styled across the entire geometry.
+ *
+ * **Customization hooks:**
+ * - [modifyCornerProfile] -> adjust detected corner types before mapping
+ * - [modifyRectCorners] -> adjust final corner styles per block
+ *
+ * In most cases, providing styles for each [CornerType] is sufficient.
+ * Override hooks only when additional control over specific blocks or
+ * digits is required.
+ *
+ * @see CornerType
+ * @see CornerDetector
+ */
 abstract class AutoCornersProvider : CornersProvider.Adaptive() {
 
     final override val dependsOn: Set<ProviderKey<*>>
@@ -106,29 +182,56 @@ abstract class AutoCornersProvider : CornersProvider.Adaptive() {
             else -> error("Unknown corner-type = $cornerType")
         }
 
+    /**
+     * Allows modifying detected corner profiles before style mapping.
+     *
+     * Override to adjust [CornerType] classification for specific blocks or digits.
+     *
+     * @param digit The digit being composed (0–9, or -1 for default)
+     * @param index The block index
+     * @param cornerProfile The detected corner profile for the block
+     * @return The modified corner profile for the block, or the original if unchanged
+     */
     protected open fun modifyCornerProfile(
         digit: Int,
         index: Int,
         cornerProfile: CornerProfile
     ): CornerProfile = cornerProfile
 
+    /**
+     * Allows modifying resolved [RectCorners] after style mapping.
+     *
+     * Override to apply block-specific or digit-specific adjustments.
+     *
+     * @param digit The digit being composed (0–9, or -1 for default)
+     * @param index The block index
+     * @param rectCorners The computed corner styles for the block
+     * @return The modified corner styles for the block, or the original if unchanged
+     */
     protected open fun modifyRectCorners(
         digit: Int,
         index: Int,
         rectCorners: RectCorners
     ): RectCorners = rectCorners
 
+    /** Corner Style applied to corners classified as [CornerType.Edge]. */
     abstract val edgeCornerStyle: CornerStyle
 
+    /** Corner Style applied to corners classified as [CornerType.Outer]. */
     abstract val outerCornerStyle: CornerStyle
 
+    /** Corner Style applied to corners classified as [CornerType.CornerNeighbor]. */
     abstract val cornerNeighborCornerStyle: CornerStyle
 
+    /** Corner Style applied to corners classified as [CornerType.Corner]. */
     abstract val cornerCornerStyle: CornerStyle
 
+    /** Corner Style applied to corners classified as [CornerType.JointInline]. */
     abstract val jointInlineCornerStyle: CornerStyle
 
+    /** Corner Style applied to corners classified as [CornerType.Joint]. */
     abstract val jointCornerStyle: CornerStyle
 
+    /** Corner Style applied to corners classified as [CornerType.Inner]. */
     abstract val innerCornerStyle: CornerStyle
 }
