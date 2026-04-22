@@ -3,12 +3,11 @@ package io.github.beankitk.numberbricks.data
 /**
  * Data holding helper that maps digit values (0-9) to associated data.
  *
- * Provides a type-safe way to store and retrieve data specific to each digit,
- * with a fallback default value for invalid digits or placeholder states.
+ * Provides a type-safe way to store and retrieve data specific to each digit, with a fallback
+ * default value for invalid digits or placeholder states.
  *
- * Used by [io.github.beankitk.numberbricks.core.geometry.GeometryProvider]
- * for storing digit-specific styling (colors, shapes) or geometry data that
- * varies per digit.
+ * Used by [io.github.beankitk.numberbricks.core.geometry.GeometryProvider] for storing
+ * digit-specific styling (colors, shapes) or geometry data that varies per digit.
  *
  * Example usage:
  * ```kotlin
@@ -45,8 +44,8 @@ interface DigitData<T> {
      * @param digit The digit value (0-9), or any other value for default
      * @return The data associated with the digit, or [default] if out of range
      */
-    operator fun get(digit: Int) = 
-         when (digit) {
+    operator fun get(digit: Int) =
+        when (digit) {
             0 -> digit0
             1 -> digit1
             2 -> digit2
@@ -58,5 +57,5 @@ interface DigitData<T> {
             8 -> digit8
             9 -> digit9
             else -> default
-         }
+        }
 }

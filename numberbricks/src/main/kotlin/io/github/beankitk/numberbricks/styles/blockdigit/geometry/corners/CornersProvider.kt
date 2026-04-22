@@ -3,18 +3,18 @@ package io.github.beankitk.numberbricks.blockdigit.geometry.corners
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
-import io.github.beankitk.numberbricks.core.geometry.AdaptiveProvider
-import io.github.beankitk.numberbricks.core.geometry.FixedProvider
-import io.github.beankitk.numberbricks.core.geometry.GeometryProvider
-import io.github.beankitk.numberbricks.core.geometry.GeometryProps
-import io.github.beankitk.numberbricks.core.geometry.GridSpec
-import io.github.beankitk.numberbricks.core.geometry.ProviderScope
-import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.blockdigit.geometry.offset.OffsetProvider
 import io.github.beankitk.numberbricks.blockdigit.geometry.size.SizeProvider
-import io.github.beankitk.numberbricks.data.CornerType
+import io.github.beankitk.numberbricks.core.geometry.AdaptiveProvider
+import io.github.beankitk.numberbricks.core.geometry.FixedProvider
+import io.github.beankitk.numberbricks.core.geometry.GeometryProps
+import io.github.beankitk.numberbricks.core.geometry.GeometryProvider
+import io.github.beankitk.numberbricks.core.geometry.GridSpec
+import io.github.beankitk.numberbricks.core.geometry.ProviderKey
+import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.data.CornerProfile
 import io.github.beankitk.numberbricks.data.CornerStyle
+import io.github.beankitk.numberbricks.data.CornerType
 import io.github.beankitk.numberbricks.data.DigitData
 import io.github.beankitk.numberbricks.data.RectCorners
 import io.github.beankitk.numberbricks.utils.CornerDetector
@@ -23,19 +23,18 @@ import io.github.beankitk.numberbricks.utils.getCornerProfile
 /**
  * Provides [RectCorners] for each block during geometry composition.
  *
- * A [CornersProvider] is a [GeometryProvider] responsible for defining the
- * corner styling (radius and shape) of each block. These values are used during
- * block assembly to construct the final brick model with the desired corner
- * appearance.
+ * A [CornersProvider] is a [GeometryProvider] responsible for defining the corner styling (radius
+ * and shape) of each block. These values are used during block assembly to construct the final
+ * brick model with the desired corner appearance.
  *
- * Implementations must provide corner radius values as grid-relative fractions,
- * where `1f` represents the maximum radius constrained by the block size.
+ * Implementations must provide corner radius values as grid-relative fractions, where `1f`
+ * represents the maximum radius constrained by the block size.
  *
  * Two base implementations are provided:
  * - [Fixed] -> for providers targeting a specific grid configuration
  * - [Adaptive] -> for providers supporting any grid configuration
  */
-sealed interface CornersProvider: GeometryProvider<RectCorners> {
+sealed interface CornersProvider : GeometryProvider<RectCorners> {
 
     companion object {
         /** Provider key for [CornersProvider]. */
@@ -43,31 +42,37 @@ sealed interface CornersProvider: GeometryProvider<RectCorners> {
     }
 
     /** Base class for [CornersProvider]s with fixed grid requirements. */
-    abstract class Fixed: FixedProvider<RectCorners>(), CornersProvider {
+    abstract class Fixed : FixedProvider<RectCorners>(), CornersProvider {
         final override val key = CornersProvider.key
 
-        protected override fun onAttachWith(digitGridSpec: GridSpec, geometryProps: GeometryProps) {}
+        protected override fun onAttachWith(
+            digitGridSpec: GridSpec,
+            geometryProps: GeometryProps,
+        ) {}
     }
 
     /** Base class for [CornersProvider]s that adapt to any grid configuration. */
-    abstract class Adaptive: AdaptiveProvider<RectCorners>(), CornersProvider {
+    abstract class Adaptive : AdaptiveProvider<RectCorners>(), CornersProvider {
         final override val key = CornersProvider.key
 
-        protected override fun onAttachWith(digitGridSpec: GridSpec, geometryProps: GeometryProps) {}
+        protected override fun onAttachWith(
+            digitGridSpec: GridSpec,
+            geometryProps: GeometryProps,
+        ) {}
     }
 }
 
 /**
- * Base implementation of [CornersProvider] for manually defining per-block
- * corner styling for each digit.
+ * Base implementation of [CornersProvider] for manually defining per-block corner styling for each
+ * digit.
  *
- * This allows specifying [RectCorners] for all blocks per digit using [DigitData],
- * giving full control over corner appearance during geometry composition. Subclasses
- * define provider data as a list of [RectCorners] for each digit, aligned with the
- * provider's [grid constraints][providerGridSpec].
+ * This allows specifying [RectCorners] for all blocks per digit using [DigitData], giving full
+ * control over corner appearance during geometry composition. Subclasses define provider data as a
+ * list of [RectCorners] for each digit, aligned with the provider's
+ * [grid constraints][providerGridSpec].
  *
- * Predefined presets are provided to simplify common corner combinations based on
- * the supplied [cornerStyle].
+ * Predefined presets are provided to simplify common corner combinations based on the supplied
+ * [cornerStyle].
  *
  * **Helper presets:**
  * - [none]: No corner styling applied
@@ -77,9 +82,8 @@ sealed interface CornersProvider: GeometryProvider<RectCorners> {
  *
  * @param cornerStyle The corner style used to construct corner presets
  */
-abstract class CustomCornersProvider(
-    protected val cornerStyle: CornerStyle
-): CornersProvider.Fixed(), DigitData<List<RectCorners>> {
+abstract class CustomCornersProvider(protected val cornerStyle: CornerStyle) :
+    CornersProvider.Fixed(), DigitData<List<RectCorners>> {
 
     /** No corner styling applied. */
     protected val none = RectCorners()
@@ -117,28 +121,26 @@ abstract class CustomCornersProvider(
 }
 
 /**
- * Base [CornersProvider] that derives corner styling automatically from
- * block adjacency and neighbor relationships.
+ * Base [CornersProvider] that derives corner styling automatically from block adjacency and
+ * neighbor relationships.
  *
- * This provider analyzes how blocks are connected within the grid using
- * [CornerDetector] and classifies each corner using [CornerType] based
- * on its surrounding neighbors (edges, joints, inner corners, etc.).
- * Each classified type is then mapped to a corresponding [CornerStyle],
+ * This provider analyzes how blocks are connected within the grid using [CornerDetector] and
+ * classifies each corner using [CornerType] based on its surrounding neighbors (edges, joints,
+ * inner corners, etc.). Each classified type is then mapped to a corresponding [CornerStyle],
  * producing the final [RectCorners] for every block.
  *
- * It depends on [OffsetProvider] and [SizeProvider] to construct block
- * bounds, which are used to evaluate spatial relationships between blocks.
+ * It depends on [OffsetProvider] and [SizeProvider] to construct block bounds, which are used to
+ * evaluate spatial relationships between blocks.
  *
- * Subclasses define a [CornerStyle] for each [CornerType], controlling how
- * different connection cases are styled across the entire geometry.
+ * Subclasses define a [CornerStyle] for each [CornerType], controlling how different connection
+ * cases are styled across the entire geometry.
  *
  * **Customization hooks:**
  * - [modifyCornerProfile] -> adjust detected corner types before mapping
  * - [modifyRectCorners] -> adjust final corner styles per block
  *
- * In most cases, providing styles for each [CornerType] is sufficient.
- * Override hooks only when additional control over specific blocks or
- * digits is required.
+ * In most cases, providing styles for each [CornerType] is sufficient. Override hooks only when
+ * additional control over specific blocks or digits is required.
  *
  * @see CornerType
  * @see CornerDetector
@@ -151,20 +153,23 @@ abstract class AutoCornersProvider : CornersProvider.Adaptive() {
     final override fun ProviderScope.provideData(): List<RectCorners> {
         val offsets = resultOf<Offset>(OffsetProvider.key)
         val sizes = resultOf<Size>(SizeProvider.key)
-        val rects = Array(providerGridSpec.brickCount) { index -> Rect(offsets[index], sizes[index]) }
+        val rects =
+            Array(providerGridSpec.brickCount) { index -> Rect(offsets[index], sizes[index]) }
 
-        val cornerProfileArray = getCornerProfile(
-            rects = rects,
-            modifyProfile = { idx, profile -> modifyCornerProfile(digit, idx, profile) }
-        )
+        val cornerProfileArray =
+            getCornerProfile(
+                rects = rects,
+                modifyProfile = { idx, profile -> modifyCornerProfile(digit, idx, profile) },
+            )
 
         return cornerProfileArray.mapIndexed { index, profile ->
-            val rectCorners = RectCorners(
-                topLeft = findCornerStyle(profile.topLeft),
-                topRight = findCornerStyle(profile.topRight),
-                bottomRight = findCornerStyle(profile.bottomRight),
-                bottomLeft = findCornerStyle(profile.bottomLeft)
-            )
+            val rectCorners =
+                RectCorners(
+                    topLeft = findCornerStyle(profile.topLeft),
+                    topRight = findCornerStyle(profile.topRight),
+                    bottomRight = findCornerStyle(profile.bottomRight),
+                    bottomLeft = findCornerStyle(profile.bottomLeft),
+                )
 
             modifyRectCorners(digit, index, rectCorners)
         }
@@ -195,7 +200,7 @@ abstract class AutoCornersProvider : CornersProvider.Adaptive() {
     protected open fun modifyCornerProfile(
         digit: Int,
         index: Int,
-        cornerProfile: CornerProfile
+        cornerProfile: CornerProfile,
     ): CornerProfile = cornerProfile
 
     /**
@@ -211,7 +216,7 @@ abstract class AutoCornersProvider : CornersProvider.Adaptive() {
     protected open fun modifyRectCorners(
         digit: Int,
         index: Int,
-        rectCorners: RectCorners
+        rectCorners: RectCorners,
     ): RectCorners = rectCorners
 
     /** Corner Style applied to corners classified as [CornerType.Edge]. */

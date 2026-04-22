@@ -3,9 +3,9 @@ package io.github.beankitk.numberbricks.data
 /**
  * Defines the geometric appearance of a corner.
  *
- * `CornerShape` specifies the shape of corner rendered, independent of its radius.
- * It controls whether edges meet sharply or transition smoothly, and supports
- * interpolation between different shape forms.
+ * `CornerShape` specifies the shape of corner rendered, independent of its radius. It controls
+ * whether edges meet sharply or transition smoothly, and supports interpolation between different
+ * shape forms.
  *
  * Currently supported shapes:
  * 1. [Square]: sharp, unrounded corners
@@ -19,11 +19,12 @@ package io.github.beankitk.numberbricks.data
 @JvmInline
 value class CornerShape private constructor(val ordinal: Int) {
 
-    override fun toString(): String = when (this) {
-        Square -> "Square"
-        Round -> "Round"
-        else -> "Unknown($ordinal)"
-    }
+    override fun toString(): String =
+        when (this) {
+            Square -> "Square"
+            Round -> "Round"
+            else -> "Unknown($ordinal)"
+        }
 
     companion object {
         /** Sharp rectangular corner with no rounding. */
@@ -33,8 +34,7 @@ value class CornerShape private constructor(val ordinal: Int) {
         val Round = CornerShape(1)
 
         /** All currently defined corner shapes. */
-        val values: List<CornerShape> =
-            listOf(Square, Round)
+        val values: List<CornerShape> = listOf(Square, Round)
 
         /**
          * Returns the [CornerShape] corresponding to the given [ordinal].
@@ -47,9 +47,10 @@ value class CornerShape private constructor(val ordinal: Int) {
             when (ordinal) {
                 0 -> Square
                 1 -> Round
-                else -> throw IllegalArgumentException(
-                    "Unknown ordinal value = $ordinal for CornerShape"
-                )
+                else ->
+                    throw IllegalArgumentException(
+                        "Unknown ordinal value = $ordinal for CornerShape"
+                    )
             }
     }
 }

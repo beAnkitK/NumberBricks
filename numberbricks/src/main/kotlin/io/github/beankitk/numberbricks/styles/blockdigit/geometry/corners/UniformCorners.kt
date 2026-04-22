@@ -1,8 +1,8 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry.corners
 
 import androidx.compose.ui.geometry.CornerRadius
-import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
+import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 import io.github.beankitk.numberbricks.data.CornerShape
 import io.github.beankitk.numberbricks.data.CornerStyle
@@ -11,29 +11,24 @@ import io.github.beankitk.numberbricks.data.RectCorners
 /**
  * Provides uniform [RectCorners] for all blocks during geometry composition.
  *
- * This [CornersProvider] returns the same corner styling for every block
- * for a given digit. This can be used for consistent visual appearance
- * in a uniform geometry. Corner radius values must be defined in grid-relative
- * fractional units, where `1f` represents the maximum radius constrained by
- * the block size.
+ * This [CornersProvider] returns the same corner styling for every block for a given digit. This
+ * can be used for consistent visual appearance in a uniform geometry. Corner radius values must be
+ * defined in grid-relative fractional units, where `1f` represents the maximum radius constrained
+ * by the block size.
  *
- * The computed result is cached after first invocation and reused to avoid
- * repeated allocations.
+ * The computed result is cached after first invocation and reused to avoid repeated allocations.
  *
  * @param rectCorners The uniform corner styling applied to all blocks
  */
-class UniformCorners(
-    private val rectCorners: RectCorners
-): CornersProvider.Adaptive() {
+class UniformCorners(private val rectCorners: RectCorners) : CornersProvider.Adaptive() {
 
     private var cachedRectCorners: List<RectCorners>? = null
 
     override val dependsOn = emptySet<ProviderKey<*>>()
 
     override fun ProviderScope.provideData(): List<RectCorners> {
-        return cachedRectCorners ?: buildProviderData { rectCorners }.also {
-            cachedRectCorners = it
-        }
+        return cachedRectCorners
+            ?: buildProviderData { rectCorners }.also { cachedRectCorners = it }
     }
 
     companion object {
@@ -57,10 +52,7 @@ class UniformCorners(
          * @param shape The corner shape
          * @param radiusY The vertical corner radius (defaults to [radius])
          */
-        fun of(
-            radius: Float,
-            shape: CornerShape = CornerShape.Round,
-            radiusY: Float = radius
-        ) = of(CornerStyle(CornerRadius(radius, radiusY), shape))
+        fun of(radius: Float, shape: CornerShape = CornerShape.Round, radiusY: Float = radius) =
+            of(CornerStyle(CornerRadius(radius, radiusY), shape))
     }
 }

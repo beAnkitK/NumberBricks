@@ -8,9 +8,9 @@ import androidx.compose.ui.geometry.CornerRadius
 /**
  * Defines corner style for a rectangular shape for all corners.
  *
- * Stores individual [CornerStyle] values for each corner of a rectangle, allowing
- * independent control over corner radius and shape. Used for styling bricks and other visual
- * elements with rounded corners.
+ * Stores individual [CornerStyle] values for each corner of a rectangle, allowing independent
+ * control over corner radius and shape. Used for styling bricks and other visual elements with
+ * rounded corners.
  *
  * @property topLeft Corner style for the top-left corner
  * @property topRight Corner style for the top-right corner
@@ -22,46 +22,45 @@ data class RectCorners(
     val topLeft: CornerStyle = CornerStyle.None,
     val topRight: CornerStyle = CornerStyle.None,
     val bottomRight: CornerStyle = CornerStyle.None,
-    val bottomLeft: CornerStyle = CornerStyle.None
+    val bottomLeft: CornerStyle = CornerStyle.None,
 ) {
     /** Returns true if all four corners have zero radius. */
     @Stable
     inline fun isZero(): Boolean {
-        return topLeft.isZero() && topRight.isZero() &&
-               bottomRight.isZero() && bottomLeft.isZero()
+        return topLeft.isZero() && topRight.isZero() && bottomRight.isZero() && bottomLeft.isZero()
     }
 
     /**
-    * Returns `true` if all corners form a rectangular shape.
-    *
-    * A rectangle is defined as having all corners with [CornerShape.Square],
-    * meaning no rounding or curvature is applied regardless of radius values.
-    */
+     * Returns `true` if all corners form a rectangular shape.
+     *
+     * A rectangle is defined as having all corners with [CornerShape.Square], meaning no rounding
+     * or curvature is applied regardless of radius values.
+     */
     @Stable
     inline fun isRect(): Boolean {
-        return topLeft.isSquare() && topRight.isSquare() &&
-               bottomRight.isSquare() && bottomLeft.isSquare()
+        return topLeft.isSquare() &&
+            topRight.isSquare() &&
+            bottomRight.isSquare() &&
+            bottomLeft.isSquare()
     }
 
     /**
-    * Returns `true` if all corners are compatible with a rounded rectangle.
-    *
-    * A rounded rectangle allows corners to be either [CornerShape.Square] or
-    * [CornerShape.Round]. This is useful for shapes composed of sharp and/or
-    * rounded corners.
-    */
+     * Returns `true` if all corners are compatible with a rounded rectangle.
+     *
+     * A rounded rectangle allows corners to be either [CornerShape.Square] or [CornerShape.Round].
+     * This is useful for shapes composed of sharp and/or rounded corners.
+     */
     @Stable
     inline fun isRoundRect(): Boolean {
-        return (topLeft.isSquare() || topLeft.isRound())
-               && (topRight.isSquare() || topRight.isRound())
-               && (bottomRight.isSquare() || bottomRight.isRound())
-               && (bottomLeft.isSquare() || bottomLeft.isRound())
+        return (topLeft.isSquare() || topLeft.isRound()) &&
+            (topRight.isSquare() || topRight.isRound()) &&
+            (bottomRight.isSquare() || bottomRight.isRound()) &&
+            (bottomLeft.isSquare() || bottomLeft.isRound())
     }
 
     companion object {
         /** A [RectCorners] with all corners set to zero and square shape. */
-        @Stable
-        val Sharp = RectCorners(CornerStyle.None)
+        @Stable val Sharp = RectCorners(CornerStyle.None)
     }
 }
 
@@ -72,7 +71,7 @@ fun RectCorners(cornerStyle: CornerStyle): RectCorners =
         topLeft = cornerStyle,
         topRight = cornerStyle,
         bottomRight = cornerStyle,
-        bottomLeft = cornerStyle
+        bottomLeft = cornerStyle,
     )
 
 /** Creates a [RectCorners] with given [CornerRadius] and [CornerShape] applied to all corners. */
@@ -81,19 +80,16 @@ fun RectCorners(radius: CornerRadius, shape: CornerShape): RectCorners =
     RectCorners(CornerStyle(radius, shape))
 
 /**
- * Creates a [RectCorners] with given radiusX, shape and radiusY (default to radiusX for uniform corner)
- * applied to all corners.
+ * Creates a [RectCorners] with given radiusX, shape and radiusY (default to radiusX for uniform
+ * corner) applied to all corners.
  */
 @Stable
-fun RectCorners(
-    radiusX: Float,
-    shape: CornerShape,
-    radiusY: Float = radiusX
-): RectCorners = RectCorners(CornerStyle(CornerRadius(radiusX, radiusY), shape))
+fun RectCorners(radiusX: Float, shape: CornerShape, radiusY: Float = radiusX): RectCorners =
+    RectCorners(CornerStyle(CornerRadius(radiusX, radiusY), shape))
 
 /**
- * Creates a [RectCorners] with individual corner radii specified as floats and uniform shape
- * for all corners.
+ * Creates a [RectCorners] with individual corner radii specified as floats and uniform shape for
+ * all corners.
  *
  * @param tl Top-left corner radius
  * @param tr Top-right corner radius
@@ -108,7 +104,7 @@ fun RectCorners(tl: Float, tr: Float, br: Float, bl: Float, shape: CornerShape) 
         topLeft = CornerStyle(tl, shape),
         topRight = CornerStyle(tr, shape),
         bottomRight = CornerStyle(br, shape),
-        bottomLeft = CornerStyle(bl, shape)
+        bottomLeft = CornerStyle(bl, shape),
     )
 
 /**
@@ -127,5 +123,5 @@ fun lerp(start: RectCorners, end: RectCorners, t: Float) =
         topLeft = lerp(start.topLeft, end.topLeft, t),
         topRight = lerp(start.topRight, end.topRight, t),
         bottomRight = lerp(start.bottomRight, end.bottomRight, t),
-        bottomLeft = lerp(start.bottomLeft, end.bottomLeft, t)
+        bottomLeft = lerp(start.bottomLeft, end.bottomLeft, t),
     )

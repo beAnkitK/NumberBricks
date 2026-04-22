@@ -1,35 +1,29 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry.size
 
 import androidx.compose.ui.geometry.Size
-import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
+import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 
 /**
  * Provides a uniform [Size] for all blocks during geometry composition.
  *
- * This [SizeProvider] returns the same size for every block for a given
- * digit. This can be used for geometry where all blocks share identical
- * dimensions. The provided [Size] must be defined in grid-relative fractional
- * units, where `1f` represents the size of a single grid cell.
+ * This [SizeProvider] returns the same size for every block for a given digit. This can be used for
+ * geometry where all blocks share identical dimensions. The provided [Size] must be defined in
+ * grid-relative fractional units, where `1f` represents the size of a single grid cell.
  *
- * The computed result is cached after first invocation and reused to avoid
- * repeated allocations
+ * The computed result is cached after first invocation and reused to avoid repeated allocations
  *
  * @param size The uniform block size in grid-relative units (1f = one grid cell)
  */
-class UniformSize(
-    private val size: Size
-) : SizeProvider.Adaptive() {
+class UniformSize(private val size: Size) : SizeProvider.Adaptive() {
 
     private var cachedSize: List<Size>? = null
 
     override val dependsOn = emptySet<ProviderKey<*>>()
 
     override fun ProviderScope.provideData(): List<Size> {
-        return cachedSize ?: buildProviderData { size }.also {
-            cachedSize = it
-        }
+        return cachedSize ?: buildProviderData { size }.also { cachedSize = it }
     }
 
     companion object {

@@ -9,9 +9,9 @@ import androidx.compose.ui.geometry.lerp
 /**
  * Describes the style of corner by its radius and shape.
  *
- * A corner style encapsulates both the size ([radius]) and geometric type ([shape])
- * of a corner, allowing independent control over "how large" and "what shape" a
- * corner should be rendered in a unified way.
+ * A corner style encapsulates both the size ([radius]) and geometric type ([shape]) of a corner,
+ * allowing independent control over "how large" and "what shape" a corner should be rendered in a
+ * unified way.
  *
  * @property radius The horizontal and vertical corner radii as [CornerRadius]
  * @property shape The type of geometric shape used for the corner
@@ -19,16 +19,13 @@ import androidx.compose.ui.geometry.lerp
  * @see RectCorners
  */
 @Stable
-data class CornerStyle(
-    val radius: CornerRadius,
-    val shape: CornerShape
-) {
+data class CornerStyle(val radius: CornerRadius, val shape: CornerShape) {
     /**
      * Checks if the corner has uniform radius in both x and y axes.
      *
-     * Returns true when `radiusX == radiusY`, meaning the corner scales
-     * identically in both axes. This is independent of [shape] type:
-     * both Square and Round corners can be uniform or non-uniform.
+     * Returns true when `radiusX == radiusY`, meaning the corner scales identically in both axes.
+     * This is independent of [shape] type: both Square and Round corners can be uniform or
+     * non-uniform.
      */
     @Stable
     inline fun isUniform(): Boolean {
@@ -67,11 +64,8 @@ data class CornerStyle(
  * @param radiusY Vertical radius (defaults to [radius])
  */
 @Stable
-fun CornerStyle(
-    radius: Float,
-    shape: CornerShape,
-    radiusY: Float = radius
-) = CornerStyle(CornerRadius(radius, radiusY), shape)
+fun CornerStyle(radius: Float, shape: CornerShape, radiusY: Float = radius) =
+    CornerStyle(CornerRadius(radius, radiusY), shape)
 
 /**
  * Linearly interpolates between two [CornerStyle].
@@ -82,10 +76,7 @@ fun CornerStyle(
  * @param end Target corner style
  * @param t Interpolation fraction in the range `[0f, 1f]`
  */
- // TODO: Add corner shape interpolation
+// TODO: Add corner shape interpolation
 @Stable
 fun lerp(start: CornerStyle, end: CornerStyle, t: Float) =
-    CornerStyle(
-        radius = lerp(start.radius, end.radius, t),
-        shape = end.shape
-    )
+    CornerStyle(radius = lerp(start.radius, end.radius, t), shape = end.shape)

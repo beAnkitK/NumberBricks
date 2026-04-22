@@ -3,25 +3,24 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry.offset
 
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import io.github.beankitk.numberbricks.blockdigit.geometry.position.PositionProvider
+import io.github.beankitk.numberbricks.blockdigit.geometry.size.SizeProvider
 import io.github.beankitk.numberbricks.blockdigit.geometry.size.VariableSize
 import io.github.beankitk.numberbricks.blockdigit.geometry.size.VariableSize.Meta
-import io.github.beankitk.numberbricks.blockdigit.geometry.size.SizeProvider
 import io.github.beankitk.numberbricks.core.geometry.ExperimentalProviderMetaApi
 import io.github.beankitk.numberbricks.core.geometry.Position
-import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
+import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 
 /**
  * Provides offsets to position block when grid cells have non-uniform dimensions.
  *
- * This [OffsetProvider] works with [VariableSize], reading column width and
- * row height metadata to resolve the starting offset of each block’s grid cell.
+ * This [OffsetProvider] works with [VariableSize], reading column width and row height metadata to
+ * resolve the starting offset of each block’s grid cell.
  *
- * If size metadata is not available, it falls back to direct position-based
- * offsets (col -> x, row -> y), behaving the same as [DirectOffset].
+ * If size metadata is not available, it falls back to direct position-based offsets (col -> x, row
+ * -> y), behaving the same as [DirectOffset].
  *
  * Recommended for use with [VariableSize].
  *
@@ -32,17 +31,15 @@ import io.github.beankitk.numberbricks.core.geometry.buildProviderData
  * Block at position (row=0, col=1) -> offset (x=1.5f, y=...)
  * ```
  *
- * A [GridOffsetModifier] can be provided to adjust the computed offset per
- * block. Use [Fixed] for no modification.
+ * A [GridOffsetModifier] can be provided to adjust the computed offset per block. Use [Fixed] for
+ * no modification.
  *
  * @param offsetModifier Modifier applied to computed offsets
  * @see DirectOffset
  * @see GridOffsetModifier
  * @see Fixed
  */
-class GridOffset(
-    private val offsetModifier: GridOffsetModifier
-) : OffsetProvider.Adaptive() {
+class GridOffset(private val offsetModifier: GridOffsetModifier) : OffsetProvider.Adaptive() {
 
     override val dependsOn: Set<ProviderKey<*>>
         get() = setOf(PositionProvider.key, SizeProvider.key)
@@ -55,10 +52,7 @@ class GridOffset(
         // Fallback to DirectOffset behavior when metadata unavailable
         if (eachColWidth == null || eachRowHeight == null) {
             return positions.map { position ->
-                Offset(
-                    x = position.col.toFloat(),
-                    y = position.row.toFloat()
-                )
+                Offset(x = position.col.toFloat(), y = position.row.toFloat())
             }
         }
 
@@ -68,10 +62,7 @@ class GridOffset(
 
         return buildProviderData { index ->
             val position = positions[index]
-            val offset = Offset(
-                x = eachColStartX[position.col],
-                y = eachRowStartY[position.row]
-            )
+            val offset = Offset(x = eachColStartX[position.col], y = eachRowStartY[position.row])
 
             offsetModifier.modify(digit, position, offset)
         }

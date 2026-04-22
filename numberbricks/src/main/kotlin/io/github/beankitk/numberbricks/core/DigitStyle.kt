@@ -24,11 +24,9 @@ data class DigitStyle(
     val alpha: Float = 1f,
     val drawStyle: DrawStyle = Fill,
     val colorFilter: ColorFilter? = null,
-    val blendMode: BlendMode = BlendMode.SrcOver
+    val blendMode: BlendMode = BlendMode.SrcOver,
 ) {
     companion object {
-        val Default = DigitStyle(
-            brush = SolidColor(Color.White)
-        )
+        val Default = DigitStyle(brush = SolidColor(Color.White))
     }
 }

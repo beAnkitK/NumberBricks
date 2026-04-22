@@ -1,7 +1,6 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry
 
 import androidx.compose.runtime.Immutable
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
@@ -13,24 +12,22 @@ import io.github.beankitk.numberbricks.core.geometry.GeometryProvider
 import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.data.RectCorners
 import io.github.beankitk.numberbricks.data.lerp
-import kotlin.math.min
 
 /**
  * Defines the fundamental unit of brick model for block-based digit geometry
  *
- * Block represents the core building unit used to construct block-style digit geometry.
- * It implements the core [Brick] abstraction, extended with support for per-corner styling
- * through corner radius and shape.
+ * Block represents the core building unit used to construct block-style digit geometry. It
+ * implements the core [Brick] abstraction, extended with support for per-corner styling through
+ * corner radius and shape.
  *
- * During geometry composition, all geometric properties — `offset`, `size`, and
- * `corners` — must be defined as grid-relative fractional values, where `1f`
- * represents the size of a single grid cell (i.e., `brickSize`). These fractional
- * values are later scaled to actual dimensions based on the resolved grid size.
- * Scaling is currently handled by the renderer and is planned to be moved to [DigitBuilder].
+ * During geometry composition, all geometric properties — `offset`, `size`, and `corners` — must be
+ * defined as grid-relative fractional values, where `1f` represents the size of a single grid cell
+ * (i.e., `brickSize`). These fractional values are later scaled to actual dimensions based on the
+ * resolved grid size. Scaling is currently handled by the renderer and is planned to be moved to
+ * [DigitBuilder].
  *
- * [GeometryProvider] implementations contributing geometry for [Block] must
- * provide all values in this fractional form, within the valid range defined
- * for each property:
+ * [GeometryProvider] implementations contributing geometry for [Block] must provide all values in
+ * this fractional form, within the valid range defined for each property:
  *
  * **Property Ranges:**
  *
@@ -44,11 +41,12 @@ import kotlin.math.min
  *     - values > 1f are clamped to 1f
  *
  * **Notes:**
- * 1. Only `offset`, `size`, and corner radius (within `corners`) are subject to scaling.
- *    `index` and `position` define structural identity and remain unchanged.
+ * 1. Only `offset`, `size`, and corner radius (within `corners`) are subject to scaling. `index`
+ *    and `position` define structural identity and remain unchanged.
  * 2. Negative values are not allowed for any property.
  *
  * **Example**
+ *
  * ```kotlin
  * // Grid: 5 rows × 3 cols
  * // Canvas: 200dp height × 120dp width
@@ -77,20 +75,21 @@ data class Block(
     override val position: Position,
     override val offset: Offset,
     override val size: Size,
-    val corners: RectCorners
-): Brick<Block> {
+    val corners: RectCorners,
+) : Brick<Block> {
 
     /** Cached rect representation of this block. */
     private val asRect = Rect(offset, size)
 
     /** Cached round rect representation of this block. */
-    private val asRoundRect = RoundRect(
-        asRect,
-        corners.topLeft.radius,
-        corners.topRight.radius,
-        corners.bottomRight.radius,
-        corners.bottomLeft.radius
-    )
+    private val asRoundRect =
+        RoundRect(
+            asRect,
+            corners.topLeft.radius,
+            corners.topRight.radius,
+            corners.bottomRight.radius,
+            corners.bottomLeft.radius,
+        )
 
     override fun scaledBy(totalSize: Size, brickSize: Size): Block {
         val width = brickSize.width
@@ -98,20 +97,15 @@ data class Block(
         val radius = brickSize.minDimension
 
         return copy(
-            offset = Offset(
-                x = offset.x * width,
-                y = offset.y * height
-            ),
-            size = Size(
-                width = size.width * width,
-                height = size.height * height
-            ),
-            corners = RectCorners(
-                topLeft = corners.topLeft.copy(corners.topLeft.radius * radius),
-                topRight = corners.topRight.copy(corners.topRight.radius * radius),
-                bottomRight = corners.bottomRight.copy(corners.bottomRight.radius * radius),
-                bottomLeft = corners.bottomLeft.copy(corners.bottomLeft.radius * radius)
-            )
+            offset = Offset(x = offset.x * width, y = offset.y * height),
+            size = Size(width = size.width * width, height = size.height * height),
+            corners =
+                RectCorners(
+                    topLeft = corners.topLeft.copy(corners.topLeft.radius * radius),
+                    topRight = corners.topRight.copy(corners.topRight.radius * radius),
+                    bottomRight = corners.bottomRight.copy(corners.bottomRight.radius * radius),
+                    bottomLeft = corners.bottomLeft.copy(corners.bottomLeft.radius * radius),
+                ),
         )
     }
 
@@ -133,8 +127,8 @@ data class Block(
 /**
  * Linearly interpolates between two blocks.
  *
- * The resulting block takes `index` and `position` from [end], while
- * `offset`, `size`, and `corners` are interpolated based on [t].
+ * The resulting block takes `index` and `position` from [end], while `offset`, `size`, and
+ * `corners` are interpolated based on [t].
  *
  * @param start The start block (at t = 0.0)
  * @param end The end block (at t = 1.0)
@@ -147,6 +141,6 @@ fun lerp(start: Block, end: Block, t: Float): Block {
         position = end.position,
         offset = lerp(start.offset, end.offset, t),
         size = lerp(start.size, end.size, t),
-        corners = lerp(start.corners, end.corners, t)
+        corners = lerp(start.corners, end.corners, t),
     )
 }

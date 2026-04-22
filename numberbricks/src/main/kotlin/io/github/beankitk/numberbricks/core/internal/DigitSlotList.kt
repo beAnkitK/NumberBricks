@@ -10,38 +10,30 @@ import kotlin.ranges.IntRange
 /**
  * Efficient list implementation for storing digit slots in LSD to MSD order.
  *
- * Wraps a [MutableLongList] to store [DigitSlot] instances without boxing overhead.
- * Since DigitSlot is an inline value class backed by a Long, this provides
- * memory-efficient storage for digit transition tracking.
+ * Wraps a [MutableLongList] to store [DigitSlot] instances without boxing overhead. Since DigitSlot
+ * is an inline value class backed by a Long, this provides memory-efficient storage for digit
+ * transition tracking.
  *
- * Though it is named as List but behaves similiar like a Stack in a way that it only
- * allows to add(push) or remove(pop) elements from the end only. While retains behaviour
- * to get or modify elements at any index or clear the whole list.
+ * Though it is named as List but behaves similiar like a Stack in a way that it only allows to
+ * add(push) or remove(pop) elements from the end only. While retains behaviour to get or modify
+ * elements at any index or clear the whole list.
  *
- * Used internally by the number composer to maintain the ordered list of digit
- * slots representing each position in the displayed number.
+ * Used internally by the number composer to maintain the ordered list of digit slots representing
+ * each position in the displayed number.
  *
  * @property longList The backing storage for packed digit slot data
  */
 @JvmInline
-internal value class DigitSlotList(
-    private val longList: MutableLongList = mutableLongListOf()
-) {
-    /**
-     * The number of digit slots in this list.
-     */
+internal value class DigitSlotList(private val longList: MutableLongList = mutableLongListOf()) {
+    /** The number of digit slots in this list. */
     public inline val size: Int
         get() = longList.size
 
-    /**
-     * The index of the last digit slot, or -1 if the list is empty.
-     */
+    /** The index of the last digit slot, or -1 if the list is empty. */
     public inline val lastIndex: Int
         get() = longList.lastIndex
 
-    /**
-     * The range of valid indices for this list.
-     */
+    /** The range of valid indices for this list. */
     public inline val indices: IntRange
         get() = longList.indices
 
@@ -122,7 +114,8 @@ internal value class DigitSlotList(
      * @throws NoSuchElementException if the list is empty
      */
     public fun popLast(): DigitSlot {
-        if (isEmpty()) throw NoSuchElementException("Cannot remove last element, digitSlotList is empty")
+        if (isEmpty())
+            throw NoSuchElementException("Cannot remove last element, digitSlotList is empty")
         return DigitSlot(longList.removeAt(longList.lastIndex))
     }
 
@@ -134,14 +127,9 @@ internal value class DigitSlotList(
      * @throws IndexOutOfBoundsException if either start or end are out of bounds
      * @throws IllegalArgumentException if [start] is greater than [end]
      */
-    public fun popRangeFrom(
-        start: Int,
-        end: Int = longList.size
-    ) = longList.removeRange(start, end)
+    public fun popRangeFrom(start: Int, end: Int = longList.size) = longList.removeRange(start, end)
 
-    /**
-     * Removes all digit slots from the list.
-     */
+    /** Removes all digit slots from the list. */
     public fun clear() {
         longList.clear()
     }
