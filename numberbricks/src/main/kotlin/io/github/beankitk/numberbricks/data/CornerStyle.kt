@@ -79,4 +79,7 @@ fun CornerStyle(radius: Float, shape: CornerShape, radiusY: Float = radius) =
 // TODO: Add corner shape interpolation
 @Stable
 fun lerp(start: CornerStyle, end: CornerStyle, t: Float) =
-    CornerStyle(radius = lerp(start.radius, end.radius, t), shape = end.shape)
+    CornerStyle(
+        radius = lerp(start.radius, end.radius, t),
+        shape = if (t < 0.5f) start.shape else end.shape
+    )

@@ -7,6 +7,7 @@ import androidx.compose.ui.util.packInts
 import io.github.beankitk.numberbricks.data.CornerPosition
 import io.github.beankitk.numberbricks.data.CornerProfile
 import io.github.beankitk.numberbricks.data.CornerType
+import kotlin.math.roundToInt
 
 private typealias CornerKey = Long
 
@@ -220,8 +221,8 @@ object CornerDetector {
     }
 
     private fun keyFrom(position: Offset): CornerKey {
-        val xi = (position.x / epsilon).toInt()
-        val yi = (position.y / epsilon).toInt()
+        val xi = (position.x / epsilon).roundToInt()
+        val yi = (position.y / epsilon).roundToInt()
         return packInts(xi, yi)
     }
 }

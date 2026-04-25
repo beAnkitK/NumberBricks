@@ -211,7 +211,7 @@ class DefaultNumberComposer<T : Brick<T>>(
 
     // Stores the current number internally. It should not be accessed until the composer has been
     // initialized.
-    private val _currentNumber = mutableIntStateOf(initialNumber.absoluteValue)
+    private val _currentNumber = mutableIntStateOf(normalizeNumber(initialNumber))
     override val currentNumber: Int
         get() {
             check(isInitialized) {
@@ -234,7 +234,7 @@ class DefaultNumberComposer<T : Brick<T>>(
 
     override fun updateNumber(number: Int) {
         checkInitialized()
-        val absNumber = number.absoluteValue
+        val absNumber = normalizeNumber(number)
         if (absNumber == _currentNumber.value) return
 
         applyNumberChange(absNumber)
@@ -367,4 +367,11 @@ private fun IntList.asIntSet(): IntSet {
     val set = mutableIntSetOf()
     forEach { set.add(it) }
     return set
+}
+
+private fun normalizeNumber(number: Int): Int {
+    require(number != Int.MIN_VALUE) {
+        "Int.MIN_VALUE cannot be converted to a non-negative Int. Use a wider numeric type to support it."
+    }
+    return number.absoluteValue
 }
