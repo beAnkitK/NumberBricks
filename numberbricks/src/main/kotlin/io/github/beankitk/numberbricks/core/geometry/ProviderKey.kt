@@ -9,7 +9,7 @@ package io.github.beankitk.numberbricks.core.geometry
  *
  * Example:
  * ```kotlin
- * val offsetProviderKey = ProviderKey<Offset>("provider.offset.base")
+ * val offsetProviderKey = ProviderKey<Offset>("offsetprovider.base")
  * val angleProviderKey = ProviderKey<Angle>("angleprovider.base")
  * ```
  *

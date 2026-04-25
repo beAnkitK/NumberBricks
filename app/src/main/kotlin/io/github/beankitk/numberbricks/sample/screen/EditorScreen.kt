@@ -79,8 +79,8 @@ fun EditorScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Button(onClick = {
-            }) { Text("Ramdom Number") }
                 digit = Random.nextInt(10_000)
+            }) { Text("Random Number") }
 
             Button(onClick = {
                 isRunning = !isRunning

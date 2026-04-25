@@ -45,10 +45,13 @@ data class RectCorners(
     }
 
     /**
-     * Returns `true` if all corners are compatible with a rounded rectangle.
+     * Returns `true` if all corners can form a rounded rectangle.
      *
-     * A rounded rectangle allows corners to be either [CornerShape.Square] or [CornerShape.Round].
-     * This is useful for shapes composed of sharp and/or rounded corners.
+     * A rounded rectangle supports corners of type [CornerShape.Square] and [CornerShape.Round],
+     * allowing a mix of sharp and rounded edges.
+     *
+     * Note: With the current [CornerShape] types (`Square` and `Round`), this will always return `true`.
+     * When additional corner types are introduced, they will be excluded by this check.
      */
     @Stable
     inline fun isRoundRect(): Boolean {

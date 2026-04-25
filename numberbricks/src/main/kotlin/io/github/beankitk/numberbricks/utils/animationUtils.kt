@@ -10,7 +10,7 @@ import androidx.compose.runtime.saveable.Saver
 /**
  * An easing customized tween spec used in numberbrick to drive digit transition
  *
- * @param delayMillis delay before aniamtion starts in millisecond
+ * @param delayMillis delay before animation starts in millisecond
  * @param durationMillis duration for which the animation should run in millisecond
  */
 fun <T> defaultAnimationSpec(delayMillis: Int = 0, durationMillis: Int = 300): AnimationSpec<T> =

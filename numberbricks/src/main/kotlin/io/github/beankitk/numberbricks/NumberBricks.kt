@@ -118,7 +118,7 @@ fun NumberBricks(
  *   ratio. If null, the `brickSize` fallback to default size else it scale to fit incoming
  *   constraints changed with [Modifier] or parent constraints if final size is larger than parent
  *   constraints.
- * @param digitColor folor used to fill/stroke the bricks
+ * @param digitColor color used to fill/stroke the bricks
  * @param digitAlpha alpha applied to the drawn path (0f..1f)
  * @param digitDrawStyle [DrawStyle] used when drawing the path (Fill, Stroke, etc.)
  * @param digitColorFilter optional [ColorFilter] to apply

@@ -18,14 +18,13 @@ value class Position(val packedValue: Long) {
         get() = (packedValue and 0xFFFFFFFF).toInt()
 
     /**
-     * Checks whether this position occupies the specified row, column, or exact cell.
-     *
-     * Unlike [equals], which requires an exact position match, this returns `true` if the position
-     * lies on the specified row, column, or the exact `(row, col)` cell.
+     * Returns `true` when this position matches either the row or column matches,
+     * including when both match. This differs from [equals], which requires an
+     * exact (row, col) match.
      *
      * @param row The row index to match, or `null` to ignore the row
      * @param col The column index to match, or `null` to ignore the column
-     * @return `true` if this position occupies the given row, column, or exact cell
+     * @return `true` if this position occupies the given row, column, or both.
      * @throws IllegalArgumentException if both `row` and `col` are `null`
      */
     fun occupies(row: Int? = null, col: Int? = null): Boolean {
