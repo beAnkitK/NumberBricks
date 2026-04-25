@@ -48,11 +48,14 @@ import kotlin.math.abs
  * @param eachRowHeight Relative height per row (normalized to row count)
  * @see VariableSize.Meta
  */
+// TODO: Validate arrays returned from modifying hooks with minimal overhead
 open class VariableSize(
-    private val eachColWidth: FloatArray,
-    private val eachRowHeight: FloatArray,
+    eachColWidth: FloatArray,
+    eachRowHeight: FloatArray,
 ) : SizeProvider.Adaptive() {
 
+    private val eachColWidth: FloatArray = eachColWidth.copyOf()
+    private val eachRowHeight: FloatArray = eachRowHeight.copyOf()
     private lateinit var normalizedColWidths: FloatArray
     private lateinit var normalizedRowHeights: FloatArray
 
@@ -71,20 +74,20 @@ open class VariableSize(
         }
 
         eachColWidth
-            .indexOfFirst { it < 0f }
+            .firstInvalidIndex()
             .takeIf { it >= 0 }
             ?.let {
                 return Consent.Reject(
-                    "Column width at index $it must be non-negative, but was ${eachColWidth[it]}"
+                    "Column width at index $it must be finite and non-negative, but was ${eachColWidth[it]}"
                 )
             }
 
         eachRowHeight
-            .indexOfFirst { it < 0f }
+            .firstInvalidIndex()
             .takeIf { it >= 0 }
             ?.let {
                 return Consent.Reject(
-                    "Row width at index $it must be non-negative, but was ${eachRowHeight[it]}"
+                    "Row width at index $it must be finite and non-negative, but was ${eachRowHeight[it]}"
                 )
             }
 
@@ -209,7 +212,7 @@ private fun normalizeArray(input: FloatArray, target: Float): FloatArray {
     var sum = input.sum()
 
     if (!sum.isNaN() && abs(sum - target) < epsilon) {
-        return input
+        return input.copyOf()
     }
 
     if (sum <= 0f || sum.isNaN()) {
@@ -220,3 +223,6 @@ private fun normalizeArray(input: FloatArray, target: Float): FloatArray {
     val scale = target / sum
     return FloatArray(size) { input[it] * scale }
 }
+
+private fun FloatArray.firstInvalidIndex(): Int =
+    indexOfFirst { it < 0f || it.isNaN() || it.isInfinite() }
