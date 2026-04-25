@@ -28,7 +28,7 @@ import androidx.compose.ui.util.packInts
  * @property packed The packed representation of previous and current digit values
  */
 @JvmInline
-value class DigitSlot(val packed: Long) {
+value class DigitSlot internal constructor(val packed: Long) {
 
     /**
      * Creates a digit slot with both previous and current digit values.
@@ -41,10 +41,8 @@ value class DigitSlot(val packed: Long) {
         previousDigit: Int,
         currentDigit: Int,
     ) : this(packInts(previousDigit, currentDigit)) {
-        require(previousDigit in 0..9) {
-            "previousDigit must be in range [0-9], got $previousDigit"
-        }
-        require(currentDigit in 0..9) { "currentDigit must be in range [0-9], got $currentDigit" }
+        requireDigitRange(previousDigit, "previousDigit")
+        requireDigitRange(currentDigit, "currentDigit")
     }
 
     /**
@@ -55,8 +53,8 @@ value class DigitSlot(val packed: Long) {
      * @param currentDigit The digit value (0-9) at this place
      * @throws IllegalArgumentException if digit is not in the range [0-9]
      */
-    constructor(currentDigit: Int) : this(packInts(Int.MIN_VALUE, currentDigit)) {
-        require(currentDigit in 0..9) { "currentDigit must be in range [0-9], got $currentDigit" }
+    constructor(currentDigit: Int) : this(packInts(NO_PREVIOUS_DIGIT, currentDigit)) {
+        requireDigitRange(currentDigit, "currentDigit")
     }
 
     /**
@@ -68,14 +66,11 @@ value class DigitSlot(val packed: Long) {
      * 3. The slot was initialized without a previous digit
      */
     val previousDigit: Int?
-        get() {
-            val raw = (packed shr 32).toInt()
-            return if (raw == Int.MIN_VALUE) null else raw
-        }
+        get() = unpackPreviousDigit(packed)
 
     /** The digit value (0-9) currently at this place. */
     val currentDigit: Int
-        get() = (packed and 0xFFFFFFFFL).toInt()
+        get() = unpackCurrentDigit(packed)
 
     /**
      * Creates a new digit slot by moving the current number to previous and setting the new number
@@ -99,7 +94,7 @@ value class DigitSlot(val packed: Long) {
      * @throws IllegalArgumentException if newDigit is not in the range [0-9]
      */
     fun withCurrent(newDigit: Int): DigitSlot {
-        require(newDigit in 0..9) { "newDigit must be in range [0-9], got $newDigit" }
+        requireDigitRange(newDigit, "newDigit")
         return DigitSlot(currentDigit, newDigit)
     }
 
@@ -112,4 +107,44 @@ value class DigitSlot(val packed: Long) {
     fun isSame(): Boolean = previousDigit == currentDigit
 
     override fun toString() = "[curr = $currentDigit, prev = $previousDigit]"
+
+    companion object {
+        /**
+         * Reconstructs a [DigitSlot] from a previously obtained [DigitSlot.packed] value.
+         * Use this when storing digit slots as raw longs for efficiency, then rebuilding later.
+         *
+         * @throws IllegalArgumentException if [packed] does not encode a valid DigitSlot
+         */
+        fun from(packed: Long): DigitSlot {
+            val previousDigit = unpackPreviousDigit(packed)
+            val currentDigit = unpackCurrentDigit(packed)
+
+            require(previousDigit == NO_PREVIOUS_DIGIT || previousDigit in MIN_DIGIT..MAX_DIGIT) {
+                "previousDigit must be null-sentinel or in range [$MIN_DIGIT-$MAX_DIGIT], was $previousDigit"
+            }
+            require(currentDigit in MIN_DIGIT..MAX_DIGIT) {
+                "currentDigit must be in range [$MIN_DIGIT-$MAX_DIGIT], was $currentDigit"
+            }
+            return DigitSlot(packed)
+        }
+    }
+}
+
+private const val MIN_DIGIT = 0
+private const val MAX_DIGIT = 9
+private const val NO_PREVIOUS_DIGIT = Int.MIN_VALUE
+
+private fun unpackPreviousDigit(packed: Long): Int? {
+    val raw = (packed shr 32).toInt()
+    return if (raw == NO_PREVIOUS_DIGIT) null else raw
+}
+
+private fun unpackCurrentDigit(packed: Long): Int {
+    return (packed and 0xFFFFFFFFL).toInt()
+}
+
+private fun requireDigitRange(value: Int, name: String) {
+    require(value in MIN_DIGIT..MAX_DIGIT) {
+        "$name must be in range [$MIN_DIGIT-$MAX_DIGIT], got $value"
+    }
 }
