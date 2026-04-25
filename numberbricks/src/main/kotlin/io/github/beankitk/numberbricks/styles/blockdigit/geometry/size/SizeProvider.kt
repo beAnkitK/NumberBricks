@@ -36,7 +36,7 @@ sealed interface SizeProvider : GeometryProvider<Size> {
         protected override fun onAttachWith(
             digitGridSpec: GridSpec,
             geometryProps: GeometryProps,
-        ) {}
+        ) = Unit
     }
 
     /** Base class for [SizeProvider]s that adapt to any grid configuration. */
@@ -46,6 +46,6 @@ sealed interface SizeProvider : GeometryProvider<Size> {
         protected override fun onAttachWith(
             digitGridSpec: GridSpec,
             geometryProps: GeometryProps,
-        ) {}
+        ) = Unit
     }
 }

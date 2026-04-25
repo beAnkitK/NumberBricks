@@ -20,7 +20,7 @@ import io.github.beankitk.numberbricks.core.geometry.buildProviderData
  * resolve the starting offset of each block’s grid cell.
  *
  * If size metadata is not available, it falls back to direct position-based offsets (col -> x, row
- * -> y), behaving the same as [DirectOffset].
+ * -> y) and then applies [offsetModifier], matching [DirectOffset] behavior when no modifier is used.
  *
  * Recommended for use with [VariableSize].
  *
@@ -41,8 +41,7 @@ import io.github.beankitk.numberbricks.core.geometry.buildProviderData
  */
 class GridOffset(private val offsetModifier: GridOffsetModifier) : OffsetProvider.Adaptive() {
 
-    override val dependsOn: Set<ProviderKey<*>>
-        get() = setOf(PositionProvider.key, SizeProvider.key)
+    override val dependsOn: Set<ProviderKey<*>> = setOf(PositionProvider.key, SizeProvider.key)
 
     override fun ProviderScope.provideData(): List<Offset> {
         val positions = resultOf<Position>(PositionProvider.key)
@@ -52,7 +51,8 @@ class GridOffset(private val offsetModifier: GridOffsetModifier) : OffsetProvide
         // Fallback to DirectOffset behavior when metadata unavailable
         if (eachColWidth == null || eachRowHeight == null) {
             return positions.map { position ->
-                Offset(x = position.col.toFloat(), y = position.row.toFloat())
+                val baseOffset = Offset(x = position.col.toFloat(), y = position.row.toFloat())
+                offsetModifier.modify(digit, position, baseOffset)
             }
         }
 

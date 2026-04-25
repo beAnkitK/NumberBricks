@@ -22,8 +22,7 @@ import io.github.beankitk.numberbricks.core.geometry.buildProviderData
  */
 object DirectOffset : OffsetProvider.Adaptive() {
 
-    override val dependsOn: Set<ProviderKey<*>>
-        get() = setOf(PositionProvider.key)
+    override val dependsOn: Set<ProviderKey<*>> = setOf(PositionProvider.key)
 
     override fun ProviderScope.provideData(): List<Offset> {
         val positions = resultOf<Position>(PositionProvider.key)

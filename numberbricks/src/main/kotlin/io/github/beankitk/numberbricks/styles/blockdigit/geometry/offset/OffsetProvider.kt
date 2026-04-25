@@ -36,7 +36,7 @@ sealed interface OffsetProvider : GeometryProvider<Offset> {
         protected override fun onAttachWith(
             digitGridSpec: GridSpec,
             geometryProps: GeometryProps,
-        ) {}
+        ) = Unit
     }
 
     /** Base class for [OffsetProvider]s that adapt to any grid configuration. */
@@ -46,6 +46,6 @@ sealed interface OffsetProvider : GeometryProvider<Offset> {
         protected override fun onAttachWith(
             digitGridSpec: GridSpec,
             geometryProps: GeometryProps,
-        ) {}
+        ) = Unit
     }
 }

@@ -48,7 +48,7 @@ sealed interface CornersProvider : GeometryProvider<RectCorners> {
         protected override fun onAttachWith(
             digitGridSpec: GridSpec,
             geometryProps: GeometryProps,
-        ) {}
+        ) = Unit
     }
 
     /** Base class for [CornersProvider]s that adapt to any grid configuration. */
@@ -58,7 +58,7 @@ sealed interface CornersProvider : GeometryProvider<RectCorners> {
         protected override fun onAttachWith(
             digitGridSpec: GridSpec,
             geometryProps: GeometryProps,
-        ) {}
+        ) = Unit
     }
 }
 
@@ -147,8 +147,7 @@ abstract class CustomCornersProvider(protected val cornerStyle: CornerStyle) :
  */
 abstract class AutoCornersProvider : CornersProvider.Adaptive() {
 
-    final override val dependsOn: Set<ProviderKey<*>>
-        get() = setOf(OffsetProvider.key, SizeProvider.key)
+    final override val dependsOn: Set<ProviderKey<*>> = setOf(OffsetProvider.key, SizeProvider.key)
 
     final override fun ProviderScope.provideData(): List<RectCorners> {
         val offsets = resultOf<Offset>(OffsetProvider.key)

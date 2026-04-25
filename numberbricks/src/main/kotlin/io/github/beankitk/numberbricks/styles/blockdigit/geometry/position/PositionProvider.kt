@@ -38,7 +38,7 @@ sealed interface PositionProvider : GeometryProvider<Position> {
         protected override fun onAttachWith(
             digitGridSpec: GridSpec,
             geometryProps: GeometryProps,
-        ) {}
+        ) = Unit
     }
 
     /** Base class for [PositionProvider]s that adapt to any grid configuration. */
@@ -48,7 +48,7 @@ sealed interface PositionProvider : GeometryProvider<Position> {
         protected override fun onAttachWith(
             digitGridSpec: GridSpec,
             geometryProps: GeometryProps,
-        ) {}
+        ) = Unit
     }
 }
 

@@ -56,8 +56,7 @@ open class VariableSize(
     private lateinit var normalizedColWidths: FloatArray
     private lateinit var normalizedRowHeights: FloatArray
 
-    final override val dependsOn: Set<ProviderKey<*>>
-        get() = setOf(PositionProvider.key)
+    final override val dependsOn: Set<ProviderKey<*>> = setOf(PositionProvider.key)
 
     final override fun matchesWith(digitGridSpec: GridSpec): Consent {
         if (eachColWidth.size != digitGridSpec.cols) {
