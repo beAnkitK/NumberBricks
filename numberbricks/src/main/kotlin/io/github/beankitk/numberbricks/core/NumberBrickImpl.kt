@@ -48,7 +48,6 @@ internal fun NumberBricksImpl(
     animationSpec: AnimationSpec<Float>,
     animateOnFirstVisible: Boolean,
 ) {
-
     val gridSpec = remember { GridSpec(rows = 5, cols = 3, brickCount = 13) }
     val geometryPropeties = remember { object : GeometryProps {} }
 
@@ -91,19 +90,19 @@ internal fun NumberBricksImpl(
             .apply { initiate() }
     }
 
-    val layoutConfig = numberComposer.digitGridSpec
-    val digitCount = numberComposer.getDigitCount()
-    val totalWidth = brickWidth?.let { it * layoutConfig.cols } ?: NumberbrickWidth
-    val totalHeight = brickHeight?.let { it * layoutConfig.rows } ?: NumberbrickHeight
-
     DisposableEffect(Unit) { onDispose { numberComposer.dispose() } }
-
     LaunchedEffect(digit) { numberComposer.updateNumber(digit) }
+
+    val currentNumber = numberComposer.currentNumber
+    val digitCount = remember(currentNumber) { numberComposer.getDigitCount() }
+    val totalWidth = brickWidth?.let { it * gridSpec.cols } ?: NumberbrickWidth
+    val totalHeight = brickHeight?.let { it * gridSpec.rows } ?: NumberbrickHeight
 
     Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(15.dp)) {
         for (place in (digitCount - 1) downTo 0) {
             key(place) {
                 SingleDigitBrick(
+                    digit = currentNumber.digitAt(place),
                     place = place,
                     numberComposer = numberComposer,
                     totalWidth = totalWidth,
@@ -120,6 +119,7 @@ internal fun NumberBricksImpl(
 
 @Composable
 private fun SingleDigitBrick(
+    digit: Int,
     place: Int,
     numberComposer: DefaultNumberComposer<Block>,
     totalWidth: Dp,
@@ -131,9 +131,7 @@ private fun SingleDigitBrick(
 ) {
     var wasFirstVisible by rememberSaveable { mutableStateOf(false) }
     val progress = rememberSaveable(saver = animatableSaver) { Animatable(0f) }
-
-    val currentNumber = numberComposer.currentNumber
-    val digitSlot = remember(currentNumber) { numberComposer.getDigitSlotAt(place) }
+    val digitSlot = remember(digit) { numberComposer.getDigitSlotAt(place) }
 
     if (digitSlot == null) return
 
@@ -144,13 +142,13 @@ private fun SingleDigitBrick(
     var endBricks by remember { mutableStateOf<List<Block>>(emptyList()) }
 
     LaunchedEffect(place, currentDigit, animateDigits) {
-        // this check is used for launched trigger due to config change so that does not run on
-        // again if there not number updates
+        // this check is used for LaunchedEffect trigger due to config change so that it does not run
+        // again if there no number updates
         if (wasFirstVisible && previousDigit == currentDigit && progress.value == 1f) {
             return@LaunchedEffect
         }
 
-        // this check is for wedding do not update the bruckitem when same digit is there
+        // this checks that startBricks and endBricks does not get updated for same digit
         if (previousDigit != currentDigit) {
             startBricks =
                 if (!wasFirstVisible || previousDigit == null) {
@@ -237,3 +235,20 @@ private fun SingleDigitBrick(
 
 private val NumberbrickWidth = 15.dp
 private val NumberbrickHeight = 25.dp
+
+private val POW10 = intArrayOf(
+    1,
+    10,
+    100,
+    1000,
+    10000,
+    100000,
+    1000000,
+    10000000,
+    100000000,
+    1000000000
+)
+
+private fun Int.digitAt(place: Int): Int {
+    return (this / POW10[place]) % 10
+}
