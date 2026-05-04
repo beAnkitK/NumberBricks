@@ -48,10 +48,10 @@ class BlockDigitBuilder(
         }
 
     protected override fun ProviderScope.assembleBricks(): List<Block> {
-        val positions = resultOf<Position>(PositionProvider.key)
-        val offsets = resultOf<Offset>(OffsetProvider.key)
-        val sizes = resultOf<Size>(SizeProvider.key)
-        val rectCorners = resultOf<RectCorners>(CornersProvider.key)
+        val positions = resultOf<Position>(positionProvider.key)
+        val offsets = resultOf<Offset>(offsetProvider.key)
+        val sizes = resultOf<Size>(sizeProvider.key)
+        val rectCorners = resultOf<RectCorners>(cornersProvider.key)
 
         return List(digitGridSpec.brickCount) { index ->
             Block(
