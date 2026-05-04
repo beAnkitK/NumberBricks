@@ -32,7 +32,7 @@ data class CornerStyle(val radius: CornerRadius, val shape: CornerShape) {
         return radius.isCircular()
     }
 
-    /** Returns true if the corner has zero radius. */
+    /** Returns true if the corner has zero radius in x, y or both. */
     @Stable
     inline fun isZero(): Boolean {
         return radius.isZero()

@@ -66,7 +66,10 @@ value class DigitSlot internal constructor(val packed: Long) {
      * 3. The slot was initialized without a previous digit
      */
     val previousDigit: Int?
-        get() = unpackPreviousDigit(packed)
+        get() {
+            val raw = unpackPreviousDigit(packed)
+            return if (raw == NO_PREVIOUS_DIGIT) null else raw
+        }
 
     /** The digit value (0-9) currently at this place. */
     val currentDigit: Int
@@ -134,9 +137,8 @@ private const val MIN_DIGIT = 0
 private const val MAX_DIGIT = 9
 private const val NO_PREVIOUS_DIGIT = Int.MIN_VALUE
 
-private fun unpackPreviousDigit(packed: Long): Int? {
-    val raw = (packed shr 32).toInt()
-    return if (raw == NO_PREVIOUS_DIGIT) null else raw
+private fun unpackPreviousDigit(packed: Long): Int {
+    return (packed shr 32).toInt()
 }
 
 private fun unpackCurrentDigit(packed: Long): Int {

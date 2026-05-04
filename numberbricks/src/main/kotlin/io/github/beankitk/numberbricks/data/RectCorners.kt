@@ -24,7 +24,7 @@ data class RectCorners(
     val bottomRight: CornerStyle = CornerStyle.None,
     val bottomLeft: CornerStyle = CornerStyle.None,
 ) {
-    /** Returns true if all four corners have zero radius. */
+    /** Returns true if all four corners have zero radius in x, y or both. */
     @Stable
     inline fun isZero(): Boolean {
         return topLeft.isZero() && topRight.isZero() && bottomRight.isZero() && bottomLeft.isZero()
