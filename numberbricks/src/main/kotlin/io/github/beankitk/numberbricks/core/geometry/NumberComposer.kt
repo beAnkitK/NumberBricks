@@ -8,7 +8,6 @@ import androidx.collection.emptyIntList
 import androidx.collection.mutableIntObjectMapOf
 import androidx.collection.mutableIntSetOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.beankitk.numberbricks.core.internal.DigitSlotList
@@ -60,7 +59,8 @@ interface NumberComposer<T : Brick<T>> {
     val currentNumber: Int
 
     /**
-     * Returns the previous number before the last update, or `null` if no prior value exists.
+     * Returns the previous number before the last update, or `null` if no prior value exists or
+     * the composer is not initialized.
      *
      * This remains `null` after [initiate]. It is assigned when [updateNumber] is called with a
      * value different from the current number, capturing the value before the change.
@@ -83,9 +83,10 @@ interface NumberComposer<T : Brick<T>> {
      * into digit slots while caching required brick models. This must be called before accessing
      * any other API.
      *
+     * @param initialNumber The initial number used to create and process this composer
      * @throws IllegalStateException if already initialized
      */
-    fun initiate()
+    fun initiate(initialNumber: Int)
 
     /**
      * Updates the current number managed by this composer.
@@ -99,10 +100,14 @@ interface NumberComposer<T : Brick<T>> {
      * transition state during updates.
      *
      * @param number The new number to be managed by this composer as [currentNumber]
+     * @throws IllegalStateException if not initialized
      */
     fun updateNumber(number: Int)
 
-    /** Returns the number of digits in the current number. */
+    /**
+     * Returns the total number of digits in the active [currentNumber]. If the composer has not been
+     * initiated yet (or has been disposed), this returns `0`.
+     */
     fun getDigitCount(): Int
 
     /**
@@ -119,10 +124,11 @@ interface NumberComposer<T : Brick<T>> {
      * its previous value, enabling transition-aware rendering.
      *
      * The number of valid indices is determined by [getDigitCount]. Accessing an index outside this
-     * range returns `null`.
+     * range or if the composer has not been initiated yet (or has been disposed), this returns `null`.
      *
      * @param index The position of the digit in reverse order
-     * @return The corresponding [DigitSlot], or `null` if the index is out of bounds
+     * @return The corresponding [DigitSlot], or `null` if the index is out of bounds or if composer is
+     *   uninitialized.
      */
     fun getDigitSlotAt(index: Int): DigitSlot?
 
@@ -135,11 +141,12 @@ interface NumberComposer<T : Brick<T>> {
      * If this method is called after [updateNumber] and the digit is part of the current number, a
      * valid brick model is guaranteed to be returned.
      *
-     * Returns `null` only if the digit has not yet been encountered in the current lifecycle of the
-     * composer.
+     * Returns `null` if composer is uninitialized or if the digit has not yet been encountered in
+     * the current lifecycle of the composer.
      *
      * @param digit The digit value (`0..9`)
-     * @return The brick model representing the given digit
+     * @return The brick model representing the given digit or `null` if composer is uninitialized or
+     *   the digit has not yet been encountered in the current lifecycle of the composer.
      */
     fun getBricks(digit: Int): List<T>?
 
@@ -150,15 +157,16 @@ interface NumberComposer<T : Brick<T>> {
      * The default bricks are computed once on first access and cached for reuse. Subsequent calls
      * return the cached result to avoid redundant construction.
      *
-     * @return The default brick model used as a placeholder representation
+     * @return The default brick model used as a placeholder representation or `null` if composer
+     *   is uninitialized
      */
-    fun getDefaultBricks(): List<T>
+    fun getDefaultBricks(): List<T>?
 
     /**
      * Releases all resources and resets the composer to an uninitialized state.
      *
      * Clears caches, destroys the digit builder, and releases all managed resources. If the
-     * composer is not initialized, this call is a no-op.
+     * composer is uninitiated, this call has no effect.
      *
      * After disposal, [initiate] must be called again before use, otherwise it would throw
      * [IllegalStateException].
@@ -186,13 +194,11 @@ interface NumberComposer<T : Brick<T>> {
  * 3. Query digit slots and bricks as needed
  * 4. Call [dispose] to release resources and destruct the builder
  *
- * @param initialNumber Defines the initial number to display
  * @property digitGridSpec Defines the grid constraints used for digit geometry composition
  * @property geometryProps Defines the shared geometry configuration
  * @property digitBuilder Defines the builder used to construct brick model for a digit
  */
 class DefaultNumberComposer<T : Brick<T>>(
-    initialNumber: Int,
     override val digitGridSpec: GridSpec,
     override val geometryProps: GeometryProps,
     override val digitBuilder: DigitBuilder<T>,
@@ -203,37 +209,41 @@ class DefaultNumberComposer<T : Brick<T>>(
     // Digit slot structure tracking per-position transitions
     private val digitSlotList: DigitSlotList = DigitSlotList()
     private var digitSequence: IntList = emptyIntList()
-    private var digitSlotCount by mutableIntStateOf(0)
+    private var digitSlotCount = 0
 
     // Brick model cache: digit -> brick model
     private val digitBricksCache: MutableIntObjectMap<List<T>> = mutableIntObjectMapOf()
     private var defaultBricks: List<T>? = null
 
-    // Stores the current number internally. It should not be accessed until the composer has been
-    // initialized.
-    private val _currentNumber = mutableIntStateOf(normalizeNumber(initialNumber))
+    private val _currentNumber = mutableStateOf<Int?>(null)
     override val currentNumber: Int
         get() {
             check(isInitialized) {
                 "currentNumber cannot be accessed before NumberComposer is initiated."
             }
-            return _currentNumber.value
+            return _currentNumber.value!!
         }
 
     private val _previousNumber = mutableStateOf<Int?>(null)
     override val previousNumber: Int? by _previousNumber
 
-    override fun initiate() {
+    override fun initiate(initialNumber: Int) {
         check(!isInitialized) { "NumberComposer already initialized" }
-        digitBuilder.construct(digitGridSpec, geometryProps)
-        defaultBricks = digitBuilder.buildDefaultBricks()
+        try {
+            digitBuilder.construct(digitGridSpec, geometryProps)
+            defaultBricks = digitBuilder.buildDefaultBricks()
+            applyNumberChange(normalizeNumber(initialNumber))
+        } catch (throwable: Throwable) {
+            digitBuilder.destruct()
+            defaultBricks = null
+            throw throwable
+        }
 
-        applyNumberChange(_currentNumber.value, isInitialUpdate = true)
         isInitialized = true
     }
 
     override fun updateNumber(number: Int) {
-        checkInitialized()
+        check(isInitialized) { "NumberComposer not initialized. Call initiate() first" }
         val absNumber = normalizeNumber(number)
         if (absNumber == _currentNumber.value) return
 
@@ -241,7 +251,7 @@ class DefaultNumberComposer<T : Brick<T>>(
     }
 
     // Applies a number change by parsing digits, updating slots, and caching bricks.
-    private fun applyNumberChange(newNumber: Int, isInitialUpdate: Boolean = false) {
+    private fun applyNumberChange(newNumber: Int) {
         val newDigitSequence = parseDigitsReversed(newNumber)
         val uniqueDigits = newDigitSequence.asIntSet()
 
@@ -255,13 +265,9 @@ class DefaultNumberComposer<T : Brick<T>>(
 
         updateDigitSlotList(newDigitSequence)
         digitSequence = newDigitSequence
-
-        // Update state tracking
-        if (!isInitialUpdate) {
-            _previousNumber.value = _currentNumber.value
-            _currentNumber.value = newNumber
-        }
         digitSlotCount = newDigitSequence.size
+        _previousNumber.value = _currentNumber.value
+        _currentNumber.value = newNumber
     }
 
     /**
@@ -324,25 +330,25 @@ class DefaultNumberComposer<T : Brick<T>>(
         }
     }
 
-    override fun getDigitCount(): Int {
-        checkInitialized()
-        return digitSlotCount
-    }
+    override fun getDigitCount(): Int =
+         if (isInitialized) digitSlotCount else 0
 
     override fun getDigitSlotAt(index: Int): DigitSlot? {
-        checkInitialized()
+        if (!isInitialized || index !in 0 until digitSlotCount) return null
         return digitSlotList[index]
     }
 
     override fun getBricks(digit: Int): List<T>? {
-        checkInitialized()
         require(digit in 0..9) { "Digit must be in range 0-9" }
-        return digitBricksCache[digit]
+        return if (isInitialized) digitBricksCache[digit] else null
     }
 
-    override fun getDefaultBricks(): List<T> {
-        checkInitialized()
-        return defaultBricks ?: digitBuilder.buildDefaultBricks().also { defaultBricks = it }
+    override fun getDefaultBricks(): List<T>? {
+        return if (isInitialized) {
+            defaultBricks ?: digitBuilder.buildDefaultBricks().also { defaultBricks = it }
+        } else {
+            null
+        }
     }
 
     override fun dispose() {
@@ -354,12 +360,20 @@ class DefaultNumberComposer<T : Brick<T>>(
         defaultBricks = null
         digitSlotCount = 0
         _previousNumber.value = null
+        _currentNumber.value = null
         digitBuilder.destruct()
         isInitialized = false
     }
 
-    private fun checkInitialized() {
-        check(isInitialized) { "Composer not initialized. Call initiate() first" }
+    internal fun isUninitialized(): Boolean {
+        return !isInitialized &&
+                digitSequence.isEmpty() &&
+                digitSlotList.isEmpty() &&
+                digitBricksCache.isEmpty() &&
+                defaultBricks == null &&
+                digitSlotCount == 0 &&
+                _previousNumber.value == null &&
+                _currentNumber.value == null
     }
 }
 
