@@ -26,12 +26,15 @@ import kotlin.math.abs
  * 1. Depends on [PositionProvider] to resolve block positions
  * 2. Size of [eachColWidth] must match total columns
  * 3. Size of [eachRowHeight] must match total rows
- * 4. All values must be ≥ 0
+ * 4. All values must be finite and greater than or equal to 0
  *
  * Input arrays define relative proportions and are normalized during attachment so that column
  * widths and row heights sum to total column and row count respectively. These arrays can be
  * further modified during geometry composition and are published as
  * [io.github.beankitk.numberbricks.core.geometry.Meta] for inter-provider access.
+ *
+ * **Note:** This provider does not observe array mutations. Values are resolved during [attachWith],
+ * after which size computation remains unchanged unless modified through composition hooks.
  *
  * **Example:**
  *
@@ -50,12 +53,10 @@ import kotlin.math.abs
  */
 // TODO: Validate arrays returned from modifying hooks with minimal overhead
 open class VariableSize(
-    eachColWidth: FloatArray,
-    eachRowHeight: FloatArray,
+    private val eachColWidth: FloatArray,
+    private val eachRowHeight: FloatArray,
 ) : SizeProvider.Adaptive() {
 
-    private val eachColWidth: FloatArray = eachColWidth.copyOf()
-    private val eachRowHeight: FloatArray = eachRowHeight.copyOf()
     private lateinit var normalizedColWidths: FloatArray
     private lateinit var normalizedRowHeights: FloatArray
 
