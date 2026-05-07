@@ -13,12 +13,14 @@ import io.github.beankitk.numberbricks.core.geometry.buildProviderData
  * be defined in grid-relative fractional units, where `1f` represents the size of a single grid
  * cell.
  *
- * The computed result is cached after first invocation and reused to avoid repeated allocations.
+ * The computed result is cached after the first invocation and reused on subsequent calls to avoid
+ * redundant computation.
  *
  * @param offset The uniform block offset in grid-relative units (1f = one grid cell)
  */
 class UniformOffset(private val offset: Offset) : OffsetProvider.Adaptive() {
 
+    // Safe without synchronization because providers are evaluated sequentially.
     private var cachedOffsets: List<Offset>? = null
 
     override val dependsOn = emptySet<ProviderKey<*>>()
@@ -28,8 +30,8 @@ class UniformOffset(private val offset: Offset) : OffsetProvider.Adaptive() {
     }
 
     companion object {
-        /** A [OffsetProvider] that provides zero offset for all blocks. */
-        val Zero = UniformOffset(Offset.Zero)
+        /** Creates a [UniformOffset] provider that provides zero offset for all blocks. */
+        fun zero() = UniformOffset(Offset.Zero)
 
         /**
          * Creates a [UniformOffset] provider with a uniform offset.

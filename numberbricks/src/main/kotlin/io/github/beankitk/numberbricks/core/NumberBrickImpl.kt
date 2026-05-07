@@ -83,7 +83,7 @@ internal fun NumberBricksImpl(
                         positionProvider = ClassicPosition,
                         offsetProvider = gridOffset,
                         sizeProvider = variableSize,
-                        cornersProvider = UniformCorners.Sharp,
+                        cornersProvider = UniformCorners.sharp(),
                     ),
             )
             .apply { initiate(digit) }
