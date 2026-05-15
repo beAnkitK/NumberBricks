@@ -33,7 +33,7 @@ import kotlin.math.abs
  * further modified during geometry composition and are published as
  * [io.github.beankitk.numberbricks.core.geometry.Meta] for inter-provider access.
  *
- * **Note:** This provider does not observe array mutations. Values are resolved during [attachWith],
+ * **Note:** This provider does not observe array mutations. Values are resolved during [attach],
  * after which size computation remains unchanged unless modified through composition hooks.
  *
  * **Example:**
@@ -62,7 +62,7 @@ open class VariableSize(
 
     final override val dependsOn: Set<ProviderKey<*>> = setOf(PositionProvider.key)
 
-    final override fun matchesWith(digitGridSpec: GridSpec): Consent {
+    final override fun doMatch(digitGridSpec: GridSpec): Consent {
         if (eachColWidth.size != digitGridSpec.cols) {
             return Consent.Reject(
                 "Column widths array size (${eachColWidth.size}) must match layout columns (${digitGridSpec.cols})"
@@ -95,7 +95,7 @@ open class VariableSize(
         return Consent.Accept
     }
 
-    final override fun onAttachWith(digitGridSpec: GridSpec, geometryProps: GeometryProps) {
+    final override fun onAttach(digitGridSpec: GridSpec, geometryProps: GeometryProps) {
         normalizedColWidths = normalizeArray(eachColWidth, providerGridSpec.cols.toFloat())
         normalizedRowHeights = normalizeArray(eachRowHeight, providerGridSpec.rows.toFloat())
     }

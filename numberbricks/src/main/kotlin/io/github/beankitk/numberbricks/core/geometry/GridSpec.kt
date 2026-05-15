@@ -49,7 +49,7 @@ fun GridSpec(rows: Int, cols: Int, brickCount: Int): GridSpec {
 
 internal fun GridSpec.asString() = "GridSpec(rows = $rows, cols = $cols, brickCount = $brickCount)"
 
-fun validateBrickCount(rows: Int, cols: Int, brickCount: Int): Boolean {
+private fun validateBrickCount(rows: Int, cols: Int, brickCount: Int): Boolean {
     val q = brickCount / rows
     return q < cols || (q == cols && brickCount % rows == 0)
 }

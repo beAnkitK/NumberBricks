@@ -188,7 +188,7 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
             throw throwable
         }
 
-        providersRegistry.forEach { it.attachWith(digitGridSpec, geometryProps) }
+        providersRegistry.forEach { it.attach(digitGridSpec, geometryProps) }
         isConstructed = true
     }
 
@@ -222,6 +222,7 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
         checkConstructed()
         _digitGridSpec = null
         _geometryProps = null
+        providersRegistry.forEach { it.detach() }
         providersRegistry = emptyList()
         isConstructed = false
     }
@@ -293,7 +294,7 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
         providerScope: DefaultProviderScope,
     ) {
         providerScope.withProvider(provider) {
-            val providerResult = providerScope.provideData()
+            val providerResult = providerScope.provide()
             check(providerResult.size == digitGridSpec.brickCount) {
                 "Provider result must have ${digitGridSpec.brickCount} size, but was ${providerResult.size} for ${provider.key}"
             }
@@ -364,10 +365,10 @@ internal class ProviderRegistry(private val gridSpec: GridSpec) : ProviderRegist
         providers.forEach {
             check(it.key != provider.key) { "Provider with key '${provider.key}' is already registered" }
         }
-        val providerConsent = provider.matchesWith(gridSpec)
+        val providerConsent = provider.matches(gridSpec)
         if (providerConsent.hasRejected()) {
             error(providerConsent.getRejectionReason()
-                ?: "Provider '${provider.key}' is incompatible with the current grid")
+                ?: "Provider '${provider.key}' is incompatible with the current DigitBuilder")
         }
         providers.add(provider)
     }

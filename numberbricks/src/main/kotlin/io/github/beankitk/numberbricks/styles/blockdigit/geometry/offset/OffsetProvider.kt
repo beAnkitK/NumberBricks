@@ -1,51 +1,51 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry.offset
 
 import androidx.compose.ui.geometry.Offset
-import io.github.beankitk.numberbricks.core.geometry.AdaptiveProvider
-import io.github.beankitk.numberbricks.core.geometry.FixedProvider
+import io.github.beankitk.numberbricks.core.geometry.AdaptiveGridPolicy
+import io.github.beankitk.numberbricks.core.geometry.BaseGeometryProvider
+import io.github.beankitk.numberbricks.core.geometry.FixedGridPolicy
 import io.github.beankitk.numberbricks.core.geometry.GeometryProps
-import io.github.beankitk.numberbricks.core.geometry.GeometryProvider
 import io.github.beankitk.numberbricks.core.geometry.GridSpec
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 
 /**
- * Provides [Offset] for each block during geometry composition.
+ * Provides the offset of each block during geometry composition.
  *
- * An [OffsetProvider] is a [GeometryProvider] responsible for defining the rendered position
- * (top-left offset) of each block relative to the digit origin. The produced values are used during
- * block assembly to construct the final brick model.
+ * An [OffsetProvider] produces an [Offset] for every block in the current
+ * digit. The returned offsets determine each block's rendered position
+ * relative to its grid position.
  *
- * Implementations must provide offsets as grid-relative fractional values, where `1f` represents
- * the size of a single grid cell.
+ * Offset values must be expressed in grid-relative units, where `1f`
+ * represents the width or height of a single grid cell. Values greater than
+ * `1f` offset the block by more than one cell, while values less than `1f`
+ * offset it by a fraction of a cell.
  *
- * Two base implementations are provided:
- * - [Fixed] -> for providers targeting a specific grid configuration
- * - [Adaptive] -> for providers supporting any grid configuration
+ * Extend one of the provided base classes to create an offset provider:
+ * - [Fixed] for providers that operate on a predefined grid.
+ * - [Adaptive] for providers that adapt to the builder's grid constraints.
  */
-sealed interface OffsetProvider : GeometryProvider<Offset> {
+sealed class OffsetProvider : BaseGeometryProvider<Offset>() {
+
+    final override val key = OffsetProvider.key
+
+    /**
+     * Base class for [OffsetProvider]s that operate on a predefined grid.
+     *
+     * @param gridSpec The fixed grid constraints for this provider.
+     */
+    abstract class Fixed(gridSpec: GridSpec) : OffsetProvider() {
+        final override val providerGridPolicy = FixedGridPolicy(gridSpec)
+    }
+
+    /**
+     * Base class for [OffsetProvider]s that adapt to the builder's grid constraints.
+     */
+    abstract class Adaptive : OffsetProvider() {
+        final override val providerGridPolicy = AdaptiveGridPolicy
+    }
 
     companion object {
-        /** Provider key for [OffsetProvider]. */
+        /** The [ProviderKey] for [OffsetProvider]. */
         val key = ProviderKey<Offset>("provider.offset.base")
-    }
-
-    /** Base class for [OffsetProvider]s with fixed grid requirements. */
-    abstract class Fixed : FixedProvider<Offset>(), OffsetProvider {
-        final override val key = OffsetProvider.key
-
-        protected override fun onAttachWith(
-            digitGridSpec: GridSpec,
-            geometryProps: GeometryProps,
-        ) = Unit
-    }
-
-    /** Base class for [OffsetProvider]s that adapt to any grid configuration. */
-    abstract class Adaptive : AdaptiveProvider<Offset>(), OffsetProvider {
-        final override val key = OffsetProvider.key
-
-        protected override fun onAttachWith(
-            digitGridSpec: GridSpec,
-            geometryProps: GeometryProps,
-        ) = Unit
     }
 }

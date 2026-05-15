@@ -1,9 +1,9 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry.position
 
-import io.github.beankitk.numberbricks.core.geometry.AdaptiveProvider
-import io.github.beankitk.numberbricks.core.geometry.FixedProvider
+import io.github.beankitk.numberbricks.core.geometry.AdaptiveGridPolicy
+import io.github.beankitk.numberbricks.core.geometry.BaseGeometryProvider
+import io.github.beankitk.numberbricks.core.geometry.FixedGridPolicy
 import io.github.beankitk.numberbricks.core.geometry.GeometryProps
-import io.github.beankitk.numberbricks.core.geometry.GeometryProvider
 import io.github.beankitk.numberbricks.core.geometry.GridSpec
 import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
@@ -11,44 +11,42 @@ import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.data.DigitData
 
 /**
- * Provides [Position] for each block during geometry composition.
+ * Provides the position of each block during geometry composition.
  *
- * A [PositionProvider] is a [GeometryProvider] responsible for defining the grid position (row and
- * column) of each block for a given digit. These values establish the structural geometry of the
- * digit and are used during block assembly to construct the final brick model.
+ * A [PositionProvider] produces a [Position] for every block in the current digit.
+ * The returned positions determine the row and column occupied by each block
+ * during geometry composition.
  *
- * Implementations must provide positions aligned with the digit grid, where each block maps to a
- * valid (row, column) within the configured [GridSpec].
+ * Position values must be expressed in grid coordinates, where each position
+ * maps to a valid row and column within the provider's [providerGridSpec].
  *
- * Two base implementations are provided:
- * - [Fixed] -> for providers targeting a specific grid configuration
- * - [Adaptive] -> for providers supporting any grid configuration
+ * Extend one of the provided base classes to create a position provider:
+ * - [Fixed] for providers that operate on a predefined grid.
+ * - [Adaptive] for providers that adapt to the builder's grid constraints.
  */
-sealed interface PositionProvider : GeometryProvider<Position> {
+sealed class PositionProvider : BaseGeometryProvider<Position>() {
+
+    final override val key = PositionProvider.key
+
+    /**
+     * Base class for [PositionProvider]s that operate on a predefined grid.
+     *
+     * @param gridSpec The fixed grid constraints for this provider.
+     */
+    abstract class Fixed(gridSpec: GridSpec) : PositionProvider() {
+        final override val providerGridPolicy = FixedGridPolicy(gridSpec)
+    }
+
+    /**
+     * Base class for [PositionProvider]s that adapt to the builder's grid constraints.
+     */
+    abstract class Adaptive : PositionProvider() {
+        final override val providerGridPolicy = AdaptiveGridPolicy
+    }
 
     companion object {
-        /** Provider key for [PositionProvider]. */
+        /** The [ProviderKey] for [PositionProvider]. */
         val key = ProviderKey<Position>("provider.position.base")
-    }
-
-    /** Base class for [PositionProvider]s with fixed grid requirements. */
-    abstract class Fixed : FixedProvider<Position>(), PositionProvider {
-        final override val key = PositionProvider.key
-
-        protected override fun onAttachWith(
-            digitGridSpec: GridSpec,
-            geometryProps: GeometryProps,
-        ) = Unit
-    }
-
-    /** Base class for [PositionProvider]s that adapt to any grid configuration. */
-    abstract class Adaptive : AdaptiveProvider<Position>(), PositionProvider {
-        final override val key = PositionProvider.key
-
-        protected override fun onAttachWith(
-            digitGridSpec: GridSpec,
-            geometryProps: GeometryProps,
-        ) = Unit
     }
 }
 
@@ -65,9 +63,7 @@ sealed interface PositionProvider : GeometryProvider<Position> {
  *   and must align its position data with
  */
 abstract class CustomPositionProvider(providerGridSpec: GridSpec) :
-    PositionProvider.Fixed(), DigitData<List<Position>> {
-
-    final override val providerGridSpec = providerGridSpec
+    PositionProvider.Fixed(providerGridSpec), DigitData<List<Position>> {
 
     final override val dependsOn = emptySet<ProviderKey<*>>()
 

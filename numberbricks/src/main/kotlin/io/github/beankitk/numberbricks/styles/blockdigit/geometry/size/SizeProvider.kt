@@ -1,51 +1,50 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry.size
 
 import androidx.compose.ui.geometry.Size
-import io.github.beankitk.numberbricks.core.geometry.AdaptiveProvider
-import io.github.beankitk.numberbricks.core.geometry.FixedProvider
+import io.github.beankitk.numberbricks.core.geometry.AdaptiveGridPolicy
+import io.github.beankitk.numberbricks.core.geometry.BaseGeometryProvider
+import io.github.beankitk.numberbricks.core.geometry.FixedGridPolicy
 import io.github.beankitk.numberbricks.core.geometry.GeometryProps
-import io.github.beankitk.numberbricks.core.geometry.GeometryProvider
 import io.github.beankitk.numberbricks.core.geometry.GridSpec
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 
 /**
- * Provides size (width and height) for each block during geometry composition.
+ * Provides the size of each block during geometry composition.
  *
- * A [SizeProvider] is a [GeometryProvider] responsible for providing the [Size] of each block for a
- * given digit. The produced values are used during block assembly to construct the final brick
- * model.
+ * A [SizeProvider] produces a [Size] for every block in the current digit. The
+ * returned sizes are used during geometry composition to determine each block's
+ * width and height.
  *
- * Implementations must provide sizes as grid-relative fractional values, where `1f` represents the
- * size of a single grid cell.
+ * Size values must be expressed in grid-relative units, where `1f` represents
+ * the width or height of a single grid cell. Values greater than `1f` span multiple
+ * cells, while values less than `1f` occupy a fraction of a cell.
  *
- * Two base implementations are provided:
- * - [Fixed] -> for providers targeting a specific grid configuration
- * - [Adaptive] -> for providers supporting any grid configuration
+ * Extend one of the provided base classes to create a size provider:
+ * - [Fixed] for providers that operate on a predefined grid.
+ * - [Adaptive] for providers that adapt to the builder's grid constraints.
  */
-sealed interface SizeProvider : GeometryProvider<Size> {
+sealed class SizeProvider : BaseGeometryProvider<Size>() {
 
-    companion object {
-        /** Provider key for [SizeProvider]. */
+    final override val key = SizeProvider.key
+
+    /**
+     * Base class for [SizeProvider]s that operate on a predefined grid.
+     *
+     * @param gridSpec The fixed grid constraints for this provider.
+     */
+    abstract class Fixed(gridSpec: GridSpec) : SizeProvider() {
+        final override val providerGridPolicy = FixedGridPolicy(gridSpec)
+    }
+
+	/**
+     * Base class for [SizeProvider]s that adapt to the builder's grid constraints.
+     */
+    abstract class Adaptive : SizeProvider() {
+        final override val providerGridPolicy = AdaptiveGridPolicy
+    }
+
+	companion object {
+        /** The [ProviderKey] for [SizeProvider]. */
         val key = ProviderKey<Size>("provider.size.base")
-    }
-
-    /** Base class for [SizeProvider]s with fixed grid requirements. */
-    abstract class Fixed : FixedProvider<Size>(), SizeProvider {
-        final override val key = SizeProvider.key
-
-        protected override fun onAttachWith(
-            digitGridSpec: GridSpec,
-            geometryProps: GeometryProps,
-        ) = Unit
-    }
-
-    /** Base class for [SizeProvider]s that adapt to any grid configuration. */
-    abstract class Adaptive : AdaptiveProvider<Size>(), SizeProvider {
-        final override val key = SizeProvider.key
-
-        protected override fun onAttachWith(
-            digitGridSpec: GridSpec,
-            geometryProps: GeometryProps,
-        ) = Unit
     }
 }
