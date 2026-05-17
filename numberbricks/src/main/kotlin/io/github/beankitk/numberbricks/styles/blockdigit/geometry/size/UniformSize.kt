@@ -19,6 +19,15 @@ import io.github.beankitk.numberbricks.core.geometry.buildProviderData
  */
 class UniformSize(private val size: Size) : SizeProvider.Adaptive() {
 
+    /**
+     * Creates a [UniformSize] provider with uniform dimensions.
+     *
+     * @param width The width of each block (grid-relative)
+     * @param height The height of each block (defaults to [width] for square blocks)
+     * @return A [UniformSize] provider with the specified uniform dimensions
+     */
+    constructor(width: Float, height: Float = width) : this(Size(width, height))
+
     // Safe without synchronization because providers are evaluated sequentially.
     private var cachedSize: List<Size>? = null
 
@@ -31,14 +40,5 @@ class UniformSize(private val size: Size) : SizeProvider.Adaptive() {
     companion object {
         /** Creates a [UniformSize] provider that provides zero size for all blocks. */
         fun zero() = UniformSize(Size.Zero)
-
-        /**
-         * Creates a [UniformSize] provider with uniform dimensions.
-         *
-         * @param width The width of each block (grid-relative)
-         * @param height The height of each block (defaults to [width] for square blocks)
-         * @return A [UniformSize] provider with the specified uniform dimensions
-         */
-        fun of(width: Float, height: Float = width) = UniformSize(Size(width, height))
     }
 }

@@ -18,6 +18,15 @@ import io.github.beankitk.numberbricks.core.geometry.buildProviderData
  */
 class UniformPosition(private val position: Position) : PositionProvider.Adaptive() {
 
+    /**
+     * Creates a [UniformPosition] provider with a uniform position.
+     *
+     * @param row The row index for all blocks
+     * @param col The column index for all blocks
+     * @return A [UniformPosition] provider with the specified position
+     */
+    constructor(row: Int, col: Int) : this(Position(row, col))
+
     // Safe without synchronization because providers are evaluated sequentially.
     private var cachedPositions: List<Position>? = null
 
@@ -30,14 +39,5 @@ class UniformPosition(private val position: Position) : PositionProvider.Adaptiv
     companion object {
         /** Creates a [UniformPosition] provider that provides zero position for all blocks. */
         fun zero() = UniformPosition(Position.Zero)
-
-        /**
-         * Creates a [UniformPosition] provider with a uniform position.
-         *
-         * @param row The row index for all blocks
-         * @param col The column index for all blocks
-         * @return A [UniformPosition] provider with the specified position
-         */
-        fun of(row: Int, col: Int) = UniformPosition(Position(row, col))
     }
 }

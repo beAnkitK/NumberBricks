@@ -23,6 +23,26 @@ import io.github.beankitk.numberbricks.data.RectCorners
  */
 class UniformCorners(private val rectCorners: RectCorners) : CornersProvider.Adaptive() {
 
+    /**
+     * Creates a [UniformCorners] provider with the given [CornerStyle].
+     *
+     * @param cornerStyle The corner style applied to all corners
+     */
+    constructor(cornerStyle: CornerStyle) : this(RectCorners(cornerStyle))
+
+    /**
+     * Creates a [UniformCorners] provider with uniform corner radius and shape.
+     *
+     * @param radius The horizontal corner radius (grid-relative)
+     * @param shape The corner shape
+     * @param radiusY The vertical corner radius (defaults to [radius])
+     */
+    constructor(
+        radius: Float,
+        shape: CornerShape = CornerShape.Round,
+        radiusY: Float = radius
+    ) : this(CornerStyle(CornerRadius(radius, radiusY), shape))
+
     // Safe without synchronization because providers are evaluated sequentially.
     private var cachedRectCorners: List<RectCorners>? = null
 
@@ -39,22 +59,5 @@ class UniformCorners(private val rectCorners: RectCorners) : CornersProvider.Ada
 
         /** Creates a [UniformCorners] provider that provides fully rounded corners for all blocks. */
         fun round() = UniformCorners(RectCorners(1f, CornerShape.Round))
-
-        /**
-         * Creates a [UniformCorners] provider with the given [CornerStyle].
-         *
-         * @param cornerStyle The corner style applied to all corners
-         */
-        fun of(cornerStyle: CornerStyle) = UniformCorners(RectCorners(cornerStyle))
-
-        /**
-         * Creates a [UniformCorners] provider with uniform corner radius and shape.
-         *
-         * @param radius The horizontal corner radius (grid-relative)
-         * @param shape The corner shape
-         * @param radiusY The vertical corner radius (defaults to [radius])
-         */
-        fun of(radius: Float, shape: CornerShape = CornerShape.Round, radiusY: Float = radius) =
-            of(CornerStyle(CornerRadius(radius, radiusY), shape))
     }
 }

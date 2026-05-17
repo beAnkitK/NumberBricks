@@ -20,6 +20,15 @@ import io.github.beankitk.numberbricks.core.geometry.buildProviderData
  */
 class UniformOffset(private val offset: Offset) : OffsetProvider.Adaptive() {
 
+    /**
+     * Creates a [UniformOffset] provider with a uniform offset.
+     *
+     * @param x The horizontal offset as fraction
+     * @param y The vertical offset as fraction
+     * @return A [UniformOffset] provider with the specified offset
+     */
+    constructor(x: Float, y: Float) : this(Offset(x, y))
+
     // Safe without synchronization because providers are evaluated sequentially.
     private var cachedOffsets: List<Offset>? = null
 
@@ -32,14 +41,5 @@ class UniformOffset(private val offset: Offset) : OffsetProvider.Adaptive() {
     companion object {
         /** Creates a [UniformOffset] provider that provides zero offset for all blocks. */
         fun zero() = UniformOffset(Offset.Zero)
-
-        /**
-         * Creates a [UniformOffset] provider with a uniform offset.
-         *
-         * @param x The horizontal offset as fraction
-         * @param y The vertical offset as fraction
-         * @return A [UniformOffset] provider with the specified offset
-         */
-        fun of(x: Float, y: Float) = UniformOffset(Offset(x, y))
     }
 }
