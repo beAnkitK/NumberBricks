@@ -13,14 +13,14 @@ import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 
-/**
- * Provides offsets to position block when grid cells have non-uniform dimensions.
+ /**
+ * Provides offsets to position blocks when grid cells have non-uniform dimensions.
  *
- * This [OffsetProvider] works with [VariableSize], reading column width and row height metadata to
- * resolve the starting offset of each block’s grid cell.
- *
- * If size metadata is not available, it falls back to direct position-based offsets (col -> x, row
- * -> y) and then applies [offsetModifier], matching [DirectOffset] behavior when no modifier is used.
+ * This [GridOffset] works with [VariableSize], reading column-width and row-height metadata to
+ * resolve the starting offset of each block's grid cell. If size metadata is not available, it
+ * falls back to direct position-based offsets (col -> x, row -> y), matching [DirectOffset] behavior.
+ * The resulting offset is then passed through [transformOffset], when provided, to produce the final
+ * offset.
  *
  * Recommended for use with [VariableSize].
  *
@@ -31,15 +31,16 @@ import io.github.beankitk.numberbricks.core.geometry.buildProviderData
  * Block at position (row=0, col=1) -> offset (x=1.5f, y=...)
  * ```
  *
- * A [GridOffsetModifier] can be provided to adjust the computed offset per block. Use [Fixed] for
- * no modification.
- *
- * @param offsetModifier Modifier applied to computed offsets
+ * @param transformOffset Optional transformation applied to the computed offset for each block.
+ *   The transformation receives the digit, the block's position, and the base offset calculated
+ *   by this provider, and returns the final offset.
+ * @see VariableSize
  * @see DirectOffset
- * @see GridOffsetModifier
- * @see Fixed
  */
-class GridOffset(private val offsetModifier: GridOffsetModifier) : OffsetProvider.Adaptive() {
+class GridOffset(
+    private val transformOffset:
+        ((digit: Int, position: Position, baseOffset: Offset) -> Offset)? = null
+) : OffsetProvider.Adaptive() {
 
     override val dependsOn: Set<ProviderKey<*>> = setOf(PositionProvider.key, SizeProvider.key)
 
@@ -52,7 +53,7 @@ class GridOffset(private val offsetModifier: GridOffsetModifier) : OffsetProvide
         if (eachColWidth == null || eachRowHeight == null) {
             return positions.map { position ->
                 val baseOffset = Offset(x = position.col.toFloat(), y = position.row.toFloat())
-                offsetModifier.modify(digit, position, baseOffset)
+                transformOffset?.invoke(digit, position, baseOffset) ?: baseOffset
             }
         }
 
@@ -62,9 +63,9 @@ class GridOffset(private val offsetModifier: GridOffsetModifier) : OffsetProvide
 
         return buildProviderData { index ->
             val position = positions[index]
-            val offset = Offset(x = eachColStartX[position.col], y = eachRowStartY[position.row])
+            val baseOffset = Offset(x = eachColStartX[position.col], y = eachRowStartY[position.row])
 
-            offsetModifier.modify(digit, position, offset)
+            transformOffset?.invoke(digit, position, baseOffset) ?: baseOffset
         }
     }
 
@@ -76,22 +77,4 @@ class GridOffset(private val offsetModifier: GridOffsetModifier) : OffsetProvide
             element
         }
     }
-
-    companion object {
-        /** A [GridOffset] that applies no modification to computed offsets. */
-        val Fixed: GridOffset = GridOffset { _, _, baseOffset -> baseOffset }
-    }
-}
-
-/** Allows modifying grid-computed offsets for each block. */
-fun interface GridOffsetModifier {
-    /**
-     * Modifies the base offset for a block.
-     *
-     * @param digit The digit being composed (0–9, or -1 for default)
-     * @param position The block's grid position
-     * @param baseOffset The computed offset before modification
-     * @return The final offset for the block
-     */
-    fun modify(digit: Int, position: Position, baseOffset: Offset): Offset
 }

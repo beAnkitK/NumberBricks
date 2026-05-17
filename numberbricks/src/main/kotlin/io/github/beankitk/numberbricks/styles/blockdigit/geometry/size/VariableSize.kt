@@ -9,6 +9,7 @@ import io.github.beankitk.numberbricks.core.geometry.ExperimentalProviderMetaApi
 import io.github.beankitk.numberbricks.core.geometry.GeometryProps
 import io.github.beankitk.numberbricks.core.geometry.GridSpec
 import io.github.beankitk.numberbricks.core.geometry.MetaGroup
+import io.github.beankitk.numberbricks.core.geometry.NumberComposer
 import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.core.geometry.ProviderScope
@@ -16,25 +17,26 @@ import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 import kotlin.math.abs
 
 /**
- * Provides variable [Size] for blocks based on row and column dimensions.
+ * Provides variable [Size] values for blocks based on row and column dimensions.
  *
- * This [SizeProvider] computes block sizes using per-column widths and per-row heights, enabling
- * non-uniform sizing across the grid. Each block’s size is derived from its [Position], making this
- * provider dependent on [PositionProvider].
+ * This [SizeProvider] computes block sizes using per-column widths and per-row heights to provide
+ * non-uniform sizing across the grid. It uses the block's [Position] to resolve its size from the
+ * column-width and row-height arrays. The resulting size is passed through [transformSize] when
+ * provided, to produce the final size.
  *
  * **Requirements:**
  * 1. Depends on [PositionProvider] to resolve block positions
- * 2. Size of [eachColWidth] must match total columns
- * 3. Size of [eachRowHeight] must match total rows
+ * 2. Size of [eachColWidth] must match the total number of columns
+ * 3. Size of [eachRowHeight] must match the total number of rows
  * 4. All values must be finite and greater than or equal to 0
  *
- * Input arrays define relative proportions and are normalized during attachment so that column
- * widths and row heights sum to total column and row count respectively. These arrays can be
- * further modified during geometry composition and are published as
- * [io.github.beankitk.numberbricks.core.geometry.Meta] for inter-provider access.
+ * Input arrays define relative proportions and are normalized during attachment so that column widths
+ * and row heights sum to the total column and row counts respectively. These arrays can be further
+ * transformed during geometry composition through [transformColWidths] and [transformRowHeights],
+ * and are published as [io.github.beankitk.numberbricks.core.geometry.Meta] for inter-provider access.
  *
- * **Note:** This provider does not observe array mutations. Values are resolved during [attach],
- * after which size computation remains unchanged unless modified through composition hooks.
+ * **Note:** This provider does not observe mutations to the input arrays. Values are resolved during
+ * [attach], after which size computation remains unchanged unless transformations are provided.
  *
  * **Example:**
  *
@@ -47,22 +49,39 @@ import kotlin.math.abs
  *             widths [1.385f, 0.231f, 1.385f]
  * ```
  *
- * @param eachColWidth Relative width per column (normalized to column count)
- * @param eachRowHeight Relative height per row (normalized to row count)
+ * @param eachColWidth Relative width per column (normalized to the column count).
+ * @param eachRowHeight Relative height per row (normalized to the row count).
+ * @param transformColWidths Optional transformation applied to column widths before block sizes
+ *   are computed. The transformation receives the digit and normalized column widths, and returns
+ *   the column widths to use. The returned array is used directly and must match the column count,
+ *   contain only non-negative values, and be normalized. Use [normalizeColWidths] if needed.
+ * @param transformRowHeights Optional transformation applied to row heights before block sizes
+ *   are computed. The transformation receives the digit and normalized row heights, and returns
+ *   the row heights to use. The returned array is used directly and must match the row count,
+ *   contain only non-negative values, and be normalized. Use [normalizeRowHeights] if needed.
+ * @param transformSize Optional transformation applied to each computed block size. The
+ *   transformation receives the digit, block position, and base size, and returns the final size.
+ * @see PositionProvider
  * @see VariableSize.Meta
  */
 // TODO: Validate arrays returned from modifying hooks with minimal overhead
-open class VariableSize(
+class VariableSize(
     private val eachColWidth: FloatArray,
     private val eachRowHeight: FloatArray,
+    private val transformColWidths:
+        ((digit: Int, colWidths: FloatArray) -> FloatArray)? = null,
+    private val transformRowHeights:
+        ((digit: Int, rowHeights: FloatArray) -> FloatArray)? = null,
+    private val transformSize:
+        ((digit: Int, position: Position, baseSize: Size) -> Size)? = null
 ) : SizeProvider.Adaptive() {
 
     private lateinit var normalizedColWidths: FloatArray
     private lateinit var normalizedRowHeights: FloatArray
 
-    final override val dependsOn: Set<ProviderKey<*>> = setOf(PositionProvider.key)
+    override val dependsOn: Set<ProviderKey<*>> = setOf(PositionProvider.key)
 
-    final override fun doMatch(digitGridSpec: GridSpec): Consent {
+    override fun doMatch(digitGridSpec: GridSpec): Consent {
         if (eachColWidth.size != digitGridSpec.cols) {
             return Consent.Reject(
                 "Column widths array size (${eachColWidth.size}) must match layout columns (${digitGridSpec.cols})"
@@ -95,15 +114,18 @@ open class VariableSize(
         return Consent.Accept
     }
 
-    final override fun onAttach(digitGridSpec: GridSpec, geometryProps: GeometryProps) {
+    override fun onAttach(digitGridSpec: GridSpec, geometryProps: GeometryProps) {
         normalizedColWidths = normalizeArray(eachColWidth, providerGridSpec.cols.toFloat())
         normalizedRowHeights = normalizeArray(eachRowHeight, providerGridSpec.rows.toFloat())
     }
 
-    final override fun ProviderScope.provideData(): List<Size> {
+    override fun ProviderScope.provideData(): List<Size> {
         val positions = resultOf<Position>(PositionProvider.key)
-        val colWidths = modifyColumnWidths(digit, normalizedColWidths)
-        val rowHeights = modifyRowHeights(digit, normalizedRowHeights)
+        var colWidths = normalizedColWidths
+        var rowHeights = normalizedRowHeights
+
+        if (transformColWidths != null) colWidths = transformColWidths(digit, normalizedColWidths)
+        if (transformRowHeights != null) rowHeights = transformRowHeights(digit, normalizedRowHeights)
 
         provideMeta {
             Meta.ColWidths providedBy colWidths
@@ -112,84 +134,11 @@ open class VariableSize(
 
         return buildProviderData { index ->
             val position = positions[index]
-            val size = Size(width = colWidths[position.col], height = rowHeights[position.row])
+            val baseSize = Size(width = colWidths[position.col], height = rowHeights[position.row])
 
-            modifyBlockSize(digit, position, size)
+            transformSize?.invoke(digit, position, baseSize) ?: baseSize
         }
     }
-
-    /**
-     * Allows modification of block size after base size computation.
-     *
-     * This method is called for each block during geometry composition to allow adjustment of its
-     * final size. The provided [baseSize] is the computed size; the returned value is used
-     * directly.
-     *
-     * @param digit The digit being composed
-     * @param position The grid position of the block
-     * @param baseSize The computed size before modification
-     * @return Final size to be used for the block
-     */
-    protected open fun modifyBlockSize(digit: Int, position: Position, baseSize: Size): Size =
-        baseSize
-
-    /**
-     * Allows modification of column widths before size computation.
-     *
-     * This method is called once per digit before geometry composition to allow adjustment of
-     * column widths. The provided [colWidths] are normalized; the returned array is used directly.
-     *
-     * The returned array must:
-     * - Match the column count
-     * - Contain only non-negative values
-     *
-     * If overriding, ensure the array is normalized, or use [normalizeColWidths] and cache the
-     * result to avoid repeated normalization.
-     *
-     * @param digit The digit being composed
-     * @param colWidths Normalized column widths
-     * @return Modified column widths to be used for size computation
-     */
-    protected open fun modifyColumnWidths(digit: Int, colWidths: FloatArray): FloatArray = colWidths
-
-    /**
-     * Allows modification of row heights before size computation.
-     *
-     * This method is called once per digit before geometry composition to allow adjustment of row
-     * heights. The provided [rowHeights] are normalized; the returned array is used directly.
-     *
-     * The returned array must:
-     * - Match the row count
-     * - Contain only non-negative values
-     *
-     * If overriding, ensure the array is normalized, or use [normalizeRowHeights] and cache the
-     * result to avoid repeated normalization.
-     *
-     * @param digit The digit being composed
-     * @param rowHeights Normalized row heights
-     * @return Modified row heights to be used for size computation
-     */
-    protected open fun modifyRowHeights(digit: Int, rowHeights: FloatArray): FloatArray = rowHeights
-
-    /**
-     * Scales row height weights proportionally so that their total equals the number of rows. Each
-     * value then represents its proportional share in grid units (where 1f = one row).
-     *
-     * @param input The array of row height weights to be normalized
-     * @return A FloatArray scaled so its sum equals the row count
-     */
-    protected fun normalizeRowHeights(input: FloatArray): FloatArray =
-        normalizeArray(input, providerGridSpec.rows.toFloat())
-
-    /**
-     * Scales column width weights proportionally so that their total equals the number of columns.
-     * Each value then represents its proportional share in grid units (where 1f = one column).
-     *
-     * @param input The array of column width weights to be normalized
-     * @return A FloatArray scaled so its sum equals the column count
-     */
-    protected fun normalizeColWidths(input: FloatArray): FloatArray =
-        normalizeArray(input, providerGridSpec.cols.toFloat())
 
     /**
      * Meta group for [VariableSize], defining all keys published during provider execution.
@@ -205,6 +154,28 @@ open class VariableSize(
         val RowHeights = defineMeta<FloatArray> { FloatArray(5) { 1f } }
     }
 }
+
+/**
+ * Scales row height weights proportionally so that their sum equals [NumberComposer.digitGridSpec.rowCount].
+ * Each value represents the row's proportional height in grid units, where `1f` equals one row.
+ *
+ * @param input Row height weights to normalize.
+ * @param rowCount The row count from the [NumberComposer.digitGridSpec].
+ * @return A [FloatArray] whose values are proportionally scaled and sum to [NumberComposer.digitGridSpec.rowCount].
+ */
+fun normalizeRowHeights(input: FloatArray, rowCount: Int): FloatArray =
+    normalizeArray(input, rowCount.toFloat())
+
+/**
+ * Scales column width weights proportionally so that their sum equals [NumberComposer.digitGridSpec.colCount].
+ * Each value represents the column's proportional width in grid units, where `1f` equals one column.
+ *
+ * @param input Column width weights to normalize.
+ * @param colCount The column count from the [NumberComposer.digitGridSpec].
+ * @return A [FloatArray] whose values are proportionally scaled and sum to [NumberComposer.digitGridSpec.colCount].
+ */
+fun normalizeColWidths(input: FloatArray, colCount: Int): FloatArray =
+    normalizeArray(input, colCount.toFloat())
 
 private const val epsilon = 0.001f
 

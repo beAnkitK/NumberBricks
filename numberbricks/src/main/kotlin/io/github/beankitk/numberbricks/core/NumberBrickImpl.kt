@@ -59,19 +59,17 @@ internal fun NumberBricksImpl(
     }
 
     val variableSize = remember {
-        object :
-            VariableSize(
-                eachColWidth = floatArrayOf(1.3f, 0.4f, 1.3f),
-                eachRowHeight = floatArrayOf(0.2f, 2.2f, 0.2f, 2.2f, 0.2f),
-            ) {
-            override fun modifyColumnWidths(digit: Int, colWidths: FloatArray) =
+        VariableSize(
+            eachColWidth = floatArrayOf(1.3f, 0.4f, 1.3f),
+            eachRowHeight = floatArrayOf(0.2f, 2.2f, 0.2f, 2.2f, 0.2f),
+            transformColWidths = { digit, colWidths ->
                 if (digit == 1) floatArrayOf(0.85f, 1.3f, 0.85f) else colWidths
-
-            override fun modifyBlockSize(digit: Int, position: Position, baseSize: Size) =
-                if ((digit == 3 || digit == 7) && position == Position(2, 1))
-                    baseSize.copy(width = 0.7f)
+            },
+            transformSize = { digit, pos, baseSize ->
+                if ((digit == 3 || digit == 7) && pos == Position(2, 1)) baseSize.copy(width = 0.7f)
                 else baseSize
-        }
+            }
+        )
     }
 
     val numberComposer = remember {
