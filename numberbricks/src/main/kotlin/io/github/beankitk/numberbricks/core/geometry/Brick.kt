@@ -28,9 +28,9 @@ import androidx.compose.ui.geometry.Size
  * Implementations may extend this contract with additional metadata required for styling,
  * rendering, or animation systems.
  *
- * @param T The concrete brick type
+ * @param B The concrete brick type
  */
-interface Brick<T : Brick<T>> {
+interface Brick<B : Brick<B>> {
 
     /**
      * Identifies this brick within a digit by its position in the ordered collection of bricks from
@@ -67,5 +67,5 @@ interface Brick<T : Brick<T>> {
      * @return A new instance with updated rendering parameters
      * @see Brick
      */
-    fun scaledBy(totalSize: Size, brickSize: Size): T
+    fun scaledBy(totalSize: Size, brickSize: Size): B
 }

@@ -4,7 +4,7 @@ package io.github.beankitk.numberbricks.core.geometry
  * Defines a pluggable unit that produces geometry data for digit geometry composition.
  *
  * A [GeometryProvider] produces a single aspect of digit geometry (for example, `position`,`size`,
- * `offset`) for each brick. For a given digit, it returns a value of type [T] for every brick in
+ * `offset`) for each brick. For a given digit, it returns a value of type [R] for every brick in
  * the current [ProviderScope]. Extend [BaseGeometryProvider] for creating new providers.
  *
  * Providers participate in the geometry composition pipeline coordinated by [DigitBuilder]. Each
@@ -40,17 +40,17 @@ package io.github.beankitk.numberbricks.core.geometry
  * }
  * ```
  *
- * @param T The type of value produced for each brick.
+ * @param R The type of result produced for each brick.
  * @see BaseGeometryProvider
  * @see ProviderScope
  */
-sealed interface GeometryProvider<T> {
+sealed interface GeometryProvider<R : Any> {
 
     /**
-     * Identifies this provider and the type of data it produces. This key is used to declare
+     * Identifies this provider and the type of result it produces. This key is used to declare
      * dependencies via [dependsOn] and retrieve results from other providers
      */
-    val key: ProviderKey<T>
+    val key: ProviderKey<R>
 
     /**
      * Indicates whether this provider's result can adapt to the grid constraints defined by
@@ -82,7 +82,7 @@ sealed interface GeometryProvider<T> {
      * requirements.
      *
      * Called during builder construction before initialization. Implementations should verify that
-     * the provider can operate with the given [digitGridSpec] and is compatible to provide its result.
+     * the provider can operate with the given [digitGridSpec] and is compatible with producing its result.
      * Returning [Consent.Reject] prevents this provider from being attached.
      *
      * @param digitGridSpec The grid constraints to evaluate
@@ -112,14 +112,14 @@ sealed interface GeometryProvider<T> {
      * results from other providers declared via [dependsOn], and any provider-scoped metadata
      * required during computation.
      *
-     * Returns the provider result as a list of values of type [T], containing exactly
+     * Returns the provider result as a list of values of type [R], containing exactly
      * `providerGridSpec.brickCount` elements, one for each brick in the current digit.
      *
      * @receiver The [ProviderScope] that provides the execution context required to compute this
      * provider's result.
      * @throws IllegalStateException if this provider is not attached
      */
-    fun ProviderScope.provide(): List<T>
+    fun ProviderScope.provide(): List<R>
 
     /**
      * Detaches this provider from the current [DigitBuilder] and resets all lifecycle state.
@@ -157,14 +157,14 @@ fun Consent.getRejectionReason(): String? = (this as? Consent.Reject)?.reason
 /**
  * Builds the provider result aligned with this provider's grid constraints.
  *
- * The returned list contains a value of type [T] for every brick in [providerGridSpec] and always
+ * The returned list contain values of type [R] provided for each brick in [providerGridSpec] and always
  * contains exactly `providerGridSpec.brickCount` elements. Prefer this function when constructing
  * provider results.
  *
- * @param factory Produces the value for the specified brick index.
+ * @param factory Provides the result for the specified brick index.
  * @receiver The provider whose grid constraints determine the output size.
  */
-inline fun <reified T> GeometryProvider<T>.buildProviderData(factory: (Int) -> T): List<T> {
+inline fun <R : Any> GeometryProvider<R>.buildProviderData(factory: (Int) -> R): List<R> {
     return List(providerGridSpec.brickCount) { factory(it) }
 }
 
@@ -177,13 +177,13 @@ inline fun <reified T> GeometryProvider<T>.buildProviderData(factory: (Int) -> T
  * produce the provider result. Override the lifecycle hooks [doMatch], [onAttach], and
  * [onDetach] as needed to customize the provider's behavior.
  *
- * @param T The type of value produced for each brick.
+ * @param R The provider result type provided for each brick.
  * @see GeometryProvider
  * @see ProviderGridPolicy
  * @see FixedGridPolicy
  * @see AdaptiveGridPolicy
  */
-abstract class BaseGeometryProvider<T> : GeometryProvider<T> {
+abstract class BaseGeometryProvider<R : Any> : GeometryProvider<R> {
 
     private var isCompatible: Boolean? = null
     private var isAttached: Boolean = false
@@ -234,7 +234,7 @@ abstract class BaseGeometryProvider<T> : GeometryProvider<T> {
         onAttach(digitGridSpec, geometryProps)
     }
 
-    final override fun ProviderScope.provide(): List<T> {
+    final override fun ProviderScope.provide(): List<R> {
         check(isAttached) { "This provider must be attached before providing data." }
         return provideData()
     }
@@ -282,13 +282,13 @@ abstract class BaseGeometryProvider<T> : GeometryProvider<T> {
      * results from other providers declared via [dependsOn], and any provider-scoped metadata
      * required during computation.
      *
-     * Returns the provider result as a list of values of type [T], containing exactly
+     * Returns the provider result as a list of values of type [R], containing exactly
      * `providerGridSpec.brickCount` elements, one for each brick in the current digit.
      *
      * @receiver The [ProviderScope] that provides the execution context required to compute this
      *   provider's result.
      */
-    protected abstract fun ProviderScope.provideData(): List<T>
+    protected abstract fun ProviderScope.provideData(): List<R>
 
     /**
      * Called before this provider is detached from a [DigitBuilder]. Override to release any resources

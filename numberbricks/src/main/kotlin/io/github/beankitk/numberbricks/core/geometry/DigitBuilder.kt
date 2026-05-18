@@ -11,7 +11,7 @@ import androidx.collection.MutableScatterMap
  * brick model of digit. It operates on a given [GridSpec] and [GeometryProps], which together
  * describe the structural grid and shared geometry configuration used during geometry composition.
  *
- * The builder coordinates a set of [GeometryProvider]s to compute the data required to construct
+ * The builder coordinates a set of [GeometryProvider]s to compute the result required to construct
  * the brick model of a digit. Each provider contributes a specific aspect of geometry, and their
  * execution is resolved based on declared dependencies.
  *
@@ -26,13 +26,13 @@ import androidx.collection.MutableScatterMap
  * The builder does not retain digit-specific state and can be reused across multiple digits after
  * construction. Calling [destruct] resets the builder to an uninitialized state.
  *
- * @param T The concrete [Brick] type produced by this builder
+ * @param B The concrete [Brick] type produced by this builder
  * @see BaseDigitBuilder
  * @see GeometryProvider
  * @see GridSpec
  * @see GeometryProps
  */
-interface DigitBuilder<T : Brick<T>> {
+interface DigitBuilder<B : Brick<B>> {
 
     /**
      * Initializes the builder with the given grid constraints and geometry properties.
@@ -72,7 +72,7 @@ interface DigitBuilder<T : Brick<T>> {
      * @throws IllegalStateException if the builder is not constructed
      * @throws IllegalArgumentException if the digit is out of range
      */
-    fun buildBricks(digit: Int): List<T>
+    fun buildBricks(digit: Int): List<B>
 
     /**
      * Builds a default brick model.
@@ -84,7 +84,7 @@ interface DigitBuilder<T : Brick<T>> {
      * @throws IllegalStateException if the builder is not constructed
      */
     // TODO: Add digit parameter to return digit aware default bricks
-    fun buildDefaultBricks(): List<T>
+    fun buildDefaultBricks(): List<B>
 
     /**
      * Resets the builder to an unconstructed state and releases internal resources. After calling
@@ -132,11 +132,11 @@ interface DigitBuilder<T : Brick<T>> {
  * Providers are executed in dependency order and validated for cyclic dependencies, if found,
  * result in a failure during construction.
  *
- * @param T The concrete [Brick] type produced by this builder
+ * @param B The concrete [Brick] type produced by this builder
  * @see GeometryProvider
  * @see ProviderScope
  */
-abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
+abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
 
     private var isConstructed = false
     private var providersRegistry: List<GeometryProvider<*>> = emptyList()
@@ -192,7 +192,7 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
         isConstructed = true
     }
 
-    final override fun buildBricks(digit: Int): List<T> {
+    final override fun buildBricks(digit: Int): List<B> {
         checkConstructed()
         require(digit in 0..9 || digit == -1) {
             "DigitBuilder accepts digit values from 0 to 9 to construct bricks and -1 for default bricks, but got $digit"
@@ -204,7 +204,7 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
         }
     }
 
-    final override fun buildDefaultBricks(): List<T> {
+    final override fun buildDefaultBricks(): List<B> {
         checkConstructed()
         return assembleDefaultBricks()
     }
@@ -269,15 +269,15 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
     abstract override fun bindProviders(): List<GeometryProvider<*>>
 
     /**
-     * Assembles the final list of bricks from provider outputs.
+     * Assembles the final list of bricks from provider results.
      *
-     * This is called after all providers have executed. Implementations should read data from the
-     * current [ProviderScope] and construct the resulting bricks model for
+     * This is called after all providers have executed. Implementations should read provider
+     * results from the current [ProviderScope] and construct the resulting bricks model for
      * [current digit][ProviderScope.digit].
      *
      * @return An ordered list of bricks representing the digit
      */
-    protected abstract fun ProviderScope.assembleBricks(): List<T>
+    protected abstract fun ProviderScope.assembleBricks(): List<B>
 
     /**
      * Assembles the default brick model.
@@ -287,10 +287,10 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
      *
      * @return An ordered list of default bricks
      */
-    protected abstract fun assembleDefaultBricks(): List<T>
+    protected abstract fun assembleDefaultBricks(): List<B>
 
-    private fun <P> executeProvider(
-        provider: GeometryProvider<P>,
+    private fun <R : Any> executeProvider(
+        provider: GeometryProvider<R>,
         providerScope: DefaultProviderScope,
     ) {
         providerScope.withProvider(provider) {
@@ -298,7 +298,7 @@ abstract class BaseDigitBuilder<T : Brick<T>> : DigitBuilder<T> {
             check(providerResult.size == digitGridSpec.brickCount) {
                 "Provider result must have ${digitGridSpec.brickCount} size, but was ${providerResult.size} for ${provider.key}"
             }
-            providerScope.commitResult<P>(key, providerResult)
+            providerScope.commitResult<R>(key, providerResult)
         }
     }
 
@@ -327,7 +327,7 @@ interface ProviderRegistrar {
      * @throws IllegalStateException If the provider is incompatible with the active [GridSpec].
      * @see BaseDigitBuilder.buildProviders
      */
-    fun <P> register(provider: GeometryProvider<P>)
+    fun <R : Any> register(provider: GeometryProvider<R>)
 }
 
 @PublishedApi
@@ -360,7 +360,7 @@ internal class ProviderRegistry(private val gridSpec: GridSpec) : ProviderRegist
             return List<GeometryProvider<*>>(providers.size) { index -> providers[index] }
         }
 
-    override fun <P> register(provider: GeometryProvider<P>) {
+    override fun <R : Any> register(provider: GeometryProvider<R>) {
         check(!resolved) { "Cannot register providers after execution order is resolved" }
         providers.forEach {
             check(it.key != provider.key) { "Provider with key '${provider.key}' is already registered" }

@@ -39,10 +39,10 @@ import kotlin.math.absoluteValue
  * **Note:** Currently, this composer operates only on non-negative integer values. Any negative
  * input is converted to its absolute value before processing.
  *
- * @param T The concrete [Brick] type used for digit geometry
+ * @param B The concrete [Brick] type used for digit geometry
  */
 // TODO: Extend support for signed numbers and non-integer representations (e.g., floating-point).
-interface NumberComposer<T : Brick<T>> {
+interface NumberComposer<B : Brick<B>> {
 
     /**
      * Returns the current number managed by this composer.
@@ -74,7 +74,7 @@ interface NumberComposer<T : Brick<T>> {
     val geometryProps: GeometryProps
 
     /** Defines the builder used to construct digit geometry. */
-    val digitBuilder: DigitBuilder<T>
+    val digitBuilder: DigitBuilder<B>
 
     /**
      * Initializes the composer and prepares it for use.
@@ -148,7 +148,7 @@ interface NumberComposer<T : Brick<T>> {
      * @return The brick model representing the given digit or `null` if composer is uninitialized or
      *   the digit has not yet been encountered in the current lifecycle of the composer.
      */
-    fun getBricks(digit: Int): List<T>?
+    fun getBricks(digit: Int): List<B>?
 
     /**
      * Returns the default brick model.
@@ -160,7 +160,7 @@ interface NumberComposer<T : Brick<T>> {
      * @return The default brick model used as a placeholder representation or `null` if composer
      *   is uninitialized
      */
-    fun getDefaultBricks(): List<T>?
+    fun getDefaultBricks(): List<B>?
 
     /**
      * Releases all resources and resets the composer to an uninitialized state.
@@ -198,11 +198,11 @@ interface NumberComposer<T : Brick<T>> {
  * @property geometryProps Defines the shared geometry configuration
  * @property digitBuilder Defines the builder used to construct brick model for a digit
  */
-class DefaultNumberComposer<T : Brick<T>>(
+class DefaultNumberComposer<B : Brick<B>>(
     override val digitGridSpec: GridSpec,
     override val geometryProps: GeometryProps,
-    override val digitBuilder: DigitBuilder<T>,
-) : NumberComposer<T> {
+    override val digitBuilder: DigitBuilder<B>,
+) : NumberComposer<B> {
 
     private var isInitialized = false
 
@@ -212,8 +212,8 @@ class DefaultNumberComposer<T : Brick<T>>(
     private var digitSlotCount = 0
 
     // Brick model cache: digit -> brick model
-    private val digitBricksCache: MutableIntObjectMap<List<T>> = mutableIntObjectMapOf()
-    private var defaultBricks: List<T>? = null
+    private val digitBricksCache: MutableIntObjectMap<List<B>> = mutableIntObjectMapOf()
+    private var defaultBricks: List<B>? = null
 
     private val _currentNumber = mutableStateOf<Int?>(null)
     override val currentNumber: Int
@@ -338,12 +338,12 @@ class DefaultNumberComposer<T : Brick<T>>(
         return digitSlotList[index]
     }
 
-    override fun getBricks(digit: Int): List<T>? {
+    override fun getBricks(digit: Int): List<B>? {
         require(digit in 0..9) { "Digit must be in range 0-9" }
         return if (isInitialized) digitBricksCache[digit] else null
     }
 
-    override fun getDefaultBricks(): List<T>? {
+    override fun getDefaultBricks(): List<B>? {
         return if (isInitialized) {
             defaultBricks ?: digitBuilder.buildDefaultBricks().also { defaultBricks = it }
         } else {

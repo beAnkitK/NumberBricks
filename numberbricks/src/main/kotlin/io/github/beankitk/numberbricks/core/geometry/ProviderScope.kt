@@ -9,7 +9,7 @@ import androidx.collection.MutableScatterMap
  *
  * A [ProviderScope] is created and owned by [DigitBuilder] for each digit during geometry
  * construction. It represents a short-lived, per-digit environment where all registered
- * [GeometryProvider]s are executed to compute their data.
+ * [GeometryProvider]s are executed to compute their result.
  *
  * Within this scope, providers can coordinate and communicate with each other by:
  * - Accessing the current [digit] they are computing for
@@ -45,9 +45,9 @@ interface ProviderScope {
      * This is mainly useful for defensive checks. In a correctly ordered execution, required
      * results should already be available when accessed.
      *
-     * @param R The type of data produced by the provider
+     * @param R The provider result type
      */
-    fun <R> hasResult(providerKey: ProviderKey<R>): Boolean
+    fun <R : Any> hasResult(providerKey: ProviderKey<R>): Boolean
 
     /**
      * Returns the result produced by the provider for the given [providerKey].
@@ -61,11 +61,11 @@ interface ProviderScope {
      * - If the result is accessed before the provider has executed, this will throw an
      *   [IllegalStateException].
      *
-     * @param R The type of data produced by the provider
+     * @param R The provider result type
      * @return A list of values aligned with the digit's brick structure
      * @throws IllegalStateException if no result is found for the given key
      */
-    fun <R> resultOf(providerKey: ProviderKey<R>): List<R>
+    fun <R : Any> resultOf(providerKey: ProviderKey<R>): List<R>
 
     /**
      * Returns `true` if a metadata value for the given [meta] has been explicitly provided in this
@@ -76,7 +76,7 @@ interface ProviderScope {
      *
      * @param M The type of metadata
      */
-    fun <M> hasMeta(meta: Meta<out GeometryProvider<*>, M>): Boolean
+    fun <M> hasMeta(meta: Meta<*, M>): Boolean
 
     /**
      * Returns the metadata value associated with the given [meta], or `null` if no value has been
@@ -92,7 +92,7 @@ interface ProviderScope {
      *
      * @param M The type of metadata
      */
-    fun <M> metaOf(meta: Meta<out GeometryProvider<*>, M>): M?
+    fun <M> metaOf(meta: Meta<*, M>): M?
 
     /**
      * Publishes meta defined by this provider to the current [ProviderScope] so other providers can
@@ -138,17 +138,17 @@ interface MutableProviderScope : ProviderScope {
      * The [providerResult] must have elements aligned with the total number of bricks defined by
      * the [DigitBuilder]'s grid spec.
      *
-     * @param R The type of data produced by the provider
+     * @param R The provider result type
      */
-    fun <R> commitResult(providerKey: ProviderKey<R>, providerResult: List<R>)
+    fun <R : Any> commitResult(providerKey: ProviderKey<R>, providerResult: List<R>)
 
     /**
      * Removes and returns the result associated with the given [providerKey], if present in this
      * scope.
      *
-     * @param R The type of data produced by the provider
+     * @param R The provider result type
      */
-    fun <R> removeResult(providerKey: ProviderKey<R>): List<R>?
+    fun <R : Any> removeResult(providerKey: ProviderKey<R>): List<R>?
 
     /**
      * Attaches a metadata for the given [meta] to this scope.
@@ -157,7 +157,7 @@ interface MutableProviderScope : ProviderScope {
      * any previously stored value for the same [meta] within this scope.
      *
      * @param P The provider that owns the metadata being attached
-     * @param M The type of the metadata
+     * @param M The type of metadata
      */
     fun <P : GeometryProvider<*>, M> attachMeta(meta: Meta<P, M>, value: M)
 
@@ -168,7 +168,7 @@ interface MutableProviderScope : ProviderScope {
 /**
  * Factory function that creates a default [ProviderScope] implementation for the given [digit].
  *
- * @returns a new [DefaultProviderScope] instance, which acts as the mutable scope
+ * @return a new [DefaultProviderScope] instance, which acts as the mutable scope
  */
 @Suppress("NOTHING_TO_INLINE")
 inline fun ProviderScope(digit: Int): DefaultProviderScope = DefaultProviderScope(digit)
@@ -187,9 +187,9 @@ class DefaultProviderScope(override val digit: Int) : MutableProviderScope, Auto
     private var cachedMetaScope: MetaScope<Nothing>? = null
 
     /** Executes provider with the [provider] set as current context. */
-    internal inline fun <P> withProvider(
-        provider: GeometryProvider<P>,
-        block: GeometryProvider<P>.() -> Unit,
+    internal inline fun <R : Any> withProvider(
+        provider: GeometryProvider<R>,
+        block: GeometryProvider<R>.() -> Unit,
     ) {
         currentProvider = provider
         try {
@@ -199,33 +199,33 @@ class DefaultProviderScope(override val digit: Int) : MutableProviderScope, Auto
         }
     }
 
-    override fun <R> hasResult(providerKey: ProviderKey<R>): Boolean {
+    override fun <R : Any> hasResult(providerKey: ProviderKey<R>): Boolean {
         return resultStore.contains(providerKey)
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <R> resultOf(providerKey: ProviderKey<R>): List<R> {
+    override fun <R : Any> resultOf(providerKey: ProviderKey<R>): List<R> {
         return resultStore[providerKey] as? List<R>
             ?: error(
                 "Result for $providerKey not found. Ensure the provider is registered and dependencies are correctly declared."
             )
     }
 
-    override fun <R> commitResult(providerKey: ProviderKey<R>, providerResult: List<R>) {
+    override fun <R : Any> commitResult(providerKey: ProviderKey<R>, providerResult: List<R>) {
         resultStore[providerKey] = providerResult
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <R> removeResult(providerKey: ProviderKey<R>): List<R>? {
+    override fun <R : Any> removeResult(providerKey: ProviderKey<R>): List<R>? {
         return resultStore.remove(providerKey) as? List<R>
     }
 
-    override fun <M> hasMeta(meta: Meta<out GeometryProvider<*>, M>): Boolean {
+    override fun <M> hasMeta(meta: Meta<*, M>): Boolean {
         return metaStore.contains(meta)
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <M> metaOf(meta: Meta<out GeometryProvider<*>, M>): M? {
+    override fun <M> metaOf(meta: Meta<*, M>): M? {
         return metaStore[meta] as? M
     }
 
