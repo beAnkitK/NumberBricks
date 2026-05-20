@@ -39,15 +39,10 @@ class BlockDigitBuilder(
     private val cornersProvider: CornersProvider,
 ) : BaseDigitBuilder<Block>() {
 
-    override fun bindProviders(): List<GeometryProvider<*>> =
-        buildProviders {
-            register(positionProvider)
-            register(offsetProvider)
-            register(sizeProvider)
-            register(cornersProvider)
-        }
+    override val providers: List<GeometryProvider<*>>
+        get() = listOf(positionProvider, offsetProvider, sizeProvider, cornersProvider)
 
-    protected override fun ProviderScope.assembleBricks(): List<Block> {
+    override fun ProviderScope.assembleBricks(): List<Block> {
         val positions = resultOf<Position>(positionProvider.key)
         val offsets = resultOf<Offset>(offsetProvider.key)
         val sizes = resultOf<Size>(sizeProvider.key)
@@ -64,7 +59,7 @@ class BlockDigitBuilder(
         }
     }
 
-    protected override fun assembleDefaultBricks(): List<Block> {
+    override fun assembleDefaultBricks(): List<Block> {
         return List(digitGridSpec.brickCount) { index ->
             Block(
                 index = index,

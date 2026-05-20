@@ -1,8 +1,7 @@
 package io.github.beankitk.numberbricks.core.geometry
 
-import androidx.collection.ObjectList
-import androidx.collection.MutableObjectList
 import androidx.collection.MutableScatterMap
+import androidx.collection.ScatterMap
 
 /**
  * Defines the contract for constructing digit geometry as a collection of [Brick]s.
@@ -16,8 +15,8 @@ import androidx.collection.MutableScatterMap
  * execution is resolved based on declared dependencies.
  *
  * Before building bricks, the builder must be initialized using [construct]. This prepares the
- * builder by registering providers via [bindProviders], resolving their dependencies, and attaching
- * configuration to each provider.
+ * builder by registering declared providers, checking their compatibility, resolving their
+ * dependencies, and attaching configuration to each provider.
  *
  * Once constructed, [buildBricks] returns the brick model for a given digit by executing providers
  * in dependency order and combining their results. [buildDefaultBricks] returns a default brick
@@ -35,36 +34,33 @@ import androidx.collection.MutableScatterMap
 interface DigitBuilder<B : Brick<B>> {
 
     /**
+     * Defines the geometry providers used by this builder to construct digit brick models.
+     *
+     * Implementations must include every provider required for geometry composition. The order in
+     * which providers are declared does not matter; provider dependencies are resolved when the
+     * builder is constructed.
+     */
+    val providers: List<GeometryProvider<*>>
+
+    /**
      * Initializes the builder with the given grid constraints and geometry properties.
      *
      * This method must be called before building bricks. It prepares the builder for execution by:
-     * - Registering providers via [bindProviders]
+     * - Validating providers declared for this builder
      * - Resolving provider dependencies and execution order
      * - Attaching configuration to all providers
      *
      * @param digitGridSpec Defines the grid constraints for the digit
      * @param geometryProps Defines shared geometry configuration
      * @throws IllegalStateException if already constructed
+     * @throws IllegalStateException if any provider is incompatible or has a duplicate key
      */
     fun construct(digitGridSpec: GridSpec, geometryProps: GeometryProps)
 
     /**
-     * Registers and returns all [GeometryProvider]s required for digit construction.
-     *
-     * This method is invoked during [construct]. Implementations are expected to register providers
-     * using the implementation-specific registration mechanism and return the resulting providers as
-     * a list.
-     *
-     * The registration order does not affect execution, as dependencies are resolved automatically.
-     *
-     * @return A list containing all registered [GeometryProvider] instances required for digit construction.
-     */
-    fun bindProviders(): List<GeometryProvider<*>>
-
-    /**
      * Builds the brick model for the given digit.
      *
-     * This executes all registered providers in dependency order and assembles their outputs to
+     * This executes all declared providers in dependency order and assembles their outputs to
      * produce the final brick model for the [digit].
      *
      * @param digit The digit to construct (`0..9`) or `-1` for default state
@@ -101,20 +97,18 @@ interface DigitBuilder<B : Brick<B>> {
  *
  * This class handles:
  * - Builder lifecycle (construction, execution, destruction)
- * - Provider registration and validation
- * - Dependency resolution and execution ordering
+ * - Provider validation, dependency resolution, and lifecycle management
  * - Provider execution and result aggregation
  *
  * Subclasses are responsible for:
- * 1. registering all providers using [buildProviders] during [bindProviders]
- * 2. assembling the final bricks by implementing:
+ * 1. Providing the geometry providers used by the builder through [providers]
+ * 2. Assembling the final bricks by implementing:
  *     - [assembleBricks]
  *     - [assembleDefaultBricks]
  *
  * ### Lifecycle
  *
  * 1. **Construction** via [construct]
- *     - Calls [bindProviders] to register providers
  *     - Validates provider compatibility with current [GridSpec]
  *     - Computes execution order based on dependencies
  *     - Attaches [GridSpec] and [GeometryProps] to all providers
@@ -127,7 +121,8 @@ interface DigitBuilder<B : Brick<B>> {
  *     - Delegates directly to [assembleDefaultBricks] for default bricks
  *
  * 3. **Destruction** via [destroy]
- *     - Clears provider registry and execution state
+ *     - Detaches all resolved providers
+ *     - Clears the resolved provider list and construction state
  *
  * Providers are executed in dependency order and validated for cyclic dependencies, if found,
  * result in a failure during construction.
@@ -139,10 +134,9 @@ interface DigitBuilder<B : Brick<B>> {
 abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
 
     private var isConstructed = false
-    private var providersRegistry: List<GeometryProvider<*>> = emptyList()
-
     private var _digitGridSpec: GridSpec? = null
     private var _geometryProps: GeometryProps? = null
+    private var resolvedProviders: List<GeometryProvider<*>> = emptyList()
 
     /**
      * Represents the grid constraints used to construct each digit, inherited from [NumberComposer].
@@ -165,15 +159,15 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
         try {
             _digitGridSpec = digitGridSpec
             _geometryProps = geometryProps
-            providersRegistry = bindProviders()
+            resolvedProviders = resolveProviders()
+            resolvedProviders.forEach { it.attach(digitGridSpec, geometryProps) }
         } catch (throwable: Throwable) {
             _digitGridSpec = null
             _geometryProps = null
-            providersRegistry = emptyList()
+            resolvedProviders = emptyList()
             throw throwable
         }
 
-        providersRegistry.forEach { it.attach(digitGridSpec, geometryProps) }
         isConstructed = true
         onConstructed()
     }
@@ -185,7 +179,7 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
         }
 
         return ProviderScope(digit).use { providerScope ->
-            providersRegistry.forEach { provider -> executeProvider(provider, providerScope) }
+            resolvedProviders.forEach { provider -> executeProvider(provider, providerScope) }
             providerScope.assembleBricks()
         }
     }
@@ -197,31 +191,12 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
 
     final override fun destroy() {
         checkConstructed()
+        resolvedProviders.forEach { it.detach() }
+        resolvedProviders = emptyList()
         _digitGridSpec = null
         _geometryProps = null
-        providersRegistry.forEach { it.detach() }
-        providersRegistry = emptyList()
         isConstructed = false
         onDestroyed()
-    }
-
-    /**
-     * Builds the [GeometryProvider] list used by [BaseDigitBuilder] for geometry composition.
-     *
-     * Providers must be registered through [ProviderRegistrar.register] within the
-     * supplied [block]. The resulting list is returned in dependency-resolved order
-     * and is used during geometry composition.
-     *
-     * @param block Scope used to register [GeometryProvider] instances for this builder.
-     * @return A list of registered [GeometryProvider] instances in dependency-resolved order.
-     * @see bindProviders
-     */
-    protected inline fun buildProviders(
-        block: ProviderRegistrar.() -> Unit,
-    ): List<GeometryProvider<*>> {
-        val registry = ProviderRegistry(digitGridSpec)
-        registry.block()
-        return registry.providerRegistry
     }
 
     /**
@@ -231,28 +206,6 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
      * @see construct
      */
     protected open fun onConstructed() {}
-
-    /**
-     * Registers and returns all [GeometryProvider]s required for digit construction.
-     *
-     * Implementations should register providers using [buildProviders] and return
-     * the resulting list. Registration order does not affect execution, as
-     * dependencies are automatically resolved in the returned list.
-     *
-     * Usage:
-     * ```
-     * override fun bindProviders(): List<GeometryProvider<*>> {
-     *     return buildProviders {
-     *         register(SomeProvider)
-     *         register(AnotherProvider)
-     *     }
-     * }
-     * ```
-     *
-     * @return A dependency-resolved list of registered [GeometryProvider]
-     * instances required for digit construction.
-     */
-    abstract override fun bindProviders(): List<GeometryProvider<*>>
 
     /**
      * Assembles the final list of bricks from provider results.
@@ -283,6 +236,36 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
     */
     protected open fun onDestroyed() {}
 
+    private fun resolveProviders(): List<GeometryProvider<*>> {
+        val declaredProviders = providers.toList()
+        val providerCount = declaredProviders.size
+        if (providerCount == 0) return emptyList()
+
+        val providersByKey = MutableScatterMap<ProviderKey<*>, GeometryProvider<*>>(providerCount)
+        var hasDependencies = false
+
+        for (provider in declaredProviders) {
+            val key = provider.key
+
+            check(!providersByKey.contains(key)) {
+                "Cannot register provider '$key': key already registered"
+            }
+
+            val consent = provider.matches(digitGridSpec)
+            if (consent.hasRejected()) {
+                error(consent.getRejectionReason()
+                    ?: "Cannot register provider '$key': incompatible with this DigitBuilder"
+                )
+            }
+
+            providersByKey[provider.key] = provider
+            if (provider.dependsOn.isNotEmpty()) hasDependencies = true
+        }
+
+        if (!hasDependencies) return declaredProviders
+        return computeExecutionOrder(providerCount, providersByKey)
+    }
+
     private fun <R : Any> executeProvider(
         provider: GeometryProvider<R>,
         providerScope: DefaultProviderScope,
@@ -296,114 +279,40 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
         }
     }
 
-    private fun checkConstructed() {
-        check(isConstructed) { "DigitBuilder not constructed. Call construct() first." }
-    }
-}
-
-/**
- * Contract for registering [GeometryProvider] instances used during geometry composition.
- *
- * Used by [BaseDigitBuilder] to define the provider registration mechanism.
- *
- * @see BaseDigitBuilder.buildProviders
- */
-interface ProviderRegistrar {
-
-    /**
-     * Registers a [GeometryProvider] for the current builder context.
-     *
-     * The provider must be unique for its geometry key and compatible with the
-     * active [GridSpec].
-     *
-     * @param provider The provider to register.
-     * @throws IllegalStateException If a provider with the same key is already registered.
-     * @throws IllegalStateException If the provider is incompatible with the active [GridSpec].
-     * @see BaseDigitBuilder.buildProviders
-     */
-    fun <R : Any> register(provider: GeometryProvider<R>)
-}
-
-@PublishedApi
-internal class ProviderRegistry(private val gridSpec: GridSpec) : ProviderRegistrar {
-
-    private val providers = MutableObjectList<GeometryProvider<*>>(5)
-    private var resolved = false
-
-    val providerRegistry: List<GeometryProvider<*>>
-        get() {
-            if (!resolved) {
-                var hasDependencies = false
-                for (i in 0 until providers.size) {
-                    if(providers[i].dependsOn.isNotEmpty()) {
-                        hasDependencies = true
-                        break
-                    }
-                }
-
-                if (!hasDependencies) {
-                    resolved = true
-                } else {
-                    val orderedProvider = computeExecutionOrder(providers)
-                    providers.clear()
-                    providers.addAll(orderedProvider)
-                    resolved = true
-                }
-            }
-
-            return List<GeometryProvider<*>>(providers.size) { index -> providers[index] }
-        }
-
-    override fun <R : Any> register(provider: GeometryProvider<R>) {
-        check(!resolved) { "Cannot register providers after execution order is resolved" }
-        providers.forEach {
-            check(it.key != provider.key) { "Provider with key '${provider.key}' is already registered" }
-        }
-        val providerConsent = provider.matches(gridSpec)
-        if (providerConsent.hasRejected()) {
-            error(providerConsent.getRejectionReason()
-                ?: "Provider '${provider.key}' is incompatible with the current DigitBuilder")
-        }
-        providers.add(provider)
-    }
-
-    /**
-     * Computes the execution order of registered providers by resolving dependencies using depth
-     * first traversal and fails with [IllegalStateException] when cyclic dependencies are detected.
-     */
     private fun computeExecutionOrder(
-        providers: ObjectList<GeometryProvider<*>>
-    ): ObjectList<GeometryProvider<*>> {
-        val size = providers.size
-        val providersByKey = MutableScatterMap<ProviderKey<*>, GeometryProvider<*>>(size)
-        providers.forEach { providersByKey.put(it.key, it) }
+        providerCount: Int,
+        providersByKey: ScatterMap<ProviderKey<*>, GeometryProvider<*>>,
+    ): List<GeometryProvider<*>> {
+        val visitStateByKey = MutableScatterMap<ProviderKey<*>, VisitState>(providerCount)
+        val orderedProviders = ArrayList<GeometryProvider<*>>(providerCount)
 
-        val providerVisitState = MutableScatterMap<ProviderKey<*>, VisitState>(size)
-        val orderedProvider = MutableObjectList<GeometryProvider<*>>(size)
-
-        fun dfs(key: ProviderKey<*>) {
-            when (providerVisitState[key]) {
+        fun visit(key: ProviderKey<*>) {
+            when (visitStateByKey[key]) {
                 VisitState.VISITING ->
-                    error("Failed due to cyclic provider dependency detected at $key")
+                    error("Cyclic provider dependency detected at '$key'")
                 VisitState.VISITED -> return
                 else -> {
                     /* continue */
                 }
             }
 
-            providerVisitState[key] = VisitState.VISITING
+            visitStateByKey[key] = VisitState.VISITING
             val provider = providersByKey[key] ?: error("Unknown provider with key: $key found")
-            provider.dependsOn.forEach { depKey -> dfs(depKey) }
-            providerVisitState[key] = VisitState.VISITED
-            orderedProvider.add(provider)
+            provider.dependsOn.forEach { depKey -> visit(depKey) }
+            visitStateByKey[key] = VisitState.VISITED
+            orderedProviders.add(provider)
         }
 
-        providersByKey.forEachKey { if (providerVisitState[it] == null) dfs(it) }
-        return orderedProvider
+        providersByKey.forEachKey { if (visitStateByKey[it] == null) visit(it) }
+        return orderedProviders
     }
 
     private enum class VisitState {
         VISITING,
         VISITED,
+    }
+
+    private fun checkConstructed() {
+        check(isConstructed) { "DigitBuilder not constructed. Call construct() first." }
     }
 }
