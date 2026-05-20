@@ -192,7 +192,7 @@ interface NumberComposer<B : Brick<B>> {
  * 1. Call [initiate] to construct the builder and prepare state
  * 2. Call [updateNumber] to update digits
  * 3. Query digit slots and bricks as needed
- * 4. Call [dispose] to release resources and destruct the builder
+ * 4. Call [dispose] to release resources and destroy the builder
  *
  * @property digitGridSpec Defines the grid constraints used for digit geometry composition
  * @property geometryProps Defines the shared geometry configuration
@@ -234,7 +234,7 @@ class DefaultNumberComposer<B : Brick<B>>(
             defaultBricks = digitBuilder.buildDefaultBricks()
             applyNumberChange(normalizeNumber(initialNumber))
         } catch (throwable: Throwable) {
-            digitBuilder.destruct()
+            digitBuilder.destroy()
             defaultBricks = null
             throw throwable
         }
@@ -361,7 +361,7 @@ class DefaultNumberComposer<B : Brick<B>>(
         digitSlotCount = 0
         _previousNumber.value = null
         _currentNumber.value = null
-        digitBuilder.destruct()
+        digitBuilder.destroy()
         isInitialized = false
     }
 

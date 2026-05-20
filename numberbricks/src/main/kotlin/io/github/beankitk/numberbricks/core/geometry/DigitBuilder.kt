@@ -24,7 +24,7 @@ import androidx.collection.MutableScatterMap
  * model that can be used as a placeholder model for initial or fallback state.
  *
  * The builder does not retain digit-specific state and can be reused across multiple digits after
- * construction. Calling [destruct] resets the builder to an uninitialized state.
+ * construction. Calling [destroy] resets the builder to an uninitialized state.
  *
  * @param B The concrete [Brick] type produced by this builder
  * @see BaseDigitBuilder
@@ -92,7 +92,7 @@ interface DigitBuilder<B : Brick<B>> {
      *
      * @throws IllegalStateException if the builder is not constructed
      */
-    fun destruct()
+    fun destroy()
 }
 
 /**
@@ -126,7 +126,7 @@ interface DigitBuilder<B : Brick<B>> {
  *     - Delegates to [assembleBricks] for final assembly
  *     - Delegates directly to [assembleDefaultBricks] for default bricks
  *
- * 3. **Destruction** via [destruct]
+ * 3. **Destruction** via [destroy]
  *     - Clears provider registry and execution state
  *
  * Providers are executed in dependency order and validated for cyclic dependencies, if found,
@@ -156,26 +156,11 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
      * Represents shared geometry configuration used across all digits, inherited from [NumberComposer].
      *
      * @throws IllegalStateException If accessed before [construct] is called
-    */
+     */
     protected val geometryProps: GeometryProps
         get() = checkNotNull(_geometryProps) { "DigitBuilder not constructed. Call construct() first." }
 
-    /**
-     * Initializes the builder with the given grid constraints and geometry properties.
-     *
-     * This method must be called before building bricks. It prepares the builder for execution by:
-     * - Registering providers via [bindProviders]
-     * - Resolving provider dependencies and execution order
-     * - Attaching configuration to all providers
-     *
-     * Subclasses may override this method to perform additional setup. Implementations must call
-     * `super.construct(...)` as the first operation before accessing any builder state.
-     *
-     * @param digitGridSpec Defines the grid constraints for the digit
-     * @param geometryProps Defines shared geometry configuration
-     * @throws IllegalStateException if already constructed
-     */
-    override fun construct(digitGridSpec: GridSpec, geometryProps: GeometryProps) {
+    final override fun construct(digitGridSpec: GridSpec, geometryProps: GeometryProps) {
         check(!isConstructed) { "DigitBuilder already constructed" }
         try {
             _digitGridSpec = digitGridSpec
@@ -190,6 +175,7 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
 
         providersRegistry.forEach { it.attach(digitGridSpec, geometryProps) }
         isConstructed = true
+        onConstructed()
     }
 
     final override fun buildBricks(digit: Int): List<B> {
@@ -209,22 +195,14 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
         return assembleDefaultBricks()
     }
 
-    /**
-     * Resets the builder to an unconstructed state and releases internal resources. After calling
-     * this, [construct] must be invoked again before builder can be reused.
-     *
-     * Subclasses may override this method to perform additional cleanup. Any subclass cleanup must
-     * be completed before calling `super.destruct()`, which must be invoked as the final operation.
-     *
-     * @throws IllegalStateException if the builder is not constructed
-     */
-    override fun destruct() {
+    final override fun destroy() {
         checkConstructed()
         _digitGridSpec = null
         _geometryProps = null
         providersRegistry.forEach { it.detach() }
         providersRegistry = emptyList()
         isConstructed = false
+        onDestroyed()
     }
 
     /**
@@ -245,6 +223,14 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
         registry.block()
         return registry.providerRegistry
     }
+
+    /**
+     * Called after the builder has been successfully constructed and all providers have been
+     * attached. Override to perform additional initialization.
+     *
+     * @see construct
+     */
+    protected open fun onConstructed() {}
 
     /**
      * Registers and returns all [GeometryProvider]s required for digit construction.
@@ -288,6 +274,14 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
      * @return An ordered list of default bricks
      */
     protected abstract fun assembleDefaultBricks(): List<B>
+
+   /**
+    * Called after the builder has been successfully destroyed and all providers have been
+    * detached. Override this method to release additional resources.
+    *
+    * @see destroy
+    */
+    protected open fun onDestroyed() {}
 
     private fun <R : Any> executeProvider(
         provider: GeometryProvider<R>,
