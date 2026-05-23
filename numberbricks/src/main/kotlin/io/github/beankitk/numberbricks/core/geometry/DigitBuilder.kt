@@ -241,14 +241,20 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
         val providerCount = declaredProviders.size
         if (providerCount == 0) return emptyList()
 
-        val providersByKey = MutableScatterMap<ProviderKey<*>, GeometryProvider<*>>(providerCount)
+        // Contains both provider keys and family keys, each resolving to its provider.
+        val providersByKey = MutableScatterMap<ProviderKey<*>, GeometryProvider<*>>(providerCount * 2)
         var hasDependencies = false
 
         for (provider in declaredProviders) {
             val key = provider.key
+            val familyKey = key.family
 
             check(!providersByKey.contains(key)) {
                 "Cannot register provider '$key': key already registered"
+            }
+
+            check(!providersByKey.contains(familyKey)) {
+                "Cannot register provider '$key': another provider already registered for family '$familyKey'"
             }
 
             val consent = provider.matches(digitGridSpec)
@@ -258,12 +264,14 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
                 )
             }
 
-            providersByKey[provider.key] = provider
+            providersByKey[key] = provider
+            providersByKey[familyKey] = provider
+
             if (provider.dependsOn.isNotEmpty()) hasDependencies = true
         }
 
         if (!hasDependencies) return declaredProviders
-        return computeExecutionOrder(providerCount, providersByKey)
+        return computeExecutionOrder(providerCount, declaredProviders, providersByKey)
     }
 
     private fun <R : Any> executeProvider(
@@ -281,12 +289,14 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
 
     private fun computeExecutionOrder(
         providerCount: Int,
+        providers: List<GeometryProvider<*>>,
         providersByKey: ScatterMap<ProviderKey<*>, GeometryProvider<*>>,
     ): List<GeometryProvider<*>> {
         val visitStateByKey = MutableScatterMap<ProviderKey<*>, VisitState>(providerCount)
         val orderedProviders = ArrayList<GeometryProvider<*>>(providerCount)
 
-        fun visit(key: ProviderKey<*>) {
+        fun visit(provider: GeometryProvider<*>) {
+            val key = provider.key
             when (visitStateByKey[key]) {
                 VisitState.VISITING ->
                     error("Cyclic provider dependency detected at '$key'")
@@ -297,13 +307,14 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
             }
 
             visitStateByKey[key] = VisitState.VISITING
-            val provider = providersByKey[key] ?: error("Unknown provider with key: $key found")
-            provider.dependsOn.forEach { depKey -> visit(depKey) }
+            provider.dependsOn.forEach { dependency ->
+                providersByKey[dependency]?.let(::visit)
+            }
             visitStateByKey[key] = VisitState.VISITED
             orderedProviders.add(provider)
         }
 
-        providersByKey.forEachKey { if (visitStateByKey[it] == null) visit(it) }
+        providers.forEach { if (visitStateByKey[it.key] == null) visit(it) }
         return orderedProviders
     }
 

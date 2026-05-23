@@ -26,7 +26,7 @@ import io.github.beankitk.numberbricks.data.DigitData
  */
 sealed class PositionProvider : BaseGeometryProvider<Position>() {
 
-    final override val key = PositionProvider.key
+    abstract override val key: PositionProvider.Key
 
     /**
      * Base class for [PositionProvider]s that operate on a predefined grid.
@@ -44,9 +44,15 @@ sealed class PositionProvider : BaseGeometryProvider<Position>() {
         final override val providerGridPolicy = AdaptiveGridPolicy
     }
 
-    companion object {
-        /** The [ProviderKey] for [PositionProvider]. */
-        val key = ProviderKey<Position>("provider.position.base")
+    /**
+     * Defines the key type for [PositionProvider]s and the family key for the [PositionProvider]
+     * family.
+     */
+    interface Key : ProviderKey<Position> {
+        override val family: PositionProvider.Key
+            get() = PositionProvider.Key
+
+        companion object : PositionProvider.Key
     }
 }
 

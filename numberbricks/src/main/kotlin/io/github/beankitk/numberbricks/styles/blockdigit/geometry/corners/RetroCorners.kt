@@ -38,6 +38,9 @@ open class RetroCorners(
         cornerShape: CornerShape = CornerShape.Round,
     ) : this(CornerStyle(outerRadius, cornerShape), CornerStyle(singleOuterRadius, cornerShape))
 
+    final override val key: CornersProvider.Key
+        get() = RetroCorners.Key
+
     final override val edgeCornerStyle = CornerStyle.None
     final override val outerCornerStyle = outerCornerStyle
     final override val cornerNeighborCornerStyle = CornerStyle.None
@@ -84,5 +87,10 @@ open class RetroCorners(
 
     private val outerToSingleCornerStyle: (CornerStyle) -> CornerStyle = {
         if (it == outerCornerStyle) singleOuterCornerStyle else it
+    }
+
+    /** Key identifying the [RetroCorners] provider within the [CornersProvider] family. */
+    object Key : CornersProvider.Key {
+        override fun toString(): String = "RetroCorners"
     }
 }

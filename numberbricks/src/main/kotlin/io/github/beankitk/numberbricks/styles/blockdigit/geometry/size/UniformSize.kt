@@ -31,6 +31,9 @@ class UniformSize(private val size: Size) : SizeProvider.Adaptive() {
     // Safe without synchronization because providers are evaluated sequentially.
     private var cachedSize: List<Size>? = null
 
+    override val key: SizeProvider.Key
+        get() = UniformSize.Key
+
     override val dependsOn = emptySet<ProviderKey<*>>()
 
     override fun ProviderScope.provideData(): List<Size> {
@@ -40,5 +43,10 @@ class UniformSize(private val size: Size) : SizeProvider.Adaptive() {
     companion object {
         /** Creates a [UniformSize] provider that provides zero size for all blocks. */
         fun zero() = UniformSize(Size.Zero)
+    }
+
+    /** Key identifying the [UniformSize] provider within the [SizeProvider] family. */
+    object Key : SizeProvider.Key {
+        override fun toString(): String = "UniformSize"
     }
 }

@@ -42,10 +42,13 @@ class GridOffset(
         ((digit: Int, position: Position, baseOffset: Offset) -> Offset)? = null
 ) : OffsetProvider.Adaptive() {
 
-    override val dependsOn: Set<ProviderKey<*>> = setOf(PositionProvider.key, SizeProvider.key)
+    override val key: OffsetProvider.Key
+        get() = GridOffset.Key
+
+    override val dependsOn: Set<ProviderKey<*>> = setOf(PositionProvider.Key, VariableSize.Key)
 
     override fun ProviderScope.provideData(): List<Offset> {
-        val positions = resultOf<Position>(PositionProvider.key)
+        val positions = resultOf<Position>(PositionProvider.Key)
         val eachColWidth = metaOf<FloatArray>(Meta.ColWidths)
         val eachRowHeight = metaOf<FloatArray>(Meta.RowHeights)
 
@@ -76,5 +79,10 @@ class GridOffset(
             cumulative += dimens[idx]
             element
         }
+    }
+
+    /** Key identifying the [GridOffset] provider within the [OffsetProvider] family. */
+    object Key : OffsetProvider.Key {
+        override fun toString(): String = "DirectOffset"
     }
 }

@@ -79,7 +79,10 @@ class VariableSize(
     private lateinit var normalizedColWidths: FloatArray
     private lateinit var normalizedRowHeights: FloatArray
 
-    override val dependsOn: Set<ProviderKey<*>> = setOf(PositionProvider.key)
+    override val key: SizeProvider.Key
+        get() = VariableSize.Key
+
+    override val dependsOn: Set<ProviderKey<*>> = setOf(PositionProvider.Key)
 
     override fun doMatch(digitGridSpec: GridSpec): Consent {
         if (eachColWidth.size != digitGridSpec.cols) {
@@ -120,7 +123,7 @@ class VariableSize(
     }
 
     override fun ProviderScope.provideData(): List<Size> {
-        val positions = resultOf<Position>(PositionProvider.key)
+        val positions = resultOf<Position>(PositionProvider.Key)
         var colWidths = normalizedColWidths
         var rowHeights = normalizedRowHeights
 
@@ -152,6 +155,11 @@ class VariableSize(
 
         /** Normalized heights for each row used during size computation. */
         val RowHeights = defineMeta<FloatArray> { FloatArray(5) { 1f } }
+    }
+
+    /** Key identifying the [VariableSize] provider within the [SizeProvider] family. */
+    object Key : SizeProvider.Key {
+        override fun toString(): String = "VariableSize"
     }
 }
 

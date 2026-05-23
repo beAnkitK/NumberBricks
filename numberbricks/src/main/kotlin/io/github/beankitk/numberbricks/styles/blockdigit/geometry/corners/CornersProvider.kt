@@ -35,7 +35,7 @@ import io.github.beankitk.numberbricks.utils.getCornerProfile
  */
 sealed class CornersProvider : BaseGeometryProvider<RectCorners>() {
 
-    final override val key = CornersProvider.key
+    abstract override val key: CornersProvider.Key
 
     /**
      * Base class for [CornersProvider]s that operate on a predefined grid.
@@ -53,9 +53,15 @@ sealed class CornersProvider : BaseGeometryProvider<RectCorners>() {
         final override val providerGridPolicy = AdaptiveGridPolicy
     }
 
-    companion object {
-        /** The [ProviderKey] for [CornersProvider]. */
-        val key = ProviderKey<RectCorners>("provider.corners.base")
+    /**
+     * Defines the key type for [CornersProvider]s and the family key for the [CornersProvider]
+     * family.
+     */
+    interface Key : ProviderKey<RectCorners> {
+        override val family: CornersProvider.Key
+            get() = CornersProvider.Key
+
+        companion object : CornersProvider.Key
     }
 }
 
@@ -148,11 +154,11 @@ abstract class CustomCornersProvider(
  */
 abstract class AutoCornersProvider : CornersProvider.Adaptive() {
 
-    final override val dependsOn: Set<ProviderKey<*>> = setOf(OffsetProvider.key, SizeProvider.key)
+    final override val dependsOn: Set<ProviderKey<*>> = setOf(OffsetProvider.Key, SizeProvider.Key)
 
     final override fun ProviderScope.provideData(): List<RectCorners> {
-        val offsets = resultOf<Offset>(OffsetProvider.key)
-        val sizes = resultOf<Size>(SizeProvider.key)
+        val offsets = resultOf<Offset>(OffsetProvider.Key)
+        val sizes = resultOf<Size>(SizeProvider.Key)
         val rects =
             Array(providerGridSpec.brickCount) { index -> Rect(offsets[index], sizes[index]) }
 

@@ -60,6 +60,9 @@ class AbstractCorners(
         jointCornerStyle = CornerStyle(jointRadius, cornerShape),
     )
 
+    override val key: CornersProvider.Key
+        get() = AbstractCorners.Key
+
     override val edgeCornerStyle = CornerStyle.None
     override val outerCornerStyle = outerCornerStyle
     override val cornerNeighborCornerStyle = cornerNeighborCornerStyle
@@ -133,5 +136,10 @@ class AbstractCorners(
                 cornerRadius = cornerRadius,
                 cornerShape = cornerShape,
             )
+    }
+
+    /** Key identifying the [AbstractCorners] provider within the [CornersProvider] family. */
+    object Key : CornersProvider.Key {
+        override fun toString(): String = "AbstractCorners"
     }
 }

@@ -40,32 +40,30 @@ interface ProviderScope {
     val digit: Int
 
     /**
-     * Returns `true` if a result for the given [providerKey] is available in this scope.
+     * Returns whether a result for the given provider key or family key is available
+     * in this scope.
      *
-     * This is mainly useful for defensive checks. In a correctly ordered execution, required
-     * results should already be available when accessed.
-     *
-     * @param R The provider result type
+     * @param R The type of the provider result.
+     * @param key The provider key or family key identifying the result.
+     * @return `true` if a result is available for [key], `false` otherwise.
      */
-    fun <R : Any> hasResult(providerKey: ProviderKey<R>): Boolean
+    fun <R : Any> hasResult(key: ProviderKey<R>): Boolean
 
     /**
-     * Returns the result produced by the provider for the given [providerKey].
+     * Returns the result for the given provider key or family key, or throws if the
+     * result is not available in this scope.
      *
-     * The returned list contains one element per brick, aligned with the provider's grid
-     * constraints.
+     * The result is expected to be available when the provider dependency graph is
+     * correctly declared and executed by [DigitBuilder]. Accessing a result before
+     * its provider has executed, or when no result is available for the key, throws
+     * an [IllegalStateException].
      *
-     * **Important:**
-     * - The result is guaranteed to be available if the provider dependency graph is correctly
-     *   declared and executed in order by [DigitBuilder].
-     * - If the result is accessed before the provider has executed, this will throw an
-     *   [IllegalStateException].
-     *
-     * @param R The provider result type
-     * @return A list of values aligned with the digit's brick structure
-     * @throws IllegalStateException if no result is found for the given key
+     * @param R The type of the provider result.
+     * @param key The provider key or family key identifying the result.
+     * @return The provider result, with values aligned to the digit's brick structure.
+     * @throws IllegalStateException If no result is available for [key].
      */
-    fun <R : Any> resultOf(providerKey: ProviderKey<R>): List<R>
+    fun <R : Any> resultOf(key: ProviderKey<R>): List<R>
 
     /**
      * Returns `true` if a metadata value for the given [meta] has been explicitly provided in this
@@ -133,22 +131,25 @@ interface ProviderScope {
 interface MutableProviderScope : ProviderScope {
 
     /**
-     * Stores the result produced by a provider to this scope.
+     * Stores a provider's result in this scope for the given provider key or family key.
      *
-     * The [providerResult] must have elements aligned with the total number of bricks defined by
-     * the [DigitBuilder]'s grid spec.
+     * The result is stored using the provider's family key and must contain one value for each brick
+     * defined by the [NumberComposer.digitGridSpec]
      *
-     * @param R The provider result type
+     * @param R The type of the provider result.
+     * @param key The provider key or family key identifying the result.
+     * @param result The provider result, with one value for each brick.
      */
-    fun <R : Any> commitResult(providerKey: ProviderKey<R>, providerResult: List<R>)
+    fun <R : Any> commitResult(key: ProviderKey<R>, result: List<R>)
 
     /**
-     * Removes and returns the result associated with the given [providerKey], if present in this
-     * scope.
+     * Removes and returns the result for the given provider key or family key, if present in this scope.
      *
-     * @param R The provider result type
+     * @param R The type of the provider result.
+     * @param key The provider key or family key identifying the result.
+     * @return The removed provider result, or `null` if no result is available for [key].
      */
-    fun <R : Any> removeResult(providerKey: ProviderKey<R>): List<R>?
+    fun <R : Any> removeResult(key: ProviderKey<R>): List<R>?
 
     /**
      * Attaches a metadata for the given [meta] to this scope.
@@ -199,25 +200,25 @@ class DefaultProviderScope(override val digit: Int) : MutableProviderScope, Auto
         }
     }
 
-    override fun <R : Any> hasResult(providerKey: ProviderKey<R>): Boolean {
-        return resultStore.contains(providerKey)
+    override fun <R : Any> hasResult(key: ProviderKey<R>): Boolean {
+        return resultStore.contains(key.family)
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <R : Any> resultOf(providerKey: ProviderKey<R>): List<R> {
-        return resultStore[providerKey] as? List<R>
+    override fun <R : Any> resultOf(key: ProviderKey<R>): List<R> {
+        return resultStore[key.family] as? List<R>
             ?: error(
-                "Result for $providerKey not found. Ensure the provider is registered and dependencies are correctly declared."
+                "Result for $key not found. Ensure the provider is registered and dependencies are correctly declared."
             )
     }
 
-    override fun <R : Any> commitResult(providerKey: ProviderKey<R>, providerResult: List<R>) {
-        resultStore[providerKey] = providerResult
+    override fun <R : Any> commitResult(key: ProviderKey<R>, result: List<R>) {
+        resultStore[key.family] = result
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <R : Any> removeResult(providerKey: ProviderKey<R>): List<R>? {
-        return resultStore.remove(providerKey) as? List<R>
+    override fun <R : Any> removeResult(key: ProviderKey<R>): List<R>? {
+        return resultStore.remove(key.family) as? List<R>
     }
 
     override fun <M> hasMeta(meta: Meta<*, M>): Boolean {

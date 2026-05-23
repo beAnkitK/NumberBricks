@@ -32,6 +32,9 @@ class UniformOffset(private val offset: Offset) : OffsetProvider.Adaptive() {
     // Safe without synchronization because providers are evaluated sequentially.
     private var cachedOffsets: List<Offset>? = null
 
+    override val key: OffsetProvider.Key
+        get() = UniformOffset.Key
+
     override val dependsOn = emptySet<ProviderKey<*>>()
 
     override fun ProviderScope.provideData(): List<Offset> {
@@ -41,5 +44,10 @@ class UniformOffset(private val offset: Offset) : OffsetProvider.Adaptive() {
     companion object {
         /** Creates a [UniformOffset] provider that provides zero offset for all blocks. */
         fun zero() = UniformOffset(Offset.Zero)
+    }
+
+    /** Key identifying the [UniformOffset] provider within the [OffsetProvider] family. */
+    object Key : OffsetProvider.Key {
+        override fun toString(): String = "UniformOffset"
     }
 }

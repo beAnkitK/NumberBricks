@@ -30,6 +30,9 @@ class UniformPosition(private val position: Position) : PositionProvider.Adaptiv
     // Safe without synchronization because providers are evaluated sequentially.
     private var cachedPositions: List<Position>? = null
 
+    override val key: PositionProvider.Key
+        get() = UniformPosition.Key
+
     override val dependsOn = emptySet<ProviderKey<*>>()
 
     override fun ProviderScope.provideData(): List<Position> {
@@ -39,5 +42,10 @@ class UniformPosition(private val position: Position) : PositionProvider.Adaptiv
     companion object {
         /** Creates a [UniformPosition] provider that provides zero position for all blocks. */
         fun zero() = UniformPosition(Position.Zero)
+    }
+
+    /** Key identifying the [UniformPosition] provider within the [PositionProvider] family. */
+    object Key : PositionProvider.Key {
+        override fun toString(): String = "UniformPosition"
     }
 }

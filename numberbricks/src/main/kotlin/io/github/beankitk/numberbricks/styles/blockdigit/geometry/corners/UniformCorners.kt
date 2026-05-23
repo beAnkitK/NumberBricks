@@ -46,6 +46,9 @@ class UniformCorners(private val rectCorners: RectCorners) : CornersProvider.Ada
     // Safe without synchronization because providers are evaluated sequentially.
     private var cachedRectCorners: List<RectCorners>? = null
 
+    override val key: CornersProvider.Key
+        get() = UniformCorners.Key
+
     override val dependsOn = emptySet<ProviderKey<*>>()
 
     override fun ProviderScope.provideData(): List<RectCorners> {
@@ -59,5 +62,10 @@ class UniformCorners(private val rectCorners: RectCorners) : CornersProvider.Ada
 
         /** Creates a [UniformCorners] provider that provides fully rounded corners for all blocks. */
         fun round() = UniformCorners(RectCorners(1f, CornerShape.Round))
+    }
+
+    /** Key identifying the [UniformCorners] provider within the [CornersProvider] family. */
+    object Key : CornersProvider.Key {
+        override fun toString(): String = "UniformCorners"
     }
 }

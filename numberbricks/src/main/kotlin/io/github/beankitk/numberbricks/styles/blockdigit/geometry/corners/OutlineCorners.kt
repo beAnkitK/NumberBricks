@@ -26,6 +26,9 @@ class OutlineCorners(outerCornerStyle: CornerStyle) : AutoCornersProvider() {
         outerShape: CornerShape = CornerShape.Round,
     ) : this(CornerStyle(outerRadius, outerShape))
 
+    override val key: CornersProvider.Key
+        get() = OutlineCorners.Key
+
     override val edgeCornerStyle = CornerStyle.None
     override val outerCornerStyle = outerCornerStyle
     override val cornerNeighborCornerStyle = CornerStyle.None
@@ -33,4 +36,9 @@ class OutlineCorners(outerCornerStyle: CornerStyle) : AutoCornersProvider() {
     override val jointInlineCornerStyle = CornerStyle.None
     override val jointCornerStyle = CornerStyle.None
     override val innerCornerStyle = CornerStyle.None
+
+    /** Key identifying the [OutlineCorners] provider within the [CornersProvider] family. */
+    object Key : CornersProvider.Key {
+        override fun toString(): String = "OutlineCorners"
+    }
 }

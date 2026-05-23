@@ -25,7 +25,7 @@ import io.github.beankitk.numberbricks.core.geometry.ProviderKey
  */
 sealed class SizeProvider : BaseGeometryProvider<Size>() {
 
-    final override val key = SizeProvider.key
+    abstract override val key: SizeProvider.Key
 
     /**
      * Base class for [SizeProvider]s that operate on a predefined grid.
@@ -43,8 +43,14 @@ sealed class SizeProvider : BaseGeometryProvider<Size>() {
         final override val providerGridPolicy = AdaptiveGridPolicy
     }
 
-	companion object {
-        /** The [ProviderKey] for [SizeProvider]. */
-        val key = ProviderKey<Size>("provider.size.base")
+    /**
+     * Defines the key type for [SizeProvider]s and the family key for the [SizeProvider]
+     * family.
+     */
+    interface Key : ProviderKey<Size> {
+        override val family: SizeProvider.Key
+            get() = SizeProvider.Key
+
+        companion object : SizeProvider.Key
     }
 }

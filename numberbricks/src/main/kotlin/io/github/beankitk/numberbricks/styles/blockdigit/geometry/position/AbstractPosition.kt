@@ -8,6 +8,9 @@ import io.github.beankitk.numberbricks.core.geometry.buildProviderData
  */
 object AbstractPosition : BaseBlockPosition() {
 
+    override val key: PositionProvider.Key
+        get() = AbstractPosition.Key
+
     override val digit0 = listOf(g1, g2, g2, g4, g6, g7, g7, g9, g10, g12, g14, g14, g15)
 
     override val digit1 = listOf(g1, g1, g1, g5, g5, g8, g8, g8, g11, g11, g13, g14, g15)
@@ -29,4 +32,9 @@ object AbstractPosition : BaseBlockPosition() {
     override val digit9 = listOf(g1, g2, g2, g4, g6, g7, g8, g9, g12, g12, g15, g15, g15)
 
     override val default = buildProviderData { g8 }
+
+    /** Key identifying the [AbstractPosition] provider within the [PositionProvider] family. */
+    object Key : PositionProvider.Key {
+        override fun toString(): String = "AbstractPosition"
+    }
 }

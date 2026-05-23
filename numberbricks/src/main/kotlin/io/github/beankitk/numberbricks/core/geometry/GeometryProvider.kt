@@ -26,29 +26,18 @@ package io.github.beankitk.numberbricks.core.geometry
  * before this provider. Implementations must ensure that [provide] returns exactly
  * `providerGridSpec.brickCount` elements.
  *
- * **Important:** Declare the provider [key] in a `companion object` so it can be referenced
- * without creating an instance. For consistency, the property should be named `key`.
- *
- * For example:
- * ```kotlin
- * class OffsetProvider : BaseGeometryProvider<Offset> {
- *     override val key = OffsetProvider.key
- *
- *     companion object {
- *         val key = ProviderKey<Offset>("provider.offset.base")
- *     }
- * }
- * ```
- *
  * @param R The type of result produced for each brick.
  * @see BaseGeometryProvider
  * @see ProviderScope
+ * @see ProviderKey
  */
 sealed interface GeometryProvider<R : Any> {
 
     /**
-     * Identifies this provider and the type of result it produces. This key is used to declare
-     * dependencies via [dependsOn] and retrieve results from other providers
+     * Identifies this provider and the type of result it produces.
+     *
+     * The key is used to declare dependencies via [dependsOn] and access results from other
+     * providers. See [ProviderKey] for defining provider keys and families.
      */
     val key: ProviderKey<R>
 
@@ -72,8 +61,10 @@ sealed interface GeometryProvider<R : Any> {
     /**
      * Declares providers whose results and meta are required before this provider executes.
      *
-     * All dependencies are guaranteed to execute before this provider. Their results and metadata
-     * can be accessed from [ProviderScope].
+     * All declared dependencies will be executed before this provider. Their results and meta can
+     * be accessed from [ProviderScope]. Use the family key when you depend on a result, as a provider
+     * for the family is always available. Use the provider key when you depend on meta from a specific
+     * provider; that meta is available only when that provider is registered.
      */
     val dependsOn: Set<ProviderKey<*>>
 
@@ -179,9 +170,8 @@ inline fun <R : Any> GeometryProvider<R>.buildProviderData(factory: (Int) -> R):
  *
  * @param R The provider result type provided for each brick.
  * @see GeometryProvider
+ * @see ProviderKey
  * @see ProviderGridPolicy
- * @see FixedGridPolicy
- * @see AdaptiveGridPolicy
  */
 abstract class BaseGeometryProvider<R : Any> : GeometryProvider<R> {
 

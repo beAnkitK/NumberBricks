@@ -26,7 +26,7 @@ import io.github.beankitk.numberbricks.core.geometry.ProviderKey
  */
 sealed class OffsetProvider : BaseGeometryProvider<Offset>() {
 
-    final override val key = OffsetProvider.key
+    abstract override val key: OffsetProvider.Key
 
     /**
      * Base class for [OffsetProvider]s that operate on a predefined grid.
@@ -44,8 +44,14 @@ sealed class OffsetProvider : BaseGeometryProvider<Offset>() {
         final override val providerGridPolicy = AdaptiveGridPolicy
     }
 
-    companion object {
-        /** The [ProviderKey] for [OffsetProvider]. */
-        val key = ProviderKey<Offset>("provider.offset.base")
+    /**
+     * Defines the key type for [OffsetProvider]s and the family key for the [OffsetProvider]
+     * family.
+     */
+    interface Key : ProviderKey<Offset> {
+        override val family: OffsetProvider.Key
+            get() = OffsetProvider.Key
+
+        companion object : OffsetProvider.Key
     }
 }

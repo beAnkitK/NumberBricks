@@ -59,6 +59,9 @@ abstract class BaseBlockPosition : CustomPositionProvider(gridSpec) {
  */
 object ClassicPosition : BaseBlockPosition() {
 
+    override val key: PositionProvider.Key
+        get() = ClassicPosition.Key
+
     override val digit0 = listOf(g1, g2, g3, g4, g6, g7, g7, g9, g10, g12, g13, g14, g15)
 
     override val digit1 = listOf(g1, g2, g2, g5, g5, g8, g8, g8, g11, g11, g13, g14, g15)
@@ -80,4 +83,9 @@ object ClassicPosition : BaseBlockPosition() {
     override val digit9 = listOf(g1, g2, g3, g4, g6, g7, g8, g9, g13, g12, g13, g14, g15)
 
     override val default = buildProviderData { g8 }
+
+    /** Key identifying the [ClassicPosition] provider within the [PositionProvider] family. */
+    object Key : PositionProvider.Key {
+        override fun toString(): String = "ClassicPosition"
+    }
 }
