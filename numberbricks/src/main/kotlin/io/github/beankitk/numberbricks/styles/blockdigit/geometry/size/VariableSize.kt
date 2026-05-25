@@ -1,19 +1,16 @@
-@file:OptIn(ExperimentalProviderMetaApi::class)
-
 package io.github.beankitk.numberbricks.blockdigit.geometry.size
 
 import androidx.compose.ui.geometry.Size
 import io.github.beankitk.numberbricks.blockdigit.geometry.position.PositionProvider
 import io.github.beankitk.numberbricks.core.geometry.Consent
-import io.github.beankitk.numberbricks.core.geometry.ExperimentalProviderMetaApi
 import io.github.beankitk.numberbricks.core.geometry.GeometryProps
 import io.github.beankitk.numberbricks.core.geometry.GridSpec
-import io.github.beankitk.numberbricks.core.geometry.MetaGroup
 import io.github.beankitk.numberbricks.core.geometry.NumberComposer
 import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.core.geometry.buildProviderData
+import io.github.beankitk.numberbricks.core.geometry.defineMeta
 import kotlin.math.abs
 
 /**
@@ -62,7 +59,6 @@ import kotlin.math.abs
  * @param transformSize Optional transformation applied to each computed block size. The
  *   transformation receives the digit, block position, and base size, and returns the final size.
  * @see PositionProvider
- * @see VariableSize.Meta
  */
 // TODO: Validate arrays returned from modifying hooks with minimal overhead
 class VariableSize(
@@ -131,8 +127,8 @@ class VariableSize(
         if (transformRowHeights != null) rowHeights = transformRowHeights(digit, normalizedRowHeights)
 
         provideMeta {
-            Meta.ColWidths providedBy colWidths
-            Meta.RowHeights providedBy rowHeights
+            ColWidths providedBy colWidths
+            RowHeights providedBy rowHeights
         }
 
         return buildProviderData { index ->
@@ -143,18 +139,12 @@ class VariableSize(
         }
     }
 
-    /**
-     * Meta group for [VariableSize], defining all keys published during provider execution.
-     *
-     * These keys allow other providers to access computed column widths and row heights within the
-     * same [ProviderScope].
-     */
-    companion object Meta : MetaGroup<VariableSize>() {
+    companion object {
         /** Normalized widths for each column used during size computation. */
-        val ColWidths = defineMeta<FloatArray> { FloatArray(5) { 1f } }
+        val ColWidths = defineMeta<VariableSize, FloatArray>()
 
         /** Normalized heights for each row used during size computation. */
-        val RowHeights = defineMeta<FloatArray> { FloatArray(5) { 1f } }
+        val RowHeights = defineMeta<VariableSize, FloatArray>()
     }
 
     /** Key identifying the [VariableSize] provider within the [SizeProvider] family. */

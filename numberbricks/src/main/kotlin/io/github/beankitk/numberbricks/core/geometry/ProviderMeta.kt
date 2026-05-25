@@ -1,65 +1,67 @@
 package io.github.beankitk.numberbricks.core.geometry
 
 /**
- * Represents a typed key for metadata associated with a [GeometryProvider] and accessible within a
- * [ProviderScope].
+ * Represents a typed key that identifies auxiliary data shared between geometry
+ * providers for use by other providers to compute their results.
  *
- * A [Meta] instance defines a strongly-typed metadata entry where:
- * - [P] is the provider this metadata is associated with
- * - [M] is the type of the stored value
+ * Meta refers to auxiliary data or values shared between [GeometryProvider]s
+ * through a [ProviderScope] during result computation. These values can be used
+ * by other providers to compute their own results and can include provider
+ * inputs, calculated values, or other intermediate values. Each such value is
+ * called a meta value, or simply meta, and is identified by a [MetaKey].
  *
- * Meta instances are declared inside a [MetaGroup] and used by providers to store and retrieve
- * scoped metadata during execution.
+ * Each meta key has a single owning [GeometryProvider], which is responsible for
+ * providing its value. Using this key, other providers can check for or retrieve
+ * the associated value from the [ProviderScope].
  *
- * Each Meta provides a [default] value, computed lazily using [defaultFactory], which is returned
- * when no explicit value is available in the [ProviderScope].
- *
- * @param P The geometry provider type this meta is associated with
- * @param M The type of metadata value
- * @param defaultFactory Produces the default metadata value
+ * @param P The [GeometryProvider] that owns this meta key.
+ * @param M The type of the meta value identified by this key.
+ * @property name The name used to identify this meta key.
  * @see ProviderScope
  */
-@ExperimentalProviderMetaApi
-class Meta<P : GeometryProvider<*>, M> internal constructor(internal val defaultFactory: () -> M) {
-    /**
-     * Returns the default value for this [Meta], lazily initialized on first access.
-     *
-     * This value is used when no explicit metadata is present in the [ProviderScope].
-     */
-    val default: M by lazy { defaultFactory() }
+class MetaKey<P : GeometryProvider<*>, M> internal constructor(
+    val name: String,
+) {
+    override fun toString(): String = "MetaKey:$name"
 }
 
 /**
- * Base class for defining and grouping [Meta] keys for geometry providers.
+ * Defines a meta key for a geometry provider.
  *
- * A [MetaGroup] provides a structured way to declare multiple [Meta] keys associated with a
- * specific provider type. This enables strongly-typed and discoverable [Meta] definitions.
+ * The key identifies a meta value of type [M] owned by the [GeometryProvider]
+ * type [P]. The owning provider can provide a value for the key, while other
+ * providers can use the key to check for or retrieve the value from the
+ * [ProviderScope].
  *
- * Define the MetaGroup as a `companion object` named `Meta` inside the corresponding
- * [GeometryProvider]. This establishes a consistent and discoverable location for [Meta] keys
- * across providers.
- *
- * Example:
- * ```kotlin
- * class SomeProvider : GeometryProvider<Some> {
- *     companion object Meta : MetaGroup<SomeProvider>() {
- *         val padding = defineMeta { 0f }
- *     }
- * }
- * ```
- *
- * @param P The [GeometryProvider] type this metagroup belongs to
+ * @param P The [GeometryProvider] that owns the meta key.
+ * @param M The type of the meta value identified by the key.
+ * @param name The name used to identify the meta key. Defaults to `"Unknown"`
+ *   when not specified.
+ * @return A [MetaKey] identifying the meta value.
  */
-@ExperimentalProviderMetaApi
-abstract class MetaGroup<P : GeometryProvider<*>> {
+fun <P : GeometryProvider<*>, M> defineMeta(
+    name: String = "Unknown"
+): MetaKey<P, M> = MetaKey(name)
+
+/**
+ * A provider-bound scope for providing meta to a [ProviderScope].
+ *
+ * The scope is bound to a specific [GeometryProvider] through [P]. Only [MetaKey]s
+ * owned by that provider can be provided through this scope. This enforces meta
+ * ownership at compile time.
+ *
+ * Use [providedBy] to associate a meta key with its value.
+ *
+ * @param P The [GeometryProvider] that owns the meta keys accepted by this scope.
+ */
+interface MetaProviderScope<P : GeometryProvider<*>> {
 
     /**
-     * Defines a meta key with a default value factory.
+     * Provides [value] for this meta key. The key must be owned by the provider
+     * associated with this scope.
      *
-     * @param M The type of metadata value
-     * @param defaultFactory Produces the default value for this metadata
-     * @return A new [Meta] instance used to store and retrieve this metadata
-     * @see Meta
+     * @param M The type of the meta value.
+     * @param value The value to provide for this meta key.
      */
-    protected fun <M> defineMeta(defaultFactory: () -> M): Meta<P, M> = Meta(defaultFactory)
+    infix fun <M> MetaKey<P, M>.providedBy(value: M)
 }

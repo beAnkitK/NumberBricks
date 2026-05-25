@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalProviderMetaApi::class)
-
 package io.github.beankitk.numberbricks.core.geometry
 
 import androidx.collection.MutableScatterMap
@@ -14,7 +12,7 @@ import androidx.collection.MutableScatterMap
  * Within this scope, providers can coordinate and communicate with each other by:
  * - Accessing the current [digit] they are computing for
  * - Reading results produced by other providers
- * - Sharing metadata across providers
+ * - Sharing meta values across providers
  *
  * This enables providers to build upon each other's outputs and contribute their own results back
  * to [DigitBuilder], which then assembles the final brick model for the digit associated with this
@@ -23,8 +21,7 @@ import androidx.collection.MutableScatterMap
  * The scope is disposed once the final brick model for the digit is constructed.
  *
  * **Important:** For correct inter-provider communication -
- * 1. [GeometryProvider]s must declare all dependencies for both results and metadata via
- *    `dependsOn`.
+ * 1. [GeometryProvider]s must declare all dependencies for results and meta values via `dependsOn`.
  * 2. [DigitBuilder] must resolve these dependencies, execute providers accordingly, and store their
  *    results in this scope.
  *
@@ -66,67 +63,57 @@ interface ProviderScope {
     fun <R : Any> resultOf(key: ProviderKey<R>): List<R>
 
     /**
-     * Returns `true` if a metadata value for the given [meta] has been explicitly provided in this
-     * scope.
+     * Returns whether a meta value for [metaKey] has been provided in this scope.
      *
-     * This only reflects values provided via [provideMeta] during execution and does not consider
-     * the fallback value defined by [Meta.default].
-     *
-     * @param M The type of metadata
+     * @param M The type of the meta value.
+     * @param metaKey The key identifying the meta value.
+     * @return `true` if a value has been provided for [metaKey], `false` otherwise.
      */
-    fun <M> hasMeta(meta: Meta<*, M>): Boolean
+    fun <M> hasMeta(metaKey: MetaKey<*, M>): Boolean
 
     /**
-     * Returns the metadata value associated with the given [meta], or `null` if no value has been
-     * provided in this scope.
+     * Returns the meta value associated with [metaKey], or `null` if no value has
+     * been provided in this scope.
      *
-     * This can occur when:
-     * - The associated provider is not registered with the [DigitBuilder], or
-     * - The provider does not provide a value for this [Meta] during execution
+     * A value may be unavailable if the owning provider is not registered with the
+     * [DigitBuilder] or does not provide a value for the key during execution.
      *
-     * Note:
-     * - This does not return [Meta.default].
-     * - Callers are responsible for applying default fallback if required.
-     *
-     * @param M The type of metadata
+     * @param M The type of the meta value.
+     * @param metaKey The key identifying the meta value.
+     * @return The provided meta value, or `null` if no value is available.
      */
-    fun <M> metaOf(meta: Meta<*, M>): M?
+    fun <M> metaOf(metaKey: MetaKey<*, M>): M?
 
     /**
-     * Publishes meta defined by this provider to the current [ProviderScope] so other providers can
-     * read it within the same scope.
+     * Provides meta owned by this provider to the current [ProviderScope].
      *
-     * This acts as the provider-side channel for providing computed meta to the scope, enabling
-     * other providers to access it during the same execution.
+     * The receiver provider determines which [MetaKey]s can be provided. Within
+     * [block], values are associated with meta keys using [MetaProviderScope.providedBy].
+     * Only meta keys owned by the receiver provider can be used, enforcing ownership
+     * at compile time.
      *
-     * The [GeometryProvider] receiver (`P`) defines the provider context and enforces ownership —
-     * only [Meta] defined by this provider can be provided. This prevents cross-provider writes and
-     * ensures meta remains scoped to its defining provider.
-     *
-     * The [block] runs in a [MetaScope], which uses this provider context to allow only meta
-     * defined by this provider to be attached to the current [ProviderScope] using the `providedBy`
-     * infix.
+     * The provided values are stored in the current [ProviderScope] and can be checked
+     * or retrieved by other providers using [hasMeta] and [metaOf].
      *
      * Example:
      * ```kotlin
      * this@SomeProvider.provideMeta {
-     *     SomeProvider.Meta.padding providedBy 8f
+     *     SomeProvider.Padding providedBy 8f
      * }
      * ```
      *
-     * @receiver The [GeometryProvider] invoking this function. Restricts writes to meta defined by
-     *   this provider.
-     * @see metaOf
+     * @receiver The provider that owns the meta keys being provided.
+     * @param P The type of the provider owning the meta keys.
+     * @param block The block that provides values for the provider's meta keys.
+     * @see MetaProviderScope
      */
-    fun <P : GeometryProvider<*>> P.provideMeta(block: MetaScope<P>.() -> Unit)
+    fun <P : GeometryProvider<*>> P.provideMeta(block: MetaProviderScope<P>.() -> Unit)
 }
 
 /**
- * Writable scope used by [DigitBuilder] to store provider results and metadata.
- *
- * Extends [ProviderScope] with mutation APIs for committing provider outputs. Providers supply
- * results and meta to the [DigitBuilder], which then commits them to this scope. These mutation
- * APIs are not intended to be used directly by [GeometryProvider]s.
+ * Mutable [ProviderScope] that supports managing data associated with geometry providers during
+ * geometry composition for a digit. Used by [DigitBuilder] to manage data produced by
+ * [GeometryProvider]s, including provider results.
  */
 interface MutableProviderScope : ProviderScope {
 
@@ -140,7 +127,7 @@ interface MutableProviderScope : ProviderScope {
      * @param key The provider key or family key identifying the result.
      * @param result The provider result, with one value for each brick.
      */
-    fun <R : Any> commitResult(key: ProviderKey<R>, result: List<R>)
+    fun <R : Any> storeResult(key: ProviderKey<R>, result: List<R>)
 
     /**
      * Removes and returns the result for the given provider key or family key, if present in this scope.
@@ -152,17 +139,17 @@ interface MutableProviderScope : ProviderScope {
     fun <R : Any> removeResult(key: ProviderKey<R>): List<R>?
 
     /**
-     * Attaches a metadata for the given [meta] to this scope.
+     * Stores the given [value] for [metaKey] in this scope. If a value has already been stored for
+     * [metaKey], it is replaced by the new value.
      *
-     * Used internally by [MetaScope] via `providedBy` infix for storing metadata. This overrides
-     * any previously stored value for the same [meta] within this scope.
-     *
-     * @param P The provider that owns the metadata being attached
-     * @param M The type of metadata
+     * @param P The [GeometryProvider] that owns the meta key.
+     * @param M The type of the meta value.
+     * @param metaKey The meta key identifying the value.
+     * @param value The meta value to store.
      */
-    fun <P : GeometryProvider<*>, M> attachMeta(meta: Meta<P, M>, value: M)
+    fun <P : GeometryProvider<*>, M> storeMeta(metaKey: MetaKey<P, M>, value: M)
 
-    /** Clears all stored results and metadata, resetting this scope. */
+    /** Clears all stored results and meta, resetting this scope. */
     fun dispose()
 }
 
@@ -177,15 +164,15 @@ inline fun ProviderScope(digit: Int): DefaultProviderScope = DefaultProviderScop
 /**
  * Default implementation of [MutableProviderScope].
  *
- * Manages provider results and metadata for a single digit during geometry construction. This scope
+ * Manages provider results and meta values for a single digit during geometry composition. This scope
  * is created by the [DigitBuilder] per digit and disposed once computation completes.
  */
 class DefaultProviderScope(override val digit: Int) : MutableProviderScope, AutoCloseable {
 
     private val resultStore = MutableScatterMap<ProviderKey<*>, List<*>>(5)
-    private val metaStore = MutableScatterMap<Meta<*, *>, Any?>(5)
+    private val metaStore = MutableScatterMap<MetaKey<*, *>, Any?>(5)
     private var currentProvider: GeometryProvider<*>? = null
-    private var cachedMetaScope: MetaScope<Nothing>? = null
+    private var metaProviderScope: MetaProviderScope<Nothing>? = null
 
     /** Executes provider with the [provider] set as current context. */
     internal inline fun <R : Any> withProvider(
@@ -212,7 +199,7 @@ class DefaultProviderScope(override val digit: Int) : MutableProviderScope, Auto
             )
     }
 
-    override fun <R : Any> commitResult(key: ProviderKey<R>, result: List<R>) {
+    override fun <R : Any> storeResult(key: ProviderKey<R>, result: List<R>) {
         resultStore[key.family] = result
     }
 
@@ -221,60 +208,38 @@ class DefaultProviderScope(override val digit: Int) : MutableProviderScope, Auto
         return resultStore.remove(key.family) as? List<R>
     }
 
-    override fun <M> hasMeta(meta: Meta<*, M>): Boolean {
-        return metaStore.contains(meta)
+    override fun <M> hasMeta(metaKey: MetaKey<*, M>): Boolean {
+        return metaStore.contains(metaKey)
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <M> metaOf(meta: Meta<*, M>): M? {
-        return metaStore[meta] as? M
+    override fun <M> metaOf(metaKey: MetaKey<*, M>): M? {
+        return metaStore[metaKey] as? M
     }
 
-    override fun <P : GeometryProvider<*>, M> attachMeta(meta: Meta<P, M>, value: M) {
-        metaStore[meta] = value
+    override fun <P : GeometryProvider<*>, M> storeMeta(metaKey: MetaKey<P, M>, value: M) {
+        metaStore[metaKey] = value
     }
 
-    override fun <P : GeometryProvider<*>> P.provideMeta(block: MetaScope<P>.() -> Unit) {
+    override fun <P : GeometryProvider<*>> P.provideMeta(block: MetaProviderScope<P>.() -> Unit) {
         val sharedMetaScope =
-            cachedMetaScope
-                ?: object : MetaScope<Nothing> {
-                        override infix fun <M> Meta<Nothing, M>.providedBy(value: M) {
-                            attachMeta(this, value)
+            metaProviderScope
+                ?: object : MetaProviderScope<Nothing> {
+                        override infix fun <M> MetaKey<Nothing, M>.providedBy(value: M) {
+                            storeMeta(this, value)
                         }
                     }
-                    .also { cachedMetaScope = it }
+                    .also { metaProviderScope = it }
 
-        @Suppress("UNCHECKED_CAST") (sharedMetaScope as MetaScope<P>).block()
+        @Suppress("UNCHECKED_CAST") (sharedMetaScope as MetaProviderScope<P>).block()
     }
 
     override fun dispose() {
         resultStore.clear()
         metaStore.clear()
         currentProvider = null
-        cachedMetaScope = null
+        metaProviderScope = null
     }
 
     override fun close() = dispose()
-}
-
-/**
- * Defines a provider-bound scope for writing meta owned by a [GeometryProvider] to [ProviderScope]
- *
- * This scope is used within [ProviderScope.provideMeta] to attach meta to the current
- * [ProviderScope]. It exposes the `providedBy` infix function to associate a [Meta] with its value
- * and store it in the scope.
- *
- * The type parameter [P] binds this scope to a specific provider. Only meta defined by this
- * provider can be provided within this scope, enforcing ownership and preventing cross-provider
- * writes.
- */
-@ExperimentalProviderMetaApi
-interface MetaScope<P : GeometryProvider<*>> {
-
-    /**
-     * Associates this [Meta] with the given [value] and stores it in the current [ProviderScope].
-     *
-     * @param M The type of metadata
-     */
-    infix fun <M> Meta<P, M>.providedBy(value: M)
 }

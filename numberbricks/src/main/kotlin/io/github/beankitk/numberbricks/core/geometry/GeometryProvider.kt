@@ -21,10 +21,10 @@ package io.github.beankitk.numberbricks.core.geometry
  * compatibility checks. If compatible, this provider is attached via [attach] with the resolved
  * grid constraints and shared [GeometryProps].
  *
- * Providers execute within a [ProviderScope], where they can access the current digit and the
- * results of their dependencies. Dependencies are resolved and executed by the [DigitBuilder]
- * before this provider. Implementations must ensure that [provide] returns exactly
- * `providerGridSpec.brickCount` elements.
+ * Providers execute within a [ProviderScope], where they can access the current digit, results
+ * and meta values of their dependencies. Dependencies are resolved and executed by the
+ * [DigitBuilder] before this provider. Implementations must ensure that [provide] returns
+ * exactly `providerGridSpec.brickCount` elements.
  *
  * @param R The type of result produced for each brick.
  * @see BaseGeometryProvider
@@ -100,8 +100,8 @@ sealed interface GeometryProvider<R : Any> {
      * Computes and returns this provider's result for the current digit.
      *
      * Implementations execute within a [ProviderScope], which provides access to the current digit,
-     * results from other providers declared via [dependsOn], and any provider-scoped metadata
-     * required during computation.
+     * results and meta values from providers declared as dependencies via [dependsOn] for use
+     * during result computation.
      *
      * Returns the provider result as a list of values of type [R], containing exactly
      * `providerGridSpec.brickCount` elements, one for each brick in the current digit.
@@ -269,8 +269,8 @@ abstract class BaseGeometryProvider<R : Any> : GeometryProvider<R> {
      * Computes and returns this provider's result for the current digit.
      *
      * Implementations execute within a [ProviderScope], which provides access to the current digit,
-     * results from other providers declared via [dependsOn], and any provider-scoped metadata
-     * required during computation.
+     * results and meta values from providers declared as dependencies via [dependsOn] for use
+     * during result computation.
      *
      * Returns the provider result as a list of values of type [R], containing exactly
      * `providerGridSpec.brickCount` elements, one for each brick in the current digit.

@@ -283,7 +283,7 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
             check(providerResult.size == digitGridSpec.brickCount) {
                 "Provider result must have ${digitGridSpec.brickCount} size, but was ${providerResult.size} for ${provider.key}"
             }
-            providerScope.commitResult<R>(key, providerResult)
+            providerScope.storeResult<R>(key, providerResult)
         }
     }
 

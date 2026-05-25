@@ -1,23 +1,19 @@
-@file:OptIn(ExperimentalProviderMetaApi::class)
-
 package io.github.beankitk.numberbricks.blockdigit.geometry.offset
 
 import androidx.compose.ui.geometry.Offset
 import io.github.beankitk.numberbricks.blockdigit.geometry.position.PositionProvider
 import io.github.beankitk.numberbricks.blockdigit.geometry.size.SizeProvider
 import io.github.beankitk.numberbricks.blockdigit.geometry.size.VariableSize
-import io.github.beankitk.numberbricks.blockdigit.geometry.size.VariableSize.Meta
-import io.github.beankitk.numberbricks.core.geometry.ExperimentalProviderMetaApi
 import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 
- /**
+/**
  * Provides offsets to position blocks when grid cells have non-uniform dimensions.
  *
- * This [GridOffset] works with [VariableSize], reading column-width and row-height metadata to
- * resolve the starting offset of each block's grid cell. If size metadata is not available, it
+ * This [GridOffset] works with [VariableSize], reading column-width and row-height meta to
+ * resolve the starting offset of each block's grid cell. If size meta is not available, it
  * falls back to direct position-based offsets (col -> x, row -> y), matching [DirectOffset] behavior.
  * The resulting offset is then passed through [transformOffset], when provided, to produce the final
  * offset.
@@ -49,10 +45,10 @@ class GridOffset(
 
     override fun ProviderScope.provideData(): List<Offset> {
         val positions = resultOf<Position>(PositionProvider.Key)
-        val eachColWidth = metaOf<FloatArray>(Meta.ColWidths)
-        val eachRowHeight = metaOf<FloatArray>(Meta.RowHeights)
+        val eachColWidth = metaOf<FloatArray>(VariableSize.ColWidths)
+        val eachRowHeight = metaOf<FloatArray>(VariableSize.RowHeights)
 
-        // Fallback to DirectOffset behavior when metadata unavailable
+        // Fallback to DirectOffset behavior when meta values unavailable
         if (eachColWidth == null || eachRowHeight == null) {
             return positions.map { position ->
                 val baseOffset = Offset(x = position.col.toFloat(), y = position.row.toFloat())
@@ -60,7 +56,7 @@ class GridOffset(
             }
         }
 
-        // Build offset lookup matrix from dimension metadata
+        // Build offset lookup matrix from dimension meta values
         val eachColStartX = toPrefix(eachColWidth)
         val eachRowStartY = toPrefix(eachRowHeight)
 
