@@ -40,6 +40,7 @@ dependencies {
     implementation(libs.compose.runtime)
     implementation(libs.compose.ui)
     implementation(libs.kotlinx.coroutines.android)
+    testImplementation(libs.kotlin.test)
 }
 
 ktfmt { kotlinLangStyle() }
