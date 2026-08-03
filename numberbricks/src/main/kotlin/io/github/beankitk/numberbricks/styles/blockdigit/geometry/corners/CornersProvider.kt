@@ -17,7 +17,7 @@ import io.github.beankitk.numberbricks.data.CornerType
 import io.github.beankitk.numberbricks.data.DigitData
 import io.github.beankitk.numberbricks.data.RectCorners
 import io.github.beankitk.numberbricks.utils.CornerDetector
-import io.github.beankitk.numberbricks.utils.getCornerProfile
+import io.github.beankitk.numberbricks.utils.detectCorners
 
 /**
  * Provides the corners of each block during geometry composition.
@@ -158,9 +158,9 @@ abstract class AutoCornersProvider : CornersProvider.Adaptive() {
             Array(providerGridSpec.brickCount) { index -> Rect(offsets[index], sizes[index]) }
 
         val cornerProfileArray =
-            getCornerProfile(
+            detectCorners(
                 rects = rects,
-                modifyProfile = { idx, profile -> modifyCornerProfile(digit, idx, profile) },
+                transform = { idx, profile -> modifyCornerProfile(digit, idx, profile) },
             )
 
         return cornerProfileArray.mapIndexed { index, profile ->

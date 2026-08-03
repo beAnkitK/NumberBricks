@@ -1,6 +1,7 @@
 package io.github.beankitk.numberbricks.utils
 
-import androidx.compose.runtime.Immutable
+import androidx.collection.LongObjectMap
+import androidx.collection.MutableLongObjectMap
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.util.packInts
@@ -11,30 +12,57 @@ import kotlin.math.roundToInt
 
 private typealias CornerKey = Long
 
-private typealias CornerRegistry = Map<CornerKey, List<CornerEntry>>
+private typealias CornerRegistry = LongObjectMap<CornerBucket>
+
+private typealias MutableCornerRegistry = MutableLongObjectMap<CornerBucket>
 
 /**
- * Computes corner profiles for an array of rectangles.
+ * Detects the corner type of every corner in the given rectangles.
  *
- * Analyzes the spatial relationships between rectangles and classifies each corner based on its
- * neighbors. Optionally allows custom modification of computed profiles.
+ * Analyzes the spatial relationships between the rectangles, determines the neighboring corners,
+ * and classifies each corner into a [CornerType]. The detected corner types for each rectangle are
+ * returned as a [CornerProfile].
  *
- * @param rects Array of rectangles to analyze
- * @param modifyProfile Optional function to customize the computed profile for each rectangle
- * @return Array of corner profiles, one per input rectangle
+ * @param rects The rectangles to analyze.
+ * @return An array of [CornerProfile] values in the same order as the input rectangles.
  * @see CornerDetector
  */
-@Suppress("NOTHING_TO_INLINE")
-inline fun getCornerProfile(
+fun detectCorners(rects: Array<Rect>): Array<CornerProfile> {
+    val currentCornerRegistry: CornerRegistry = CornerDetector.buildCornerRegistry(rects)
+    return Array(rects.size) { index ->
+        val currentRect = rects[index]
+        CornerDetector.buildCornerProfile(currentRect, currentCornerRegistry)
+    }
+}
+
+/**
+ * Detects the corner type of every corner in the given rectangles.
+ *
+ * Analyzes the spatial relationships between the rectangles, determines the neighboring corners,
+ * and classifies each corner into a [CornerType]. Applies [transform] to the detected
+ * [CornerProfile] of each rectangle before returning the result.
+ *
+ * @param rects The rectangles to analyze.
+ * @param transform Transforms the detected [CornerProfile] for each rectangle. Receives the
+ *   rectangle index and its detected profile.
+ * @return An array of transformed [CornerProfile] values in the same order as the input rectangles.
+ * @see CornerDetector
+ */
+inline fun detectCorners(
     rects: Array<Rect>,
-    noinline modifyProfile: ((Int, CornerProfile) -> CornerProfile)? = null,
+    transform: (Int, CornerProfile) -> CornerProfile,
 ): Array<CornerProfile> {
-    return CornerDetector.getCornerProfile(rects, modifyProfile)
+    val currentCornerRegistry: CornerRegistry = CornerDetector.buildCornerRegistry(rects)
+    return Array(rects.size) { index ->
+        val currentRect = rects[index]
+        val profile = CornerDetector.buildCornerProfile(currentRect, currentCornerRegistry)
+        transform(index, profile)
+    }
 }
 
 /**
  * Computes corner topology for a set of rectangles as [CornerProfile] by analyzing how their
- * corners overlap in 2D space.
+ * corners connects and overlaps in 2D space.
  *
  * [CornerDetector] inspects how all corner points of the supplied rectangles coincide in 2D space
  * and computes a [CornerProfile] for each rectangle. Each profile describes the structural role of
@@ -49,148 +77,106 @@ inline fun getCornerProfile(
  * Corner detection is performed for all rectangles as a group. The returned array preserves the
  * input order, producing one [CornerProfile] per rectangle.
  *
+ * **Limitation:** Only coincident corners are classified. Corners that overlap another rectangle's
+ * edge or fall inside another rectangle are not considered, which may produce inaccurate results.
+ * This can occur with variable-sized or partially overlapping rectangles.
+ *
  * ### Usage
- * Typical usage is to pass all participating rectangles at once and receive a one-to-one array of
- * [CornerProfile] results:
+ * Use [detectCorners] and pass all participating rectangles at once and receive a one-to-one array
+ * of [CornerProfile] results:
  * ```kotlin
  * val rects = Array<Rect>(15) { i ->
  *     Rect(
  *         offset = Offset(x = i % 3, y = i / 3)
- *         size = Size(width = i % 3, height = i /3)
+ *         size = Size(width = i % 3, height = i / 3)
  *     )
  * }
- * val profiles = CornerDetector.getCornerProfile(rects)
+ * val profiles = detectCorners(rects)
  * ```
  *
+ * @see detectCorners
  * @see CornerProfile
  * @see CornerType
  * @see CornerPosition
  */
-@Immutable
 object CornerDetector {
-    private val epsilon = 0.001f
-    // Maps each corner to its (horizontal, vertical, diagonal) neighbor corners of other rects.
-    private val cornerRelations:
-        Map<CornerPosition, Triple<CornerPosition, CornerPosition, CornerPosition>> =
-        mapOf(
-            CornerPosition.TopLeft to
-                Triple(
-                    CornerPosition.TopRight,
-                    CornerPosition.BottomLeft,
-                    CornerPosition.BottomRight,
-                ),
-            CornerPosition.TopRight to
-                Triple(
-                    CornerPosition.TopLeft,
-                    CornerPosition.BottomRight,
-                    CornerPosition.BottomLeft,
-                ),
-            CornerPosition.BottomRight to
-                Triple(CornerPosition.BottomLeft, CornerPosition.TopRight, CornerPosition.TopLeft),
-            CornerPosition.BottomLeft to
-                Triple(CornerPosition.BottomRight, CornerPosition.TopLeft, CornerPosition.TopRight),
-        )
-
-    /**
-     * Computes corner profiles for an array of rectangles.
-     *
-     * Analyzes the spatial relationships between rectangles and classifies each corner based on its
-     * neighbors. Optionally allows custom modification of computed profiles.
-     *
-     * @param rects Array of rectangles to analyze
-     * @param modifyProfile Optional function to customize the computed profile for each rectangle
-     * @return Array of corner profiles, one per input rectangle
-     */
-    fun getCornerProfile(
-        rects: Array<Rect>,
-        modifyProfile: ((Int, CornerProfile) -> CornerProfile)? = null,
-    ): Array<CornerProfile> {
-        val currentCornerRegistry: CornerRegistry = indexCornersFor(rects)
-
-        return Array(rects.size) { index ->
-            val currentRect = rects[index]
-
-            val tl =
-                currentCornerRegistry.findCornerType(currentRect, index, CornerPosition.TopLeft)
-            val tr =
-                currentCornerRegistry.findCornerType(currentRect, index, CornerPosition.TopRight)
-            val br =
-                currentCornerRegistry.findCornerType(currentRect, index, CornerPosition.BottomRight)
-            val bl =
-                currentCornerRegistry.findCornerType(currentRect, index, CornerPosition.BottomLeft)
-
-            val profile =
-                CornerProfile(
-                    topLeft = findCornerNeighbor(tl, tr, bl),
-                    topRight = findCornerNeighbor(tr, tl, br),
-                    bottomRight = findCornerNeighbor(br, bl, tr),
-                    bottomLeft = findCornerNeighbor(bl, br, tl),
-                )
-
-            modifyProfile?.invoke(index, profile) ?: profile
-        }
-    }
 
     // Creates a spatial index of all rectangle corners. Multiple corners from
     // different rectangles may share the same position.
-    private fun indexCornersFor(rects: Array<Rect>): CornerRegistry {
-        val registryMap = HashMap<CornerKey, MutableList<CornerEntry>>(rects.size * 4)
-        rects.forEachIndexed { index, rect ->
-            addCorner(index, rect.topLeft, CornerPosition.TopLeft, registryMap)
-            addCorner(index, rect.topRight, CornerPosition.TopRight, registryMap)
-            addCorner(index, rect.bottomLeft, CornerPosition.BottomLeft, registryMap)
-            addCorner(index, rect.bottomRight, CornerPosition.BottomRight, registryMap)
+    @PublishedApi
+    internal fun buildCornerRegistry(rects: Array<Rect>): CornerRegistry {
+        val registryMap = MutableCornerRegistry(2 * rects.size + 2)
+        rects.forEach { rect ->
+            registryMap.registerCorner(rect.topLeft, CornerPosition.TopLeft)
+            registryMap.registerCorner(rect.topRight, CornerPosition.TopRight)
+            registryMap.registerCorner(rect.bottomLeft, CornerPosition.BottomLeft)
+            registryMap.registerCorner(rect.bottomRight, CornerPosition.BottomRight)
         }
         return registryMap
     }
 
-    // Adds a corner to the spatial index.
-    private fun addCorner(
-        index: Int,
-        offset: Offset,
+    // Registers a corner in the spatial index: increments the existing bucket at this key if one
+    // is already there, or starts a new one otherwise.
+    private fun MutableCornerRegistry.registerCorner(
+        cornerOffset: Offset,
         cornerPosition: CornerPosition,
-        cornerRegistry: MutableMap<CornerKey, MutableList<CornerEntry>>,
     ) {
-        val key = keyFrom(offset)
-        cornerRegistry.getOrPut(key) { mutableListOf() }.add(CornerEntry.of(index, cornerPosition))
+        val key = keyFrom(cornerOffset)
+        val cornerBucket = this[key] ?: CornerBucket()
+        this[key] = cornerBucket.increment(cornerPosition)
+    }
+
+    @PublishedApi
+    internal fun buildCornerProfile(rect: Rect, cornerRegistry: CornerRegistry): CornerProfile {
+        val tlKey = keyFrom(rect.topLeft)
+        val trKey = keyFrom(rect.topRight)
+        val brKey = keyFrom(rect.bottomRight)
+        val blKey = keyFrom(rect.bottomLeft)
+
+        val tl = cornerRegistry.findCornerType(CornerPosition.TopLeft, tlKey, trKey, brKey, blKey)
+        val tr = cornerRegistry.findCornerType(CornerPosition.TopRight, tlKey, trKey, brKey, blKey)
+        val br =
+            cornerRegistry.findCornerType(CornerPosition.BottomRight, tlKey, trKey, brKey, blKey)
+        val bl =
+            cornerRegistry.findCornerType(CornerPosition.BottomLeft, tlKey, trKey, brKey, blKey)
+
+        return CornerProfile(
+            topLeft = findCornerNeighbor(tl, tr, bl),
+            topRight = findCornerNeighbor(tr, tl, br),
+            bottomRight = findCornerNeighbor(br, bl, tr),
+            bottomLeft = findCornerNeighbor(bl, br, tl),
+        )
     }
 
     // Determines the corner type by analyzing neighbors at the same position.
     private fun CornerRegistry.findCornerType(
-        rect: Rect,
-        rectIndex: Int,
         cornerPosition: CornerPosition,
+        topLeftKey: CornerKey,
+        topRightKey: CornerKey,
+        bottomRightKey: CornerKey,
+        bottomLeftKey: CornerKey,
     ): CornerType {
-        val cornerOffset =
-            when (cornerPosition) {
-                CornerPosition.TopLeft -> rect.topLeft
-                CornerPosition.TopRight -> rect.topRight
-                CornerPosition.BottomRight -> rect.bottomRight
-                CornerPosition.BottomLeft -> rect.bottomLeft
-                else -> error("Unknown cornerPosition : $cornerPosition")
-            }
-        val (horizontalCorner, verticalCorner, diagonalCorner) =
-            cornerRelations.getValue(cornerPosition)
 
-        val currentOffsetKey = keyFrom(cornerOffset)
-        val cornersEntryAtOffset = this[currentOffsetKey] ?: return CornerType.Outer
-
-        var hasHorizontalNeighbor = false
-        var hasVerticalNeighbor = false
-        var hasDiagonalNeighbor = false
-
-        for ((index, cornerPosition) in cornersEntryAtOffset) {
-            if (index == rectIndex) continue
-
-            when (cornerPosition) {
-                horizontalCorner -> hasHorizontalNeighbor = true
-                verticalCorner -> hasVerticalNeighbor = true
-                diagonalCorner -> hasDiagonalNeighbor = true
-                else -> Unit
+        fun keyOf(position: CornerPosition): CornerKey =
+            when (position) {
+                CornerPosition.TopLeft -> topLeftKey
+                CornerPosition.TopRight -> topRightKey
+                CornerPosition.BottomRight -> bottomRightKey
+                CornerPosition.BottomLeft -> bottomLeftKey
+                else -> error("Unknown CornerPosition: $position")
             }
 
-            if (hasHorizontalNeighbor && hasVerticalNeighbor && hasDiagonalNeighbor) break
-        }
+        val currentCornerKey = keyOf(cornerPosition)
+        val bucket = this[currentCornerKey] ?: return CornerType.Outer
+
+        val h = cornerPosition.horizontalNeighbor
+        val v = cornerPosition.verticalNeighbor
+        val d = cornerPosition.diagonalNeighbor
+
+        val hasHorizontalNeighbor =
+            bucket.hasNeighbor(h, excludeSelf = keyOf(h) == currentCornerKey)
+        val hasVerticalNeighbor = bucket.hasNeighbor(v, excludeSelf = keyOf(v) == currentCornerKey)
+        val hasDiagonalNeighbor = bucket.hasNeighbor(d, excludeSelf = keyOf(d) == currentCornerKey)
 
         return classifyCorner(hasHorizontalNeighbor, hasVerticalNeighbor, hasDiagonalNeighbor)
     }
@@ -205,8 +191,8 @@ object CornerDetector {
         }
     }
 
-    // If this corner is Outer but has a neighboring corner
-    // with diagonal contact, it's classified as CornerNeighbor.
+    // If this corner is Outer but has a neighboring corner with diagonal contact, it's classified
+    // as CornerNeighbor.
     private fun findCornerNeighbor(
         currentCorner: CornerType,
         hNeighbor: CornerType,
@@ -215,9 +201,11 @@ object CornerDetector {
         return if (
             currentCorner == CornerType.Outer &&
                 (hNeighbor == CornerType.Corner || vNeighbor == CornerType.Corner)
-        )
+        ) {
             CornerType.CornerNeighbor
-        else currentCorner
+        } else {
+            currentCorner
+        }
     }
 
     private fun keyFrom(position: Offset): CornerKey {
@@ -227,27 +215,39 @@ object CornerDetector {
     }
 }
 
-/**
- * Maps the index of a rectangle to [CornerPosition] packed as Int with the lower 4 bits for
- * [CornerPosition] and upper 28 bits for index of rectangle. Used internally by [CornerDetector] to
- * index the corners of rectangle for spatial analysis.
- */
+// Tracks how many rectangles contribute each corner position at a shared point.
+// The bucket packs four saturating counters (one per CornerPosition) into a single Int:
+//
+// Packed layout (MSB → LSB): [BottomLeft][BottomRight][TopRight][TopLeft]
+//
+// Each counter occupies BITS_PER_COUNT bits and records how many rectangles contribute
+// that corner position at this point. Neighbor detection then queries these counters.
 @JvmInline
-private value class CornerEntry(val packed: Int) {
-    val rectIndex: Int
-        get() = packed ushr 4
+internal value class CornerBucket(private val packed: Int = 0) {
 
-    val cornerPosition: CornerPosition
-        get() = CornerPosition.from(packed and 0xF)
+    fun increment(position: CornerPosition): CornerBucket {
+        // Extract this corner's counter from the packed value.
+        val shift = position.ordinal * BITS_PER_COUNT
+        val cornerCount = (packed ushr shift) and COUNT_MASK
 
-    operator fun component1(): Int = rectIndex
+        // Saturate instead of overflowing since we only care whether another
+        // rectangle is present, not the exact number beyond the representable range.
+        if (cornerCount == COUNT_MASK) return this
 
-    operator fun component2(): CornerPosition = cornerPosition
+        // Increment only this corner's packed counter.
+        return CornerBucket(packed + (1 shl shift))
+    }
 
-    companion object {
-        fun of(rectIndex: Int, cornerPosition: CornerPosition): CornerEntry {
-            require(rectIndex >= 0) { "rectIndex must be >= 0" }
-            return CornerEntry((rectIndex shl 4) or cornerPosition.ordinal)
-        }
+    fun hasNeighbor(position: CornerPosition, excludeSelf: Boolean): Boolean {
+        // Read the packed counter for the requested corner orientation.
+        val cornerCount = (packed ushr (position.ordinal * BITS_PER_COUNT)) and COUNT_MASK
+
+        // Degenerate rectangles (zero width/height) contribute the same corner position
+        // multiple times. When excludeSelf is true, require at least one additional
+        // contributor before reporting a neighbor.
+        return if (excludeSelf) cornerCount > 1 else cornerCount > 0
     }
 }
+
+private const val BITS_PER_COUNT = 8
+private const val COUNT_MASK = 0xFF
