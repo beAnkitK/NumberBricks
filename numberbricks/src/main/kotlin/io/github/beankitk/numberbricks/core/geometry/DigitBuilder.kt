@@ -164,6 +164,9 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
         } catch (throwable: Throwable) {
             _digitGridSpec = null
             _geometryProps = null
+            resolvedProviders.forEach {
+                if (it is BaseGeometryProvider<*> && it.isAttached) it.detach()
+            }
             resolvedProviders = emptyList()
             throw throwable
         }

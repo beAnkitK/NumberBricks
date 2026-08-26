@@ -229,13 +229,15 @@ class DefaultNumberComposer<B : Brick<B>>(
 
     override fun initiate(initialNumber: Int) {
         check(!isInitialized) { "NumberComposer already initialized" }
+        var isBuilderConstructed = false
         try {
             digitBuilder.construct(digitGridSpec, geometryProps)
+            isBuilderConstructed = true
             defaultBricks = digitBuilder.buildDefaultBricks()
             applyNumberChange(normalizeNumber(initialNumber))
         } catch (throwable: Throwable) {
-            digitBuilder.destroy()
-            defaultBricks = null
+            if (isBuilderConstructed) digitBuilder.destroy()
+            resetDigitState()
             throw throwable
         }
 
@@ -354,6 +356,12 @@ class DefaultNumberComposer<B : Brick<B>>(
     override fun dispose() {
         if (!isInitialized) return
 
+        resetDigitState()
+        digitBuilder.destroy()
+        isInitialized = false
+    }
+
+    private fun resetDigitState() {
         digitSequence = emptyIntList()
         digitSlotList.clear()
         digitBricksCache.clear()
@@ -361,8 +369,6 @@ class DefaultNumberComposer<B : Brick<B>>(
         digitSlotCount = 0
         _previousNumber.value = null
         _currentNumber.value = null
-        digitBuilder.destroy()
-        isInitialized = false
     }
 
     internal fun isUninitialized(): Boolean {

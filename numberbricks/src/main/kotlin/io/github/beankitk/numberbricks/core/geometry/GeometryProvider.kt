@@ -176,7 +176,7 @@ inline fun <R : Any> GeometryProvider<R>.buildProviderData(factory: (Int) -> R):
 abstract class BaseGeometryProvider<R : Any> : GeometryProvider<R> {
 
     private var isCompatible: Boolean? = null
-    private var isAttached: Boolean = false
+    internal var isAttached: Boolean = false
     private var _providerGridSpec: GridSpec? = null
 
     final override val isAdaptive: Boolean
