@@ -30,10 +30,10 @@ import kotlin.math.abs
  * Input arrays define relative proportions and are normalized during attachment so that column widths
  * and row heights sum to the total column and row counts respectively. These arrays can be further
  * transformed during geometry composition through [transformColWidths] and [transformRowHeights],
- * and are published as [io.github.beankitk.numberbricks.core.geometry.Meta] for inter-provider access.
+ * and are published as [io.github.beankitk.numberbricks.core.geometry.MetaKey] for inter-provider access.
  *
  * **Note:** This provider does not observe mutations to the input arrays. Values are resolved during
- * [attach], after which size computation remains unchanged unless transformations are provided.
+ * construction, after which size computation remains unchanged unless transformations are provided.
  *
  * **Example:**
  *
@@ -62,8 +62,8 @@ import kotlin.math.abs
  */
 // TODO: Validate arrays returned from modifying hooks with minimal overhead
 class VariableSize(
-    private val eachColWidth: FloatArray,
-    private val eachRowHeight: FloatArray,
+    eachColWidth: FloatArray,
+    eachRowHeight: FloatArray,
     private val transformColWidths:
         ((digit: Int, colWidths: FloatArray) -> FloatArray)? = null,
     private val transformRowHeights:
@@ -72,8 +72,8 @@ class VariableSize(
         ((digit: Int, position: Position, baseSize: Size) -> Size)? = null
 ) : SizeProvider.Adaptive() {
 
-    private lateinit var normalizedColWidths: FloatArray
-    private lateinit var normalizedRowHeights: FloatArray
+    private var eachColWidth: FloatArray = eachColWidth.copyOf()
+    private var eachRowHeight: FloatArray = eachRowHeight.copyOf()
 
     override val key: SizeProvider.Key
         get() = VariableSize.Key
@@ -114,17 +114,17 @@ class VariableSize(
     }
 
     override fun onAttach(digitGridSpec: GridSpec, geometryProps: GeometryProps) {
-        normalizedColWidths = normalizeArray(eachColWidth, providerGridSpec.cols.toFloat())
-        normalizedRowHeights = normalizeArray(eachRowHeight, providerGridSpec.rows.toFloat())
+        eachColWidth = normalizeArray(eachColWidth, providerGridSpec.cols.toFloat())
+        eachRowHeight = normalizeArray(eachRowHeight, providerGridSpec.rows.toFloat())
     }
 
     override fun ProviderScope.provideData(): List<Size> {
         val positions = resultOf<Position>(PositionProvider.Key)
-        var colWidths = normalizedColWidths
-        var rowHeights = normalizedRowHeights
+        var colWidths = eachColWidth.copyOf()
+        var rowHeights = eachRowHeight.copyOf()
 
-        if (transformColWidths != null) colWidths = transformColWidths(digit, normalizedColWidths)
-        if (transformRowHeights != null) rowHeights = transformRowHeights(digit, normalizedRowHeights)
+        if (transformColWidths != null) colWidths = transformColWidths(digit, colWidths)
+        if (transformRowHeights != null) rowHeights = transformRowHeights(digit, rowHeights)
 
         provideMeta {
             ColWidths providedBy colWidths
@@ -182,7 +182,7 @@ private fun normalizeArray(input: FloatArray, target: Float): FloatArray {
     var sum = input.sum()
 
     if (!sum.isNaN() && abs(sum - target) < epsilon) {
-        return input.copyOf()
+        return input
     }
 
     if (sum <= 0f || sum.isNaN()) {
