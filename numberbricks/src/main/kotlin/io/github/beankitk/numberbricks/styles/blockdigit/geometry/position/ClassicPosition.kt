@@ -57,7 +57,7 @@ abstract class BaseBlockPosition : CustomPositionProvider(gridSpec) {
 /**
  * Provides a [PositionProvider] for block digit geometry, defining positions for the classic style.
  */
-object ClassicPosition : BaseBlockPosition() {
+open class ClassicPosition : BaseBlockPosition() {
 
     override val key: PositionProvider.Key
         get() = ClassicPosition.Key

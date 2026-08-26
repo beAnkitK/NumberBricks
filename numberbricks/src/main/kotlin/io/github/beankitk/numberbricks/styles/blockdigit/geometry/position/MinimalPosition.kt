@@ -1,12 +1,9 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry.position
 
-import io.github.beankitk.numberbricks.core.geometry.Position
-import io.github.beankitk.numberbricks.data.DigitData
-
 /**
  * Provides a [PositionProvider] for block digit geometry, defining positions for the minimal style.
  */
-object MinimalPosition : BaseBlockPosition(), DigitData<List<Position>> by ClassicPosition {
+class MinimalPosition : ClassicPosition() {
 
     override val key: PositionProvider.Key
         get() = MinimalPosition.Key

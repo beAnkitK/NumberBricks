@@ -6,7 +6,7 @@ import io.github.beankitk.numberbricks.core.geometry.buildProviderData
  * Provides a [PositionProvider] for block digit geometry, defining positions for the abstract
  * style.
  */
-object AbstractPosition : BaseBlockPosition() {
+class AbstractPosition : BaseBlockPosition() {
 
     override val key: PositionProvider.Key
         get() = AbstractPosition.Key

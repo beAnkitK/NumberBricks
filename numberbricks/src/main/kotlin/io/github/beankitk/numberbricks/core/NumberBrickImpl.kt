@@ -78,7 +78,7 @@ internal fun NumberBricksImpl(
                 geometryProps = geometryProperties,
                 digitBuilder =
                     BlockDigitBuilder(
-                        positionProvider = ClassicPosition,
+                        positionProvider = ClassicPosition(),
                         offsetProvider = gridOffset,
                         sizeProvider = variableSize,
                         cornersProvider = UniformCorners.sharp(),
