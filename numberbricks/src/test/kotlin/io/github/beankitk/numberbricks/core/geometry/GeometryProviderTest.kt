@@ -66,6 +66,7 @@ class GeometryProviderTest {
         provider.matches(mockGridSpec)
         provider.attach(mockGridSpec, props)
 
+        assertTrue(provider.isAttached)
         assertFailsWith<IllegalStateException> { provider.matches(mockGridSpec) }
     }
 
@@ -73,6 +74,7 @@ class GeometryProviderTest {
     fun testWhenNotMatched_providerCannotAttach() {
         val provider = createAdaptiveProvider()
 
+        assertFalse(provider.isAttached)
         assertFailsWith<IllegalStateException> { provider.attach(mockGridSpec, props) }
     }
 
@@ -83,6 +85,7 @@ class GeometryProviderTest {
         )
         provider.matches(mockGridSpec)
 
+        assertFalse(provider.isAttached)
         assertFailsWith<IllegalStateException> { provider.attach(mockGridSpec, props) }
     }
 
@@ -92,6 +95,7 @@ class GeometryProviderTest {
             doMatch = { TEST_ERROR }
         )
         assertFailsWith<IllegalStateException> { provider.matches(mockGridSpec) }
+        assertFalse(provider.isAttached)
         assertFailsWith<IllegalStateException> { provider.attach(mockGridSpec, props) }
     }
 
@@ -101,6 +105,7 @@ class GeometryProviderTest {
         provider.matches(mockGridSpec)
         provider.attach(mockGridSpec, props)
 
+        assertTrue(provider.isAttached)
         assertFailsWith<IllegalStateException> { provider.attach(mockGridSpec, props) }
     }
 
@@ -111,6 +116,27 @@ class GeometryProviderTest {
         )
         provider.matches(mockGridSpec)
         assertFailsWith<IllegalStateException> { provider.attach(mockGridSpec, props) }
+        assertFalse(provider.isAttached)
+    }
+
+    @Test
+    fun testIfAttachFails_matchIsRequiredBeforeReattach() {
+        var attachAction: ((GridSpec, GeometryProps) -> Unit)? = null
+        val provider = createAdaptiveProvider(
+            onAttach = { gridSpec, geometryProps -> attachAction?.invoke(gridSpec, geometryProps) }
+        )
+
+        attachAction = { _, _ -> TEST_ERROR }
+        provider.matches(mockGridSpec)
+        assertFailsWith<IllegalStateException> { provider.attach(mockGridSpec, props) }
+        assertFalse(provider.isAttached)
+
+        attachAction = null
+        assertFailsWith<IllegalStateException> { provider.attach(mockGridSpec, props) }
+
+        provider.matches(mockGridSpec)
+        provider.attach(mockGridSpec, props)
+        assertTrue(provider.isAttached)
     }
 
     @Test
@@ -119,10 +145,29 @@ class GeometryProviderTest {
         val scope = DefaultProviderScope(digit = 0)
 
         try {
+            assertFalse(provider.isAttached)
             assertFailsWith<IllegalStateException> {
                 with(provider) { scope.provide() }
             }
         } finally { scope.dispose() }
+    }
+
+    @Test
+    fun testWhenNotAttached_detach_doesNothing() {
+        val provider = createAdaptiveProvider()
+        provider.detach()
+        assertFalse(provider.isAttached)
+    }
+
+    @Test
+    fun testWhenDetached_providerIsNotAttached() {
+        val provider = createAdaptiveProvider()
+        provider.matches(mockGridSpec)
+        provider.attach(mockGridSpec, props)
+        assertTrue(provider.isAttached)
+
+        provider.detach()
+        assertFalse(provider.isAttached)
     }
 
     @Test
@@ -138,6 +183,7 @@ class GeometryProviderTest {
             val firstResult = with(provider) { scope.provide() }
             provider.detach()
 
+            assertFalse(provider.isAttached)
             assertFailsWith<IllegalStateException> {
                 with(provider) { scope.provide() }
             }
@@ -145,9 +191,23 @@ class GeometryProviderTest {
             provider.matches(attachedGridSpec)
             provider.attach(attachedGridSpec, props)
 
+            assertTrue(provider.isAttached)
             val secondResult = with(provider) { scope.provide() }
             assertEquals(firstResult, secondResult)
         }
+    }
+
+    @Test
+    fun testIfOnDetachThrows_providerIsDetached() {
+        val provider = createAdaptiveProvider(
+            onDetach = { TEST_ERROR }
+        )
+        provider.matches(mockGridSpec)
+        provider.attach(mockGridSpec, props)
+        assertTrue(provider.isAttached)
+
+        assertFailsWith<IllegalStateException> { provider.detach() }
+        assertFalse(provider.isAttached)
     }
 
     // endregion
@@ -157,6 +217,7 @@ class GeometryProviderTest {
     @Test
     fun testAdaptiveProvider_whenNotAttached_providerGridSpecCannotBeAccessed() {
         val adaptiveProvider = createAdaptiveProvider()
+        assertFalse(adaptiveProvider.isAttached)
         assertFailsWith<IllegalStateException> { adaptiveProvider.providerGridSpec }
     }
 
@@ -297,3 +358,6 @@ class GeometryProviderTest {
 
     // endregion
 }
+
+internal val GeometryProvider<*>.isAttached: Boolean
+    get() = (this as BaseGeometryProvider<*>).isAttached
