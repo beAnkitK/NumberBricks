@@ -165,11 +165,9 @@ interface NumberComposer<B : Brick<B>> {
     /**
      * Releases all resources and resets the composer to an uninitialized state.
      *
-     * Clears caches, destroys the digit builder, and releases all managed resources. If the
-     * composer is uninitiated, this call has no effect.
-     *
-     * After disposal, [initiate] must be called again before use, otherwise it would throw
-     * [IllegalStateException].
+     * Clears caches, destroys the digit builder, and releases all managed resources. After disposal,
+     * [initiate] must be called again before using this. This operation is a no-op if this composer
+     * is uninitialized.
      */
     fun dispose()
 }
@@ -204,7 +202,8 @@ class DefaultNumberComposer<B : Brick<B>>(
     override val digitBuilder: DigitBuilder<B>,
 ) : NumberComposer<B> {
 
-    private var isInitialized = false
+    internal var isInitialized = false
+        private set
 
     // Digit slot structure tracking per-position transitions
     private val digitSlotList: DigitSlotList = DigitSlotList()
@@ -229,19 +228,15 @@ class DefaultNumberComposer<B : Brick<B>>(
 
     override fun initiate(initialNumber: Int) {
         check(!isInitialized) { "NumberComposer already initialized" }
-        var isBuilderConstructed = false
         try {
             digitBuilder.construct(digitGridSpec, geometryProps)
-            isBuilderConstructed = true
             defaultBricks = digitBuilder.buildDefaultBricks()
             applyNumberChange(normalizeNumber(initialNumber))
+            isInitialized = true
         } catch (throwable: Throwable) {
-            if (isBuilderConstructed) digitBuilder.destroy()
-            resetDigitState()
+            reset()
             throw throwable
         }
-
-        isInitialized = true
     }
 
     override fun updateNumber(number: Int) {
@@ -355,31 +350,22 @@ class DefaultNumberComposer<B : Brick<B>>(
 
     override fun dispose() {
         if (!isInitialized) return
-
-        resetDigitState()
-        digitBuilder.destroy()
-        isInitialized = false
+        reset()
     }
 
-    private fun resetDigitState() {
-        digitSequence = emptyIntList()
-        digitSlotList.clear()
-        digitBricksCache.clear()
-        defaultBricks = null
-        digitSlotCount = 0
-        _previousNumber.value = null
-        _currentNumber.value = null
-    }
-
-    internal fun isUninitialized(): Boolean {
-        return !isInitialized &&
-                digitSequence.isEmpty() &&
-                digitSlotList.isEmpty() &&
-                digitBricksCache.isEmpty() &&
-                defaultBricks == null &&
-                digitSlotCount == 0 &&
-                _previousNumber.value == null &&
-                _currentNumber.value == null
+    private fun reset() {
+        try {
+            digitBuilder.destroy()
+        } finally {
+            digitSequence = emptyIntList()
+            digitSlotList.clear()
+            digitBricksCache.clear()
+            defaultBricks = null
+            digitSlotCount = 0
+            _previousNumber.value = null
+            _currentNumber.value = null
+            isInitialized = false
+        }
     }
 }
 

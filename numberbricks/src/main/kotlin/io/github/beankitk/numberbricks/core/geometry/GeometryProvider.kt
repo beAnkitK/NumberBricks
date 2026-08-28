@@ -116,7 +116,8 @@ sealed interface GeometryProvider<R : Any> {
      * Detaches this provider from the current [DigitBuilder] and resets all lifecycle state.
      *
      * Called once during builder destruction. Implementations should release any resources and
-     * clear any state initialized by [attach]. This function is a no-op if the provider is not attached.
+     * clear any state initialized by [attach]. This operation is a no-op if the provider is not
+     * attached to any DigitBuilder.
      */
     fun detach()
 }
@@ -177,6 +178,8 @@ abstract class BaseGeometryProvider<R : Any> : GeometryProvider<R> {
 
     private var isCompatible: Boolean? = null
     internal var isAttached: Boolean = false
+        private set
+
     private var _providerGridSpec: GridSpec? = null
 
     final override val isAdaptive: Boolean
@@ -210,18 +213,30 @@ abstract class BaseGeometryProvider<R : Any> : GeometryProvider<R> {
             }
         }
 
-        val consent = doMatch(digitGridSpec)
-        isCompatible = !consent.hasRejected()
-        return consent
+        return try {
+            val consent = doMatch(digitGridSpec)
+            isCompatible = !consent.hasRejected()
+            consent
+        } catch (throwable: Throwable) {
+            isCompatible = null
+            throw throwable
+        }
     }
 
     final override fun attach(digitGridSpec: GridSpec, geometryProps: GeometryProps) {
         checkAttachable(isCompatible, isAttached)
-        if (providerGridPolicy is AdaptiveGridPolicy) {
-            _providerGridSpec = digitGridSpec
+        try {
+            if (providerGridPolicy is AdaptiveGridPolicy) {
+                _providerGridSpec = digitGridSpec
+            }
+            isAttached = true
+            onAttach(digitGridSpec, geometryProps)
+        } catch (throwable: Throwable) {
+            _providerGridSpec = null
+            isCompatible = null
+            isAttached = false
+            throw throwable
         }
-        isAttached = true
-        onAttach(digitGridSpec, geometryProps)
     }
 
     final override fun ProviderScope.provide(): List<R> {
@@ -231,10 +246,13 @@ abstract class BaseGeometryProvider<R : Any> : GeometryProvider<R> {
 
     final override fun detach() {
         if (!isAttached) return
-        onDetach()
-        _providerGridSpec = null
-        isAttached = false
-        isCompatible = null
+        try {
+            onDetach()
+        } finally {
+            _providerGridSpec = null
+            isCompatible = null
+            isAttached = false
+        }
     }
 
     /**
@@ -258,7 +276,9 @@ abstract class BaseGeometryProvider<R : Any> : GeometryProvider<R> {
 
     /**
      * Called after this provider is attached to a [DigitBuilder]. Override to cache
-     * values or initialize any state required for execution.
+     * values or initialize any state required for execution. If this callback throws, the provider
+     * is detached, but [onDetach] is not called. The provider must be matched again before it can
+     * be re-attached.
      *
      * @param digitGridSpec The resolved grid constraints.
      * @param geometryProps The shared geometry configuration.

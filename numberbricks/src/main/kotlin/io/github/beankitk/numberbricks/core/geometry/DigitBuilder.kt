@@ -84,9 +84,8 @@ interface DigitBuilder<B : Brick<B>> {
 
     /**
      * Resets the builder to an unconstructed state and releases internal resources. After calling
-     * this, [construct] must be invoked again before builder can be reused.
-     *
-     * @throws IllegalStateException if the builder is not constructed
+     * this, [construct] must be invoked again before builder can be reused. This operation is a
+     * no-op if this builder is not constructed
      */
     fun destroy()
 }
@@ -133,7 +132,9 @@ interface DigitBuilder<B : Brick<B>> {
  */
 abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
 
-    private var isConstructed = false
+    internal var isConstructed = false
+        private set
+
     private var _digitGridSpec: GridSpec? = null
     private var _geometryProps: GeometryProps? = null
     private var resolvedProviders: List<GeometryProvider<*>> = emptyList()
@@ -161,18 +162,12 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
             _geometryProps = geometryProps
             resolvedProviders = resolveProviders()
             resolvedProviders.forEach { it.attach(digitGridSpec, geometryProps) }
+            isConstructed = true
+            onConstructed()
         } catch (throwable: Throwable) {
-            _digitGridSpec = null
-            _geometryProps = null
-            resolvedProviders.forEach {
-                if (it is BaseGeometryProvider<*> && it.isAttached) it.detach()
-            }
-            resolvedProviders = emptyList()
+            reset()
             throw throwable
         }
-
-        isConstructed = true
-        onConstructed()
     }
 
     final override fun buildBricks(digit: Int): List<B> {
@@ -193,13 +188,24 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
     }
 
     final override fun destroy() {
-        checkConstructed()
-        resolvedProviders.forEach { it.detach() }
-        resolvedProviders = emptyList()
-        _digitGridSpec = null
-        _geometryProps = null
-        isConstructed = false
-        onDestroyed()
+        if (!isConstructed) return
+
+        try {
+            onDestroying()
+        } finally {
+            reset()
+        }
+    }
+
+    private fun reset() {
+        try {
+            resolvedProviders.detachAll()
+        } finally {
+            resolvedProviders = emptyList()
+            _digitGridSpec = null
+            _geometryProps = null
+            isConstructed = false
+        }
     }
 
     /**
@@ -232,12 +238,12 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
     protected abstract fun assembleDefaultBricks(): List<B>
 
    /**
-    * Called after the builder has been successfully destroyed and all providers have been
-    * detached. Override this method to release additional resources.
+    * Called before the builder is destroyed while it is still constructed and its providers are
+    * still attached. Override this method to release additional resources owned by the builder.
     *
     * @see destroy
     */
-    protected open fun onDestroyed() {}
+    protected open fun onDestroying() {}
 
     private fun resolveProviders(): List<GeometryProvider<*>> {
         val declaredProviders = providers.toList()
@@ -329,4 +335,16 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
     private fun checkConstructed() {
         check(isConstructed) { "DigitBuilder not constructed. Call construct() first." }
     }
+}
+
+private fun List<GeometryProvider<*>>.detachAll() {
+    var failure: Throwable? = null
+    forEach { provider ->
+        try {
+            provider.detach()
+        } catch (throwable: Throwable) {
+            failure = throwable
+        }
+    }
+    failure?.let { throw it }
 }
