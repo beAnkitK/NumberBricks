@@ -336,8 +336,9 @@ class DefaultNumberComposer<B : Brick<B>>(
     }
 
     override fun getBricks(digit: Int): List<B>? {
+        if (!isInitialized) return null
         require(digit in 0..9) { "Digit must be in range 0-9" }
-        return if (isInitialized) digitBricksCache[digit] else null
+        return digitBricksCache[digit]
     }
 
     override fun getDefaultBricks(): List<B>? {
