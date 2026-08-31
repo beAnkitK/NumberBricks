@@ -13,7 +13,7 @@ plugins {
 android {
     namespace = "io.github.beankitk.numberbricks.sample"
     compileSdk = build.versions.sdk.compile.get().toInt()
-    
+
     defaultConfig {
         applicationId = "io.github.beankitk.numberbricks.sample"
         minSdk = build.versions.sdk.min.get().toInt()
@@ -21,7 +21,7 @@ android {
         versionCode = build.versions.version.code.get().toInt()
         versionName = build.versions.version.name.get()
     }
-    
+
     signingConfigs {
         create("release") {
             storeFile = file(keystoreProps["storeFile"] as String)
@@ -43,7 +43,7 @@ android {
             freeCompilerArgs.addAll(
                 "-opt-in=androidx.compose.animation.ExperimentalSharedTransitionApi",
                 "-opt-in=androidx.compose.foundation.layout.ExperimentalLayoutApi",
-                "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api"
+                "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
             )
         }
     }
@@ -52,10 +52,13 @@ android {
         getByName("release") {
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
             signingConfig = signingConfigs.getByName("release")
         }
-        
+
         getByName("debug") {
             isDebuggable = true
             applicationIdSuffix = ".debug"
@@ -64,28 +67,23 @@ android {
     }
 
     buildFeatures {
-    	buildConfig = true
+        buildConfig = true
         compose = true
     }
 
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
+    packaging { resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" } }
 }
 
-
-dependencies {  
+dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(project(":numberbricks"))
     implementation(libs.bundles.androidx.lifecycle)
     implementation(libs.bundles.compose.core)
-    
+
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.navigation)
-	implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.core)
 }

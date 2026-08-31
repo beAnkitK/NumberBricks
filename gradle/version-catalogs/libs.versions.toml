@@ -33,18 +33,18 @@ kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 
 [bundles]
 compose-core = [
-	"compose-animation",
-	"compose-animation-core",
-	"compose-foundation",
-	"compose-foundation-layout",
-	"compose-material3",
-	"compose-runtime",
-	"compose-ui",
+    "compose-animation",
+    "compose-animation-core",
+    "compose-foundation",
+    "compose-foundation-layout",
+    "compose-material3",
+    "compose-runtime",
+    "compose-ui",
 ]
 
 androidx-lifecycle = [
-	"androidx-lifecycle-runtime-ktx",
-	"androidx-lifecycle-runtime-compose",
+    "androidx-lifecycle-runtime-ktx",
+    "androidx-lifecycle-runtime-compose",
     "androidx-lifecycle-viewmodel-ktx",
-    "androidx-lifecycle-viewmodel-compose"    
+    "androidx-lifecycle-viewmodel-compose"
 ]
