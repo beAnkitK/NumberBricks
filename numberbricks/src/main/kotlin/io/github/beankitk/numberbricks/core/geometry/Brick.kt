@@ -25,8 +25,8 @@ import androidx.compose.ui.geometry.Size
  * 2. Its rendered offset relative to the digit origin (top-left)
  * 3. Its rendered size
  *
- * Implementations may extend this contract with additional data required for styling,
- * rendering, or animation systems.
+ * Implementations may extend this contract with additional data required for styling, rendering, or
+ * animation systems.
  *
  * @param B The concrete brick type
  */

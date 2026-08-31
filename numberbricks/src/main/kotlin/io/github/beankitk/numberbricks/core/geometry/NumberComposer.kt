@@ -59,8 +59,8 @@ interface NumberComposer<B : Brick<B>> {
     val currentNumber: Int
 
     /**
-     * Returns the previous number before the last update, or `null` if no prior value exists or
-     * the composer is not initialized.
+     * Returns the previous number before the last update, or `null` if no prior value exists or the
+     * composer is not initialized.
      *
      * This remains `null` after [initiate]. It is assigned when [updateNumber] is called with a
      * value different from the current number, capturing the value before the change.
@@ -105,8 +105,8 @@ interface NumberComposer<B : Brick<B>> {
     fun updateNumber(number: Int)
 
     /**
-     * Returns the total number of digits in the active [currentNumber]. If the composer has not been
-     * initiated yet (or has been disposed), this returns `0`.
+     * Returns the total number of digits in the active [currentNumber]. If the composer has not
+     * been initiated yet (or has been disposed), this returns `0`.
      */
     fun getDigitCount(): Int
 
@@ -124,11 +124,12 @@ interface NumberComposer<B : Brick<B>> {
      * its previous value, enabling transition-aware rendering.
      *
      * The number of valid indices is determined by [getDigitCount]. Accessing an index outside this
-     * range or if the composer has not been initiated yet (or has been disposed), this returns `null`.
+     * range or if the composer has not been initiated yet (or has been disposed), this returns
+     * `null`.
      *
      * @param index The position of the digit in reverse order
-     * @return The corresponding [DigitSlot], or `null` if the index is out of bounds or if composer is
-     *   uninitialized.
+     * @return The corresponding [DigitSlot], or `null` if the index is out of bounds or if composer
+     *   is uninitialized.
      */
     fun getDigitSlotAt(index: Int): DigitSlot?
 
@@ -145,8 +146,8 @@ interface NumberComposer<B : Brick<B>> {
      * the current lifecycle of the composer.
      *
      * @param digit The digit value (`0..9`)
-     * @return The brick model representing the given digit or `null` if composer is uninitialized or
-     *   the digit has not yet been encountered in the current lifecycle of the composer.
+     * @return The brick model representing the given digit or `null` if composer is uninitialized
+     *   or the digit has not yet been encountered in the current lifecycle of the composer.
      */
     fun getBricks(digit: Int): List<B>?
 
@@ -157,17 +158,17 @@ interface NumberComposer<B : Brick<B>> {
      * The default bricks are computed once on first access and cached for reuse. Subsequent calls
      * return the cached result to avoid redundant construction.
      *
-     * @return The default brick model used as a placeholder representation or `null` if composer
-     *   is uninitialized
+     * @return The default brick model used as a placeholder representation or `null` if composer is
+     *   uninitialized
      */
     fun getDefaultBricks(): List<B>?
 
     /**
      * Releases all resources and resets the composer to an uninitialized state.
      *
-     * Clears caches, destroys the digit builder, and releases all managed resources. After disposal,
-     * [initiate] must be called again before using this. This operation is a no-op if this composer
-     * is uninitialized.
+     * Clears caches, destroys the digit builder, and releases all managed resources. After
+     * disposal, [initiate] must be called again before using this. This operation is a no-op if
+     * this composer is uninitialized.
      */
     fun dispose()
 }
@@ -327,8 +328,7 @@ class DefaultNumberComposer<B : Brick<B>>(
         }
     }
 
-    override fun getDigitCount(): Int =
-         if (isInitialized) digitSlotCount else 0
+    override fun getDigitCount(): Int = if (isInitialized) digitSlotCount else 0
 
     override fun getDigitSlotAt(index: Int): DigitSlot? {
         if (!isInitialized || index !in 0 until digitSlotCount) return null

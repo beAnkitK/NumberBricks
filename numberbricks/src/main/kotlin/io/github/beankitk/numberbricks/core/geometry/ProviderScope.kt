@@ -37,8 +37,7 @@ interface ProviderScope {
     val digit: Int
 
     /**
-     * Returns whether a result for the given provider key or family key is available
-     * in this scope.
+     * Returns whether a result for the given provider key or family key is available in this scope.
      *
      * @param R The type of the provider result.
      * @param key The provider key or family key identifying the result.
@@ -47,13 +46,12 @@ interface ProviderScope {
     fun <R : Any> hasResult(key: ProviderKey<R>): Boolean
 
     /**
-     * Returns the result for the given provider key or family key, or throws if the
-     * result is not available in this scope.
+     * Returns the result for the given provider key or family key, or throws if the result is not
+     * available in this scope.
      *
-     * The result is expected to be available when the provider dependency graph is
-     * correctly declared and executed by [DigitBuilder]. Accessing a result before
-     * its provider has executed, or when no result is available for the key, throws
-     * an [IllegalStateException].
+     * The result is expected to be available when the provider dependency graph is correctly
+     * declared and executed by [DigitBuilder]. Accessing a result before its provider has executed,
+     * or when no result is available for the key, throws an [IllegalStateException].
      *
      * @param R The type of the provider result.
      * @param key The provider key or family key identifying the result.
@@ -72,11 +70,11 @@ interface ProviderScope {
     fun <M> hasMeta(metaKey: MetaKey<*, M>): Boolean
 
     /**
-     * Returns the meta value associated with [metaKey], or `null` if no value has
-     * been provided in this scope.
+     * Returns the meta value associated with [metaKey], or `null` if no value has been provided in
+     * this scope.
      *
-     * A value may be unavailable if the owning provider is not registered with the
-     * [DigitBuilder] or does not provide a value for the key during execution.
+     * A value may be unavailable if the owning provider is not registered with the [DigitBuilder]
+     * or does not provide a value for the key during execution.
      *
      * @param M The type of the meta value.
      * @param metaKey The key identifying the meta value.
@@ -87,13 +85,12 @@ interface ProviderScope {
     /**
      * Provides meta owned by this provider to the current [ProviderScope].
      *
-     * The receiver provider determines which [MetaKey]s can be provided. Within
-     * [block], values are associated with meta keys using [MetaProviderScope.providedBy].
-     * Only meta keys owned by the receiver provider can be used, enforcing ownership
-     * at compile time.
+     * The receiver provider determines which [MetaKey]s can be provided. Within [block], values are
+     * associated with meta keys using [MetaProviderScope.providedBy]. Only meta keys owned by the
+     * receiver provider can be used, enforcing ownership at compile time.
      *
-     * The provided values are stored in the current [ProviderScope] and can be checked
-     * or retrieved by other providers using [hasMeta] and [metaOf].
+     * The provided values are stored in the current [ProviderScope] and can be checked or retrieved
+     * by other providers using [hasMeta] and [metaOf].
      *
      * Example:
      * ```kotlin
@@ -102,9 +99,9 @@ interface ProviderScope {
      * }
      * ```
      *
-     * @receiver The provider that owns the meta keys being provided.
      * @param P The type of the provider owning the meta keys.
      * @param block The block that provides values for the provider's meta keys.
+     * @receiver The provider that owns the meta keys being provided.
      * @see MetaProviderScope
      */
     fun <P : GeometryProvider<*>> P.provideMeta(block: MetaProviderScope<P>.() -> Unit)
@@ -120,8 +117,8 @@ interface MutableProviderScope : ProviderScope {
     /**
      * Stores a provider's result in this scope for the given provider key or family key.
      *
-     * The result is stored using the provider's family key and must contain one value for each brick
-     * defined by the [NumberComposer.digitGridSpec]
+     * The result is stored using the provider's family key and must contain one value for each
+     * brick defined by the [NumberComposer.digitGridSpec]
      *
      * @param R The type of the provider result.
      * @param key The provider key or family key identifying the result.
@@ -130,7 +127,8 @@ interface MutableProviderScope : ProviderScope {
     fun <R : Any> storeResult(key: ProviderKey<R>, result: List<R>)
 
     /**
-     * Removes and returns the result for the given provider key or family key, if present in this scope.
+     * Removes and returns the result for the given provider key or family key, if present in this
+     * scope.
      *
      * @param R The type of the provider result.
      * @param key The provider key or family key identifying the result.
@@ -164,8 +162,8 @@ inline fun ProviderScope(digit: Int): DefaultProviderScope = DefaultProviderScop
 /**
  * Default implementation of [MutableProviderScope].
  *
- * Manages provider results and meta values for a single digit during geometry composition. This scope
- * is created by the [DigitBuilder] per digit and disposed once computation completes.
+ * Manages provider results and meta values for a single digit during geometry composition. This
+ * scope is created by the [DigitBuilder] per digit and disposed once computation completes.
  */
 class DefaultProviderScope(override val digit: Int) : MutableProviderScope, AutoCloseable {
 

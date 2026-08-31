@@ -3,7 +3,6 @@ package io.github.beankitk.numberbricks.blockdigit.geometry.position
 import io.github.beankitk.numberbricks.core.geometry.AdaptiveGridPolicy
 import io.github.beankitk.numberbricks.core.geometry.BaseGeometryProvider
 import io.github.beankitk.numberbricks.core.geometry.FixedGridPolicy
-import io.github.beankitk.numberbricks.core.geometry.GeometryProps
 import io.github.beankitk.numberbricks.core.geometry.GridSpec
 import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
@@ -13,12 +12,11 @@ import io.github.beankitk.numberbricks.data.DigitData
 /**
  * Provides the position of each block during geometry composition.
  *
- * A [PositionProvider] produces a [Position] for every block in the current digit.
- * The returned positions determine the row and column occupied by each block
- * during geometry composition.
+ * A [PositionProvider] produces a [Position] for every block in the current digit. The returned
+ * positions determine the row and column occupied by each block during geometry composition.
  *
- * Position values must be expressed in grid coordinates, where each position
- * maps to a valid row and column within the provider's [providerGridSpec].
+ * Position values must be expressed in grid coordinates, where each position maps to a valid row
+ * and column within the provider's [providerGridSpec].
  *
  * Extend one of the provided base classes to create a position provider:
  * - [Fixed] for providers that operate on a predefined grid.
@@ -37,9 +35,7 @@ sealed class PositionProvider : BaseGeometryProvider<Position>() {
         final override val providerGridPolicy = FixedGridPolicy(gridSpec)
     }
 
-    /**
-     * Base class for [PositionProvider]s that adapt to the builder's grid constraints.
-     */
+    /** Base class for [PositionProvider]s that adapt to the builder's grid constraints. */
     abstract class Adaptive : PositionProvider() {
         final override val providerGridPolicy = AdaptiveGridPolicy
     }

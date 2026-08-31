@@ -30,8 +30,8 @@ import io.github.beankitk.numberbricks.blockdigit.geometry.lerp
 import io.github.beankitk.numberbricks.blockdigit.geometry.offset.*
 import io.github.beankitk.numberbricks.blockdigit.geometry.position.*
 import io.github.beankitk.numberbricks.blockdigit.geometry.size.*
-import io.github.beankitk.numberbricks.core.geometry.DigitSlot
 import io.github.beankitk.numberbricks.core.geometry.DefaultNumberComposer
+import io.github.beankitk.numberbricks.core.geometry.DigitSlot
 import io.github.beankitk.numberbricks.core.geometry.GeometryProps
 import io.github.beankitk.numberbricks.core.geometry.GridSpec
 import io.github.beankitk.numberbricks.core.geometry.Position
@@ -68,7 +68,7 @@ internal fun NumberBricksImpl(
             transformSize = { digit, pos, baseSize ->
                 if ((digit == 3 || digit == 7) && pos == Position(2, 1)) baseSize.copy(width = 0.7f)
                 else baseSize
-            }
+            },
         )
     }
 
@@ -97,7 +97,7 @@ internal fun NumberBricksImpl(
 
     Row(
         modifier = modifier.semantics { contentDescription = "$currentNumber" },
-        horizontalArrangement = Arrangement.spacedBy(15.dp)
+        horizontalArrangement = Arrangement.spacedBy(15.dp),
     ) {
         for (place in (digitCount - 1) downTo 0) {
             key(place) {
@@ -142,7 +142,8 @@ private fun SingleDigitBrick(
     var endBricks by remember { mutableStateOf<List<Block>>(emptyList()) }
 
     LaunchedEffect(currentDigit) {
-        // this check is used for LaunchedEffect trigger due to config change so that it does not run
+        // this check is used for LaunchedEffect trigger due to config change so that it does not
+        // run
         // again if there no number updates
         if (wasFirstVisible && previousDigit == currentDigit && progress.value == 1f) {
             return@LaunchedEffect
@@ -157,8 +158,7 @@ private fun SingleDigitBrick(
                     numberComposer.getBricks(previousDigit) ?: emptyList()
                 }
 
-            endBricks =
-                numberComposer.getBricks(currentDigit) ?: emptyList()
+            endBricks = numberComposer.getBricks(currentDigit) ?: emptyList()
         }
 
         val shouldAnimate =
@@ -183,69 +183,58 @@ private fun SingleDigitBrick(
 
     Spacer(
         modifier =
-            Modifier.size(totalWidth, totalHeight)
-                .drawWithCache {
-                    val digitPath = Path()
+            Modifier.size(totalWidth, totalHeight).drawWithCache {
+                val digitPath = Path()
 
-                    val brush = digitStyle.brush
-                    val alpha = digitStyle.alpha
-                    val drawStyle = digitStyle.drawStyle
-                    val colorFilter = digitStyle.colorFilter
-                    val blendMode = digitStyle.blendMode
+                val brush = digitStyle.brush
+                val alpha = digitStyle.alpha
+                val drawStyle = digitStyle.drawStyle
+                val colorFilter = digitStyle.colorFilter
+                val blendMode = digitStyle.blendMode
 
-                    val brickSize =
-                        Size(
-                            width = size.width / numberComposer.digitGridSpec.cols,
-                            height = size.height / numberComposer.digitGridSpec.rows,
-                        )
+                val brickSize =
+                    Size(
+                        width = size.width / numberComposer.digitGridSpec.cols,
+                        height = size.height / numberComposer.digitGridSpec.rows,
+                    )
 
-                    onDrawBehind {
-                        digitPath.reset()
-                        for (i in 0 until numberComposer.digitGridSpec.brickCount) {
-                            val animatedBrick =
-                                lerp(startBricks[i], endBricks[i], progress.value)
-                                    .scaledBy(size, brickSize)
+                onDrawBehind {
+                    digitPath.reset()
+                    for (i in 0 until numberComposer.digitGridSpec.brickCount) {
+                        val animatedBrick =
+                            lerp(startBricks[i], endBricks[i], progress.value)
+                                .scaledBy(size, brickSize)
 
-                            when {
-                                animatedBrick.corners.isRect() ->
-                                    digitPath.addRect(animatedBrick.toRect())
-                                animatedBrick.corners.isRoundRect() ->
-                                    digitPath.addRoundRect(animatedBrick.toRoundRect())
-                                else -> {
-                                    // TODO: For future shapes, implement custom path drawing
-                                    error("Unsupported corner shape: ${animatedBrick.corners}")
-                                }
+                        when {
+                            animatedBrick.corners.isRect() ->
+                                digitPath.addRect(animatedBrick.toRect())
+                            animatedBrick.corners.isRoundRect() ->
+                                digitPath.addRoundRect(animatedBrick.toRoundRect())
+                            else -> {
+                                // TODO: For future shapes, implement custom path drawing
+                                error("Unsupported corner shape: ${animatedBrick.corners}")
                             }
                         }
-
-                        drawPath(
-                            path = digitPath,
-                            brush = brush,
-                            alpha = alpha,
-                            style = drawStyle,
-                            colorFilter = colorFilter,
-                            blendMode = blendMode,
-                        )
                     }
+
+                    drawPath(
+                        path = digitPath,
+                        brush = brush,
+                        alpha = alpha,
+                        style = drawStyle,
+                        colorFilter = colorFilter,
+                        blendMode = blendMode,
+                    )
                 }
+            }
     )
 }
 
 private val NumberbrickWidth = 15.dp
 private val NumberbrickHeight = 25.dp
 
-private val POW10 = intArrayOf(
-    1,
-    10,
-    100,
-    1000,
-    10000,
-    100000,
-    1000000,
-    10000000,
-    100000000,
-    1000000000
-)
+private val POW10 =
+    intArrayOf(1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000)
 
 private fun Int.digitAt(place: Int): Int {
     return (this / POW10[place]) % 10

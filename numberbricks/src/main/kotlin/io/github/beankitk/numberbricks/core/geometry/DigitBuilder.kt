@@ -140,20 +140,24 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
     private var resolvedProviders: List<GeometryProvider<*>> = emptyList()
 
     /**
-     * Represents the grid constraints used to construct each digit, inherited from [NumberComposer].
+     * Represents the grid constraints used to construct each digit, inherited from
+     * [NumberComposer].
      *
      * @throws IllegalStateException If accessed before [construct] is called
      */
     protected val digitGridSpec: GridSpec
-        get() = checkNotNull(_digitGridSpec) { "DigitBuilder not constructed. Call construct() first." }
+        get() =
+            checkNotNull(_digitGridSpec) { "DigitBuilder not constructed. Call construct() first." }
 
     /**
-     * Represents shared geometry configuration used across all digits, inherited from [NumberComposer].
+     * Represents shared geometry configuration used across all digits, inherited from
+     * [NumberComposer].
      *
      * @throws IllegalStateException If accessed before [construct] is called
      */
     protected val geometryProps: GeometryProps
-        get() = checkNotNull(_geometryProps) { "DigitBuilder not constructed. Call construct() first." }
+        get() =
+            checkNotNull(_geometryProps) { "DigitBuilder not constructed. Call construct() first." }
 
     final override fun construct(digitGridSpec: GridSpec, geometryProps: GeometryProps) {
         check(!isConstructed) { "DigitBuilder already constructed" }
@@ -237,12 +241,12 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
      */
     protected abstract fun assembleDefaultBricks(): List<B>
 
-   /**
-    * Called before the builder is destroyed while it is still constructed and its providers are
-    * still attached. Override this method to release additional resources owned by the builder.
-    *
-    * @see destroy
-    */
+    /**
+     * Called before the builder is destroyed while it is still constructed and its providers are
+     * still attached. Override this method to release additional resources owned by the builder.
+     *
+     * @see destroy
+     */
     protected open fun onDestroying() {}
 
     private fun resolveProviders(): List<GeometryProvider<*>> {
@@ -251,7 +255,8 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
         if (providerCount == 0) return emptyList()
 
         // Contains both provider keys and family keys, each resolving to its provider.
-        val providersByKey = MutableScatterMap<ProviderKey<*>, GeometryProvider<*>>(providerCount * 2)
+        val providersByKey =
+            MutableScatterMap<ProviderKey<*>, GeometryProvider<*>>(providerCount * 2)
         var hasDependencies = false
 
         for (provider in declaredProviders) {
@@ -268,8 +273,9 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
 
             val consent = provider.matches(digitGridSpec)
             if (consent.hasRejected()) {
-                error(consent.getRejectionReason()
-                    ?: "Cannot register provider '$key': incompatible with this DigitBuilder"
+                error(
+                    consent.getRejectionReason()
+                        ?: "Cannot register provider '$key': incompatible with this DigitBuilder"
                 )
             }
 
@@ -307,8 +313,7 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
         fun visit(provider: GeometryProvider<*>) {
             val key = provider.key
             when (visitStateByKey[key]) {
-                VisitState.VISITING ->
-                    error("Cyclic provider dependency detected at '$key'")
+                VisitState.VISITING -> error("Cyclic provider dependency detected at '$key'")
                 VisitState.VISITED -> return
                 else -> {
                     /* continue */
@@ -316,9 +321,7 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
             }
 
             visitStateByKey[key] = VisitState.VISITING
-            provider.dependsOn.forEach { dependency ->
-                providersByKey[dependency]?.let(::visit)
-            }
+            provider.dependsOn.forEach { dependency -> providersByKey[dependency]?.let(::visit) }
             visitStateByKey[key] = VisitState.VISITED
             orderedProviders.add(provider)
         }

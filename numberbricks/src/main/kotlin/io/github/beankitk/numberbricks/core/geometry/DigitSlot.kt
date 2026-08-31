@@ -113,8 +113,8 @@ value class DigitSlot internal constructor(val packed: Long) {
 
     companion object {
         /**
-         * Reconstructs a [DigitSlot] from a previously obtained [DigitSlot.packed] value.
-         * Use this when storing digit slots as raw longs for efficiency, then rebuilding later.
+         * Reconstructs a [DigitSlot] from a previously obtained [DigitSlot.packed] value. Use this
+         * when storing digit slots as raw longs for efficiency, then rebuilding later.
          *
          * @throws IllegalArgumentException if [packed] does not encode a valid DigitSlot
          */

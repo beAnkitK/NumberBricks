@@ -27,13 +27,15 @@ import kotlin.math.abs
  * 3. Size of [eachRowHeight] must match the total number of rows
  * 4. All values must be finite and greater than or equal to 0
  *
- * Input arrays define relative proportions and are normalized during attachment so that column widths
- * and row heights sum to the total column and row counts respectively. These arrays can be further
- * transformed during geometry composition through [transformColWidths] and [transformRowHeights],
- * and are published as [io.github.beankitk.numberbricks.core.geometry.MetaKey] for inter-provider access.
+ * Input arrays define relative proportions and are normalized during attachment so that column
+ * widths and row heights sum to the total column and row counts respectively. These arrays can be
+ * further transformed during geometry composition through [transformColWidths] and
+ * [transformRowHeights], and are published as
+ * [io.github.beankitk.numberbricks.core.geometry.MetaKey] for inter-provider access.
  *
- * **Note:** This provider does not observe mutations to the input arrays. Values are resolved during
- * construction, after which size computation remains unchanged unless transformations are provided.
+ * **Note:** This provider does not observe mutations to the input arrays. Values are resolved
+ * during construction, after which size computation remains unchanged unless transformations are
+ * provided.
  *
  * **Example:**
  *
@@ -48,14 +50,14 @@ import kotlin.math.abs
  *
  * @param eachColWidth Relative width per column (normalized to the column count).
  * @param eachRowHeight Relative height per row (normalized to the row count).
- * @param transformColWidths Optional transformation applied to column widths before block sizes
- *   are computed. The transformation receives the digit and normalized column widths, and returns
- *   the column widths to use. The returned array is used directly and must match the column count,
+ * @param transformColWidths Optional transformation applied to column widths before block sizes are
+ *   computed. The transformation receives the digit and normalized column widths, and returns the
+ *   column widths to use. The returned array is used directly and must match the column count,
  *   contain only non-negative values, and be normalized. Use [normalizeColWidths] if needed.
- * @param transformRowHeights Optional transformation applied to row heights before block sizes
- *   are computed. The transformation receives the digit and normalized row heights, and returns
- *   the row heights to use. The returned array is used directly and must match the row count,
- *   contain only non-negative values, and be normalized. Use [normalizeRowHeights] if needed.
+ * @param transformRowHeights Optional transformation applied to row heights before block sizes are
+ *   computed. The transformation receives the digit and normalized row heights, and returns the row
+ *   heights to use. The returned array is used directly and must match the row count, contain only
+ *   non-negative values, and be normalized. Use [normalizeRowHeights] if needed.
  * @param transformSize Optional transformation applied to each computed block size. The
  *   transformation receives the digit, block position, and base size, and returns the final size.
  * @see PositionProvider
@@ -64,12 +66,9 @@ import kotlin.math.abs
 class VariableSize(
     eachColWidth: FloatArray,
     eachRowHeight: FloatArray,
-    private val transformColWidths:
-        ((digit: Int, colWidths: FloatArray) -> FloatArray)? = null,
-    private val transformRowHeights:
-        ((digit: Int, rowHeights: FloatArray) -> FloatArray)? = null,
-    private val transformSize:
-        ((digit: Int, position: Position, baseSize: Size) -> Size)? = null
+    private val transformColWidths: ((digit: Int, colWidths: FloatArray) -> FloatArray)? = null,
+    private val transformRowHeights: ((digit: Int, rowHeights: FloatArray) -> FloatArray)? = null,
+    private val transformSize: ((digit: Int, position: Position, baseSize: Size) -> Size)? = null,
 ) : SizeProvider.Adaptive() {
 
     private var eachColWidth: FloatArray = eachColWidth.copyOf()
@@ -154,23 +153,27 @@ class VariableSize(
 }
 
 /**
- * Scales row height weights proportionally so that their sum equals [NumberComposer.digitGridSpec.rowCount].
- * Each value represents the row's proportional height in grid units, where `1f` equals one row.
+ * Scales row height weights proportionally so that their sum equals
+ * [NumberComposer.digitGridSpec.rowCount]. Each value represents the row's proportional height in
+ * grid units, where `1f` equals one row.
  *
  * @param input Row height weights to normalize.
  * @param rowCount The row count from the [NumberComposer.digitGridSpec].
- * @return A [FloatArray] whose values are proportionally scaled and sum to [NumberComposer.digitGridSpec.rowCount].
+ * @return A [FloatArray] whose values are proportionally scaled and sum to
+ *   [NumberComposer.digitGridSpec.rowCount].
  */
 fun normalizeRowHeights(input: FloatArray, rowCount: Int): FloatArray =
     normalizeArray(input, rowCount.toFloat())
 
 /**
- * Scales column width weights proportionally so that their sum equals [NumberComposer.digitGridSpec.colCount].
- * Each value represents the column's proportional width in grid units, where `1f` equals one column.
+ * Scales column width weights proportionally so that their sum equals
+ * [NumberComposer.digitGridSpec.colCount]. Each value represents the column's proportional width in
+ * grid units, where `1f` equals one column.
  *
  * @param input Column width weights to normalize.
  * @param colCount The column count from the [NumberComposer.digitGridSpec].
- * @return A [FloatArray] whose values are proportionally scaled and sum to [NumberComposer.digitGridSpec.colCount].
+ * @return A [FloatArray] whose values are proportionally scaled and sum to
+ *   [NumberComposer.digitGridSpec.colCount].
  */
 fun normalizeColWidths(input: FloatArray, colCount: Int): FloatArray =
     normalizeArray(input, colCount.toFloat())
@@ -194,5 +197,6 @@ private fun normalizeArray(input: FloatArray, target: Float): FloatArray {
     return FloatArray(size) { input[it] * scale }
 }
 
-private fun FloatArray.firstInvalidIndex(): Int =
-    indexOfFirst { it < 0f || it.isNaN() || it.isInfinite() }
+private fun FloatArray.firstInvalidIndex(): Int = indexOfFirst {
+    it < 0f || it.isNaN() || it.isInfinite()
+}

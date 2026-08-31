@@ -40,7 +40,7 @@ class UniformCorners(private val rectCorners: RectCorners) : CornersProvider.Ada
     constructor(
         radius: Float,
         shape: CornerShape = CornerShape.Round,
-        radiusY: Float = radius
+        radiusY: Float = radius,
     ) : this(CornerStyle(CornerRadius(radius, radiusY), shape))
 
     // Safe without synchronization because providers are evaluated sequentially.
@@ -60,7 +60,9 @@ class UniformCorners(private val rectCorners: RectCorners) : CornersProvider.Ada
         /** Creates a [UniformCorners] provider that provides sharp corners for all blocks. */
         fun sharp() = UniformCorners(RectCorners.Sharp)
 
-        /** Creates a [UniformCorners] provider that provides fully rounded corners for all blocks. */
+        /**
+         * Creates a [UniformCorners] provider that provides fully rounded corners for all blocks.
+         */
         fun round() = UniformCorners(RectCorners(1f, CornerShape.Round))
     }
 

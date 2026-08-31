@@ -8,7 +8,6 @@ import io.github.beankitk.numberbricks.blockdigit.geometry.size.SizeProvider
 import io.github.beankitk.numberbricks.core.geometry.AdaptiveGridPolicy
 import io.github.beankitk.numberbricks.core.geometry.BaseGeometryProvider
 import io.github.beankitk.numberbricks.core.geometry.FixedGridPolicy
-import io.github.beankitk.numberbricks.core.geometry.GeometryProps
 import io.github.beankitk.numberbricks.core.geometry.GridSpec
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.core.geometry.ProviderScope
@@ -23,11 +22,11 @@ import io.github.beankitk.numberbricks.utils.getCornerProfile
 /**
  * Provides the corners of each block during geometry composition.
  *
- * A [CornersProvider] produces [RectCorners] for every block in the current
- * digit. The returned values define the corner radius and shape of each block.
+ * A [CornersProvider] produces [RectCorners] for every block in the current digit. The returned
+ * values define the corner radius and shape of each block.
  *
- * Corner radius values must be expressed in grid-relative units, where `1f`
- * represents the maximum radius permitted by the block size.
+ * Corner radius values must be expressed in grid-relative units, where `1f` represents the maximum
+ * radius permitted by the block size.
  *
  * Extend one of the provided base classes to create a corners provider:
  * - [Fixed] for providers that operate on a predefined grid.
@@ -46,9 +45,7 @@ sealed class CornersProvider : BaseGeometryProvider<RectCorners>() {
         final override val providerGridPolicy = FixedGridPolicy(gridSpec)
     }
 
-    /**
-     * Base class for [CornersProvider]s that adapt to the builder's grid constraints.
-     */
+    /** Base class for [CornersProvider]s that adapt to the builder's grid constraints. */
     abstract class Adaptive : CornersProvider() {
         final override val providerGridPolicy = AdaptiveGridPolicy
     }
@@ -83,14 +80,12 @@ sealed class CornersProvider : BaseGeometryProvider<RectCorners>() {
  * - [tl], [tr], [br], [bl]: Single corner styled
  * - [tbl], [tbr], [tlr], [blr]: Two corners styled
  *
- * @param gridSpec The [GridSpec] defining the grid constraints this provider is bound to
- *   and must align its corners data with
+ * @param gridSpec The [GridSpec] defining the grid constraints this provider is bound to and must
+ *   align its corners data with
  * @param cornerStyle The corner style used to construct corner presets
  */
-abstract class CustomCornersProvider(
-    gridSpec: GridSpec,
-    protected val cornerStyle: CornerStyle
-) : CornersProvider.Fixed(gridSpec), DigitData<List<RectCorners>> {
+abstract class CustomCornersProvider(gridSpec: GridSpec, protected val cornerStyle: CornerStyle) :
+    CornersProvider.Fixed(gridSpec), DigitData<List<RectCorners>> {
 
     /** No corner styling applied. */
     protected val none = RectCorners()

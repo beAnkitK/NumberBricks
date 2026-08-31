@@ -18,9 +18,8 @@ value class Position(val packedValue: Long) {
         get() = (packedValue and 0xFFFFFFFF).toInt()
 
     /**
-     * Returns `true` when this position matches either the row or column matches,
-     * including when both match. This differs from [equals], which requires an
-     * exact (row, col) match.
+     * Returns `true` when this position matches either the row or column matches, including when
+     * both match. This differs from [equals], which requires an exact (row, col) match.
      *
      * @param row The row index to match, or `null` to ignore the row
      * @param col The column index to match, or `null` to ignore the column

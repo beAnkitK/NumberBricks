@@ -2,7 +2,6 @@ package io.github.beankitk.numberbricks.blockdigit.geometry.offset
 
 import androidx.compose.ui.geometry.Offset
 import io.github.beankitk.numberbricks.blockdigit.geometry.position.PositionProvider
-import io.github.beankitk.numberbricks.blockdigit.geometry.size.SizeProvider
 import io.github.beankitk.numberbricks.blockdigit.geometry.size.VariableSize
 import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
@@ -12,10 +11,10 @@ import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 /**
  * Provides offsets to position blocks when grid cells have non-uniform dimensions.
  *
- * This [GridOffset] works with [VariableSize], reading column-width and row-height meta to
- * resolve the starting offset of each block's grid cell. If size meta is not available, it
- * falls back to direct position-based offsets (col -> x, row -> y), matching [DirectOffset] behavior.
- * The resulting offset is then passed through [transformOffset], when provided, to produce the final
+ * This [GridOffset] works with [VariableSize], reading column-width and row-height meta to resolve
+ * the starting offset of each block's grid cell. If size meta is not available, it falls back to
+ * direct position-based offsets (col -> x, row -> y), matching [DirectOffset] behavior. The
+ * resulting offset is then passed through [transformOffset], when provided, to produce the final
  * offset.
  *
  * Recommended for use with [VariableSize].
@@ -27,15 +26,15 @@ import io.github.beankitk.numberbricks.core.geometry.buildProviderData
  * Block at position (row=0, col=1) -> offset (x=1.5f, y=...)
  * ```
  *
- * @param transformOffset Optional transformation applied to the computed offset for each block.
- *   The transformation receives the digit, the block's position, and the base offset calculated
- *   by this provider, and returns the final offset.
+ * @param transformOffset Optional transformation applied to the computed offset for each block. The
+ *   transformation receives the digit, the block's position, and the base offset calculated by this
+ *   provider, and returns the final offset.
  * @see VariableSize
  * @see DirectOffset
  */
 class GridOffset(
-    private val transformOffset:
-        ((digit: Int, position: Position, baseOffset: Offset) -> Offset)? = null
+    private val transformOffset: ((digit: Int, position: Position, baseOffset: Offset) -> Offset)? =
+        null
 ) : OffsetProvider.Adaptive() {
 
     override val key: OffsetProvider.Key
@@ -62,7 +61,8 @@ class GridOffset(
 
         return buildProviderData { index ->
             val position = positions[index]
-            val baseOffset = Offset(x = eachColStartX[position.col], y = eachRowStartY[position.row])
+            val baseOffset =
+                Offset(x = eachColStartX[position.col], y = eachRowStartY[position.row])
 
             transformOffset?.invoke(digit, position, baseOffset) ?: baseOffset
         }

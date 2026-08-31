@@ -38,7 +38,9 @@ fun GridSpec(rows: Int, cols: Int, brickCount: Int): GridSpec {
     require(rows > 0) { "Rows must be greater than 0" }
     require(cols > 0) { "Cols must be greater than 0" }
     require(brickCount > 0) { "Brick count must be greater than 0" }
-    require(validateBrickCount(rows, cols, brickCount)) { "Brick count cannot be greater than ${rows * cols}" }
+    require(validateBrickCount(rows, cols, brickCount)) {
+        "Brick count cannot be greater than ${rows * cols}"
+    }
 
     return object : GridSpec {
         override val rows = rows
