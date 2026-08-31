@@ -15,9 +15,9 @@ import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import io.github.beankitk.numberbricks.DigitStyle
 import io.github.beankitk.numberbricks.NumberBricks
-import io.github.beankitk.numberbricks.defaultAnimationSpec
+import io.github.beankitk.numberbricks.core.DigitStyle
+import io.github.beankitk.numberbricks.utils.defaultAnimationSpec
 
 @Composable
 fun DigitRow(

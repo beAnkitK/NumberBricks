@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import io.github.beankitk.numberbricks.sample.screen.EditorScreen
 import io.github.beankitk.numberbricks.sample.ui.theme.AppTheme
 
 class ContentActivity : ComponentActivity() {
@@ -17,7 +18,8 @@ class ContentActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             AppTheme(dynamicColor = false) {
-                HomeScreen()
+                EditorScreen()
+                //HomeScreen()
             }
         }
     }
