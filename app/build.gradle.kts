@@ -1,4 +1,5 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 val keystoreProps = gradleLocalProperties(rootDir, providers)
 
@@ -29,21 +30,22 @@ android {
             keyPassword = keystoreProps["keyPassword"] as String
         }
     }
-    
+
     compileOptions {
         sourceCompatibility = JavaVersion.toVersion(build.versions.java.source.get())
         targetCompatibility = JavaVersion.toVersion(build.versions.java.target.get())
     }
-    
-    kotlinOptions {
-       jvmTarget = build.versions.java.jvmTarget.get()
-       freeCompilerArgs += listOf(
-            "-opt-in=androidx.compose.animation.ExperimentalSharedTransitionApi",
-            "-opt-in=androidx.compose.foundation.layout.ExperimentalLayoutApi",
-            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
-            "-P", "plugin:androidx.compose.compiler.plugins.kotlin:reportsDestination=${project.buildDir.absolutePath}/compose_metrics",
-            "-P", "plugin:androidx.compose.compiler.plugins.kotlin:metricsDestination=${project.buildDir.absolutePath}/compose_metrics"
-        )
+
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_21)
+
+            freeCompilerArgs.addAll(
+                "-opt-in=androidx.compose.animation.ExperimentalSharedTransitionApi",
+                "-opt-in=androidx.compose.foundation.layout.ExperimentalLayoutApi",
+                "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api"
+            )
+        }
     }
 
     buildTypes {

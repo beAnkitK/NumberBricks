@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(plugin.plugins.android.library)
     alias(plugin.plugins.kotlin.android)
@@ -18,15 +20,11 @@ android {
 
     buildFeatures { compose = true }
 
-    kotlinOptions {
-        jvmTarget = build.versions.java.jvmTarget.get()
-        freeCompilerArgs +=
-            listOf(
-                "-P",
-                "plugin:androidx.compose.compiler.plugins.kotlin:reportsDestination=${project.buildDir.absolutePath}/compose_metrics",
-                "-P",
-                "plugin:androidx.compose.compiler.plugins.kotlin:metricsDestination=${project.buildDir.absolutePath}/compose_metrics",
-            )
+    kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_21) } }
+
+    composeCompiler {
+        reportsDestination.set(layout.buildDirectory.dir("compose_metrics"))
+        metricsDestination.set(layout.buildDirectory.dir("compose_metrics"))
     }
 
     packaging { resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" } }
