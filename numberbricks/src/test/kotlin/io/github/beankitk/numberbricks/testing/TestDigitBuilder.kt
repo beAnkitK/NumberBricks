@@ -8,12 +8,11 @@ import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 
 /**
- * Test implementation of [BaseDigitBuilder]. Uses the supplied providers when specified;
- * otherwise uses default uniform position, offset, and size providers.
+ * Test implementation of [BaseDigitBuilder]. Uses the supplied providers when specified; otherwise
+ * uses default uniform position, offset, and size providers.
  */
-class TestDigitBuilder(
-    providers: List<TestGeometryProvider<*>>? = null
-) : BaseDigitBuilder<TestBrick>() {
+class TestDigitBuilder(providers: List<TestGeometryProvider<*>>? = null) :
+    BaseDigitBuilder<TestBrick>() {
 
     /** Creates a test builder with the specified position, offset, and size providers. */
     constructor(

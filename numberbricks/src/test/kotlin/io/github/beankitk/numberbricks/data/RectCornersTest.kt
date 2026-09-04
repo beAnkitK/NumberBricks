@@ -85,12 +85,13 @@ class RectCornersTest {
 
     @Test
     fun testWhenAnyCornerIsNonZero_isZero_returnsFalse() {
-        val corners = RectCorners(
-            topLeft = CornerStyle.None,
-            topRight = CornerStyle.None,
-            bottomRight = CornerStyle(5f, CornerShape.Round),
-            bottomLeft = CornerStyle.None,
-        )
+        val corners =
+            RectCorners(
+                topLeft = CornerStyle.None,
+                topRight = CornerStyle.None,
+                bottomRight = CornerStyle(5f, CornerShape.Round),
+                bottomLeft = CornerStyle.None,
+            )
 
         assertFalse(corners.isZero())
     }

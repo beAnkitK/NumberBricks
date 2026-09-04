@@ -1,13 +1,11 @@
 package io.github.beankitk.numberbricks.core.geometry
 
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import io.github.beankitk.numberbricks.testing.DEFAULT_POSITION
 import io.github.beankitk.numberbricks.testing.DEFAULT_OFFSET
+import io.github.beankitk.numberbricks.testing.DEFAULT_POSITION
 import io.github.beankitk.numberbricks.testing.DEFAULT_SIZE
 import io.github.beankitk.numberbricks.testing.TestDigitBuilder
-import io.github.beankitk.numberbricks.testing.UniformPosition
 import io.github.beankitk.numberbricks.testing.UniformOffset
+import io.github.beankitk.numberbricks.testing.UniformPosition
 import io.github.beankitk.numberbricks.testing.UniformSize
 import io.github.beankitk.numberbricks.testing.createGridSpec
 import io.github.beankitk.numberbricks.testing.createProps
@@ -25,17 +23,19 @@ class NumberComposerTest {
     private val gridSpec = createGridSpec(5, 3, 13)
     private val props = createProps()
 
-    private val digitBuilder = TestDigitBuilder(
-        positionProvider = UniformPosition(DEFAULT_POSITION),
-        offsetProvider = UniformOffset(DEFAULT_OFFSET),
-        sizeProvider = UniformSize(DEFAULT_SIZE),
-    )
+    private val digitBuilder =
+        TestDigitBuilder(
+            positionProvider = UniformPosition(DEFAULT_POSITION),
+            offsetProvider = UniformOffset(DEFAULT_OFFSET),
+            sizeProvider = UniformSize(DEFAULT_SIZE),
+        )
 
-    private fun createNumberComposer() = DefaultNumberComposer(
-        digitGridSpec = gridSpec,
-        geometryProps = props,
-        digitBuilder = digitBuilder
-    )
+    private fun createNumberComposer() =
+        DefaultNumberComposer(
+            digitGridSpec = gridSpec,
+            geometryProps = props,
+            digitBuilder = digitBuilder,
+        )
 
     @Test
     fun testWhenNotInitialized_isUninitialized() {

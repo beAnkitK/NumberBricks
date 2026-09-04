@@ -5,40 +5,43 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.data.CornerShape
-import io.github.beankitk.numberbricks.data.CornerStyle 
+import io.github.beankitk.numberbricks.data.CornerStyle
 import io.github.beankitk.numberbricks.data.RectCorners
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class BlockTest {
 
-    private val startBlock = Block(
-        index = 1,
-        position = Position(0, 0),
-        offset = Offset(10f, 20f),
-        size = Size(100f, 200f),
-        corners = createRectCorners(0.2f)
-    )
+    private val startBlock =
+        Block(
+            index = 1,
+            position = Position(0, 0),
+            offset = Offset(10f, 20f),
+            size = Size(100f, 200f),
+            corners = createRectCorners(0.2f),
+        )
 
-    private val endBlock = Block(
-        index = 2,
-        position = Position(1, 1),
-        offset = Offset(20f, 40f),
-        size = Size(200f, 400f),
-        corners = createRectCorners(0.4f)
-    )
+    private val endBlock =
+        Block(
+            index = 2,
+            position = Position(1, 1),
+            offset = Offset(20f, 40f),
+            size = Size(200f, 400f),
+            corners = createRectCorners(0.4f),
+        )
 
     @Test
     fun testToRect_returnsRect() {
         val offset = Offset(1.5f, 2.0f)
         val size = Size(3.0f, 4.0f)
-        val block = Block(
-            index = 1,
-            position = Position(0, 0),
-            offset = offset,
-            size = size,
-            corners = createRectCorners(0f)
-        )
+        val block =
+            Block(
+                index = 1,
+                position = Position(0, 0),
+                offset = offset,
+                size = size,
+                corners = createRectCorners(0f),
+            )
 
         val rect = block.toRect()
 
@@ -52,13 +55,14 @@ class BlockTest {
     fun testToRoundRect_returnsRoundRect() {
         val offset = Offset(0f, 0f)
         val size = Size(10f, 10f)
-        val block = Block(
-            index = 1,
-            position = Position(0, 0),
-            offset = offset,
-            size = size,
-            corners = createRectCorners(0.5f)
-        )
+        val block =
+            Block(
+                index = 1,
+                position = Position(0, 0),
+                offset = offset,
+                size = size,
+                corners = createRectCorners(0.5f),
+            )
 
         val roundRect = block.toRoundRect()
 
@@ -70,13 +74,14 @@ class BlockTest {
 
     @Test
     fun testScaledBy_whenValid_scalesCorrectly() {
-        val block = Block(
-            index = 42,
-            position = Position(2, 3),
-            offset = Offset(2.5f, 3.0f),
-            size = Size(1.5f, 1.0f),
-            corners = createRectCorners(0.8f)
-        )
+        val block =
+            Block(
+                index = 42,
+                position = Position(2, 3),
+                offset = Offset(2.5f, 3.0f),
+                size = Size(1.5f, 1.0f),
+                corners = createRectCorners(0.8f),
+            )
         val totalSize = Size(200f, 200f)
         val brickSize = Size(40f, 50f)
 
@@ -132,7 +137,7 @@ class BlockTest {
             topLeft = style,
             topRight = style,
             bottomRight = style,
-            bottomLeft = style
+            bottomLeft = style,
         )
     }
 }

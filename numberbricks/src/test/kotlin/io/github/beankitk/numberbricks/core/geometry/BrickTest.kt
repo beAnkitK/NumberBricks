@@ -12,12 +12,7 @@ class BrickTest {
     fun testToRect_whenCalled_returnsRect() {
         val offset = Offset(10f, 20f)
         val size = Size(100f, 200f)
-        val brick = TestBrick(
-            index = 1,
-            position = Position(0, 0),
-            offset = offset,
-            size = size,
-        )
+        val brick = TestBrick(index = 1, position = Position(0, 0), offset = offset, size = size)
 
         val rect = brick.toRect()
 
@@ -29,12 +24,13 @@ class BrickTest {
 
     @Test
     fun testScaledBy_whenValid_scalesOffsetAndSize() {
-        val brick = TestBrick(
-            index = 42,
-            position = Position(2, 3),
-            offset = Offset(2.5f, 3f),
-            size = Size(1.5f, 1f),
-        )
+        val brick =
+            TestBrick(
+                index = 42,
+                position = Position(2, 3),
+                offset = Offset(2.5f, 3f),
+                size = Size(1.5f, 1f),
+            )
         val totalSize = Size(200f, 300f)
         val brickSize = Size(40f, 50f)
 
@@ -48,17 +44,15 @@ class BrickTest {
 
     @Test
     fun testScaledBy_whenCalled_doesNotChangeIdentity() {
-        val brick = TestBrick(
-            index = 42,
-            position = Position(2, 3),
-            offset = Offset(2.5f, 3f),
-            size = Size(1.5f, 1f),
-        )
+        val brick =
+            TestBrick(
+                index = 42,
+                position = Position(2, 3),
+                offset = Offset(2.5f, 3f),
+                size = Size(1.5f, 1f),
+            )
 
-        val scaledBrick = brick.scaledBy(
-            totalSize = Size(999f, 999f),
-            brickSize = Size(40f, 50f),
-        )
+        val scaledBrick = brick.scaledBy(totalSize = Size(999f, 999f), brickSize = Size(40f, 50f))
 
         assertEquals(brick.index, scaledBrick.index)
         assertEquals(brick.position, scaledBrick.position)

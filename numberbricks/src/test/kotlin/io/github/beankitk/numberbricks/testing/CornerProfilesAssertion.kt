@@ -11,8 +11,8 @@ fun assertProfiles(profiles: Array<CornerProfile>, size: Int) {
 }
 
 /**
- * Optionally asserts that [profiles] contains exactly [size] corner profiles
- * and provides an assertion scope for validating their corner types.
+ * Optionally asserts that [profiles] contains exactly [size] corner profiles and provides an
+ * assertion scope for validating their corner types.
  *
  * Example:
  * ```kt
@@ -31,23 +31,30 @@ fun assertProfiles(
     size: Int? = null,
     block: CornerProfilesAssertionScope.() -> Unit,
 ) {
-    if (size != null) { assertEquals(size, profiles.size, "Expected $size corner profiles but found ${profiles.size}.") }
+    if (size != null) {
+        assertEquals(
+            size,
+            profiles.size,
+            "Expected $size corner profiles but found ${profiles.size}.",
+        )
+    }
     CornerProfilesAssertionScope(profiles).block()
 }
 
-/** Allows selecting corner profiles and their corners for asserting expected [CornerType] values. */
+/**
+ * Allows selecting corner profiles and their corners for asserting expected [CornerType] values.
+ */
 class CornerProfilesAssertionScope(internal val profiles: Array<CornerProfile>) {
 
     /**
-     * Selects a single corner profile for the rectangle at [index]. 
-     * Example: `rect(0).shouldMatch(Outer, Outer, Outer, Inner)`
+     * Selects a single corner profile for the rectangle at [index]. Example:
+     * `rect(0).shouldMatch(Outer, Outer, Outer, Inner)`
      */
-    fun rect(index: Int): RectSelector =
-        RectSelector(profiles, mutableSetOf(index))
+    fun rect(index: Int): RectSelector = RectSelector(profiles, mutableSetOf(index))
 
     /**
-     * Select multiple corner profiles for the given rectangle [indices].
-     * Example: `rects(0, 1).topRight().shouldBe(CornerNeighbor)`
+     * Select multiple corner profiles for the given rectangle [indices]. Example: `rects(0,
+     * 1).topRight().shouldBe(CornerNeighbor)`
      */
     fun rects(vararg indices: Int): RectSelector {
         require(indices.isNotEmpty()) { "rects() requires at least one index." }
@@ -55,8 +62,8 @@ class CornerProfilesAssertionScope(internal val profiles: Array<CornerProfile>) 
     }
 
     /**
-     * Select multiple corner profiles for the rectangles in [range].
-     * Example: `rects(0..2).all().shouldBe(Edge)`
+     * Select multiple corner profiles for the rectangles in [range]. Example:
+     * `rects(0..2).all().shouldBe(Edge)`
      */
     fun rects(range: IntRange): RectSelector {
         require(!range.isEmpty()) { "rects() range must not be empty." }
@@ -64,18 +71,16 @@ class CornerProfilesAssertionScope(internal val profiles: Array<CornerProfile>) 
     }
 
     /**
-     * Applies the given assertion [block] to each rectangle corner profile.
-     * Example: `eachRect { it.all().shouldBe(Outer) }`
+     * Applies the given assertion [block] to each rectangle corner profile. Example: `eachRect {
+     * it.all().shouldBe(Outer) }`
      */
     fun eachRect(block: (RectSelector) -> Unit) {
-        profiles.indices.forEach { idx ->
-            block(RectSelector(profiles, mutableSetOf(idx)))
-        }
+        profiles.indices.forEach { idx -> block(RectSelector(profiles, mutableSetOf(idx))) }
     }
 
     /**
-     * Combines selected corners across multiple corner profiles to assert them together.
-     * Example: `corners(rect(0).bottom(), rect(1).top()).shouldBe(Edge)`
+     * Combines selected corners across multiple corner profiles to assert them together. Example:
+     * `corners(rect(0).bottom(), rect(1).top()).shouldBe(Edge)`
      */
     fun corners(vararg selectors: CornerSelector): CornerSelector {
         require(selectors.isNotEmpty()) { "corners() requires at least one selector." }
@@ -87,7 +92,8 @@ class CornerProfilesAssertionScope(internal val profiles: Array<CornerProfile>) 
  * A Selector holding corner profiles for selected rectangles to assert thier [CornerType] for the
  * complete profile or select specific corners from selected rectangles corner profile.
  */
-class RectSelector internal constructor(
+class RectSelector
+internal constructor(
     private val profiles: Array<CornerProfile>,
     private val indices: MutableSet<Int>,
 ) {
@@ -103,31 +109,48 @@ class RectSelector internal constructor(
     /** Selects the bottom-left corner from the selected rectangles corner profile. */
     fun bottomLeft() = cornerSelector(BIT_BL)
 
-    /** Selects both top corners (top-left and top-right) from the selected rectangles corner profile. */
+    /**
+     * Selects both top corners (top-left and top-right) from the selected rectangles corner
+     * profile.
+     */
     fun top() = cornerSelector(BIT_TL or BIT_TR)
 
-    /** Selects both right corners (top-right and bottom-right) from the selected rectangles corner profile. */
+    /**
+     * Selects both right corners (top-right and bottom-right) from the selected rectangles corner
+     * profile.
+     */
     fun right() = cornerSelector(BIT_TR or BIT_BR)
 
-    /** Selects both bottom corners (bottom-left and bottom-right) from the selected rectangles corner profile. */
+    /**
+     * Selects both bottom corners (bottom-left and bottom-right) from the selected rectangles
+     * corner profile.
+     */
     fun bottom() = cornerSelector(BIT_BL or BIT_BR)
 
-    /** Selects both left corners (top-left and bottom-left) from the selected rectangles corner profile. */
+    /**
+     * Selects both left corners (top-left and bottom-left) from the selected rectangles corner
+     * profile.
+     */
     fun left() = cornerSelector(BIT_TL or BIT_BL)
 
     /** Selects all four corners from the selected rectangles corner profile. */
     fun all() = cornerSelector(BIT_ALL)
 
-    /** Asserts all four corners from the selected rectangles corner profile match expected types in order. */
+    /**
+     * Asserts all four corners from the selected rectangles corner profile match expected types in
+     * order.
+     */
     fun shouldMatch(tl: CornerType, tr: CornerType, br: CornerType, bl: CornerType) {
         val sb = StringBuilder()
         var failed = false
         for (idx in indices) {
-            val p = profiles.getOrElse(idx) { error("No CornerProfile found for rect at index $idx.") }
-            val badBits = (if (p.topLeft != tl) BIT_TL else 0) or
-                          (if (p.topRight != tr) BIT_TR else 0) or
-                          (if (p.bottomRight != br) BIT_BR else 0) or
-                          (if (p.bottomLeft  != bl) BIT_BL else 0)
+            val p =
+                profiles.getOrElse(idx) { error("No CornerProfile found for rect at index $idx.") }
+            val badBits =
+                (if (p.topLeft != tl) BIT_TL else 0) or
+                    (if (p.topRight != tr) BIT_TR else 0) or
+                    (if (p.bottomRight != br) BIT_BR else 0) or
+                    (if (p.bottomLeft != bl) BIT_BL else 0)
             if (badBits != 0) {
                 if (failed) sb.append("\n\n")
                 failed = true
@@ -148,7 +171,8 @@ class RectSelector internal constructor(
 }
 
 /** A Selector holding selected corners across corner profiles to assert their [CornerType]. */
-class CornerSelector internal constructor(
+class CornerSelector
+internal constructor(
     private val profiles: Array<CornerProfile>,
     private val selection: HashMap<Int, Int>,
 ) {
@@ -185,13 +209,16 @@ class CornerSelector internal constructor(
         var failed = false
 
         for ((idx, assertedBits) in selection) {
-            val p = profiles.getOrElse(idx) { error("No CornerProfile found for rect at index $idx.") }
+            val p =
+                profiles.getOrElse(idx) { error("No CornerProfile found for rect at index $idx.") }
 
             var badBits = 0
-            if (assertedBits and BIT_TL != 0 && p.topLeft    != expected) badBits = badBits or BIT_TL
-            if (assertedBits and BIT_TR != 0 && p.topRight   != expected) badBits = badBits or BIT_TR
-            if (assertedBits and BIT_BR != 0 && p.bottomRight != expected) badBits = badBits or BIT_BR
-            if (assertedBits and BIT_BL != 0 && p.bottomLeft  != expected) badBits = badBits or BIT_BL
+            if (assertedBits and BIT_TL != 0 && p.topLeft != expected) badBits = badBits or BIT_TL
+            if (assertedBits and BIT_TR != 0 && p.topRight != expected) badBits = badBits or BIT_TR
+            if (assertedBits and BIT_BR != 0 && p.bottomRight != expected)
+                badBits = badBits or BIT_BR
+            if (assertedBits and BIT_BL != 0 && p.bottomLeft != expected)
+                badBits = badBits or BIT_BL
 
             if (badBits == 0) continue
 
@@ -228,9 +255,7 @@ class CornerSelector internal constructor(
     internal fun merge(other: CornerSelector): CornerSelector {
         val merged = HashMap<Int, Int>(selection.size + other.selection.size)
         merged.putAll(selection)
-        other.selection.forEach { (idx, bits) ->
-            merged[idx] = (merged[idx] ?: 0) or bits
-        }
+        other.selection.forEach { (idx, bits) -> merged[idx] = (merged[idx] ?: 0) or bits }
         return CornerSelector(profiles, merged)
     }
 }
@@ -241,13 +266,14 @@ private const val BIT_BR = 4
 private const val BIT_BL = 8
 private const val BIT_ALL = BIT_TL or BIT_TR or BIT_BR or BIT_BL
 
-private fun CornerProfile.cornerFor(bit: Int): CornerType = when (bit) {
-    BIT_TL -> topLeft
-    BIT_TR -> topRight
-    BIT_BR -> bottomRight
-    BIT_BL -> bottomLeft
-    else   -> error("Unknown corner bit: $bit")
-}
+private fun CornerProfile.cornerFor(bit: Int): CornerType =
+    when (bit) {
+        BIT_TL -> topLeft
+        BIT_TR -> topRight
+        BIT_BR -> bottomRight
+        BIT_BL -> bottomLeft
+        else -> error("Unknown corner bit: $bit")
+    }
 
 private fun Int.shortName(): String {
     val sb = StringBuilder(8)

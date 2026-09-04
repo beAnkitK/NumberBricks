@@ -93,11 +93,7 @@ class DigitSlotListTest {
     @Test
     fun testPushAll_addsElementsFromLongArray() {
         val list = DigitSlotList()
-        val values = longArrayOf(
-            DigitSlot(1).packed,
-            DigitSlot(2).packed,
-            DigitSlot(3).packed,
-        )
+        val values = longArrayOf(DigitSlot(1).packed, DigitSlot(2).packed, DigitSlot(3).packed)
 
         list.pushAll(values)
 
@@ -168,13 +164,9 @@ class DigitSlotListTest {
         val list = DigitSlotList()
         list.push(DigitSlot(1))
 
-        assertFailsWith<IndexOutOfBoundsException> {
-            list.set(-1, DigitSlot(2))
-        }
+        assertFailsWith<IndexOutOfBoundsException> { list.set(-1, DigitSlot(2)) }
 
-        assertFailsWith<IndexOutOfBoundsException> {
-            list.set(1, DigitSlot(2))
-        }
+        assertFailsWith<IndexOutOfBoundsException> { list.set(1, DigitSlot(2)) }
     }
 
     @Test
@@ -192,13 +184,9 @@ class DigitSlotListTest {
         val list = DigitSlotList()
         list.push(DigitSlot(1))
 
-        assertFailsWith<IndexOutOfBoundsException> {
-            list.elementAt(-1)
-        }
+        assertFailsWith<IndexOutOfBoundsException> { list.elementAt(-1) }
 
-        assertFailsWith<IndexOutOfBoundsException> {
-            list.elementAt(1)
-        }
+        assertFailsWith<IndexOutOfBoundsException> { list.elementAt(1) }
     }
 
     @Test
@@ -266,9 +254,7 @@ class DigitSlotListTest {
         list.push(DigitSlot(1))
         list.push(DigitSlot(2))
 
-        assertFailsWith<IllegalArgumentException> {
-            list.popRangeFrom(1, 0)
-        }
+        assertFailsWith<IllegalArgumentException> { list.popRangeFrom(1, 0) }
     }
 
     @Test
@@ -277,9 +263,7 @@ class DigitSlotListTest {
         list.push(DigitSlot(1))
         list.push(DigitSlot(2))
 
-        assertFailsWith<IndexOutOfBoundsException> {
-            list.popRangeFrom(-1, 1)
-        }
+        assertFailsWith<IndexOutOfBoundsException> { list.popRangeFrom(-1, 1) }
     }
 
     @Test
@@ -288,9 +272,7 @@ class DigitSlotListTest {
         list.push(DigitSlot(1))
         list.push(DigitSlot(2))
 
-        assertFailsWith<IndexOutOfBoundsException> {
-            list.popRangeFrom(0, 3)
-        }
+        assertFailsWith<IndexOutOfBoundsException> { list.popRangeFrom(0, 3) }
     }
 
     @Test
@@ -318,10 +300,7 @@ class DigitSlotListTest {
         list.push(DigitSlot(previousDigit = 3, currentDigit = 5))
         list.push(DigitSlot(currentDigit = 7))
 
-        assertEquals(
-            "[{0: [curr = 5, prev = 3]},{1: [curr = 7, prev = null]}]",
-            list.toString(),
-        )
+        assertEquals("[{0: [curr = 5, prev = 3]},{1: [curr = 7, prev = null]}]", list.toString())
     }
 
     @Test

@@ -3,7 +3,6 @@ package io.github.beankitk.numberbricks.core.geometry
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
 import kotlin.test.assertNull
 
 class DigitSlotTest {

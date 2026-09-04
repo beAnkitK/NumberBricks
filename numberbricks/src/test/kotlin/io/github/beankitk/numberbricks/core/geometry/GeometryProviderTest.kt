@@ -25,27 +25,29 @@ class GeometryProviderTest {
         doMatch: ((GridSpec) -> Consent)? = null,
         onAttach: ((GridSpec, GeometryProps) -> Unit)? = null,
         onDetach: (() -> Unit)? = null,
-    ) = AdaptiveTestProvider(
-        key = mockKey,
-        doMatch = doMatch,
-        onAttach = onAttach,
-        onDetach = onDetach,
-        provideData = { gs -> List(gs.brickCount) { it } }
-    )
+    ) =
+        AdaptiveTestProvider(
+            key = mockKey,
+            doMatch = doMatch,
+            onAttach = onAttach,
+            onDetach = onDetach,
+            provideData = { gs -> List(gs.brickCount) { it } },
+        )
 
     private fun createFixedProvider(
         gridSpec: GridSpec = mockGridSpec,
         doMatch: ((GridSpec) -> Consent)? = null,
         onAttach: ((GridSpec, GeometryProps) -> Unit)? = null,
         onDetach: (() -> Unit)? = null,
-    ) = FixedTestProvider(
-        key = mockKey,
-        gridSpec = gridSpec,
-        doMatch = doMatch,
-        onAttach = onAttach,
-        onDetach = onDetach,
-        provideData = { gs -> List(gs.brickCount) { it } }
-    )
+    ) =
+        FixedTestProvider(
+            key = mockKey,
+            gridSpec = gridSpec,
+            doMatch = doMatch,
+            onAttach = onAttach,
+            onDetach = onDetach,
+            provideData = { gs -> List(gs.brickCount) { it } },
+        )
 
     // endregion
 
@@ -70,7 +72,7 @@ class GeometryProviderTest {
         assertFailsWith<IllegalStateException> { provider.matches(mockGridSpec) }
     }
 
-   @Test
+    @Test
     fun testWhenNotMatched_providerCannotAttach() {
         val provider = createAdaptiveProvider()
 
@@ -80,9 +82,7 @@ class GeometryProviderTest {
 
     @Test
     fun testWhenMatchWasRejected_providerCannotAttach() {
-        val provider = createAdaptiveProvider(
-            doMatch = { Consent.Reject("Rejected For Test") }
-        )
+        val provider = createAdaptiveProvider(doMatch = { Consent.Reject("Rejected For Test") })
         provider.matches(mockGridSpec)
 
         assertFalse(provider.isAttached)
@@ -91,9 +91,7 @@ class GeometryProviderTest {
 
     @Test
     fun testIfDoMatchThrows_providerCannotAttach() {
-        val provider = createAdaptiveProvider(
-            doMatch = { TEST_ERROR }
-        )
+        val provider = createAdaptiveProvider(doMatch = { TEST_ERROR })
         assertFailsWith<IllegalStateException> { provider.matches(mockGridSpec) }
         assertFalse(provider.isAttached)
         assertFailsWith<IllegalStateException> { provider.attach(mockGridSpec, props) }
@@ -111,9 +109,7 @@ class GeometryProviderTest {
 
     @Test
     fun testIfOnAttachThrows_providerIsNotAttached() {
-        val provider = createAdaptiveProvider(
-            onAttach = { _, _ ->  TEST_ERROR }
-        )
+        val provider = createAdaptiveProvider(onAttach = { _, _ -> TEST_ERROR })
         provider.matches(mockGridSpec)
         assertFailsWith<IllegalStateException> { provider.attach(mockGridSpec, props) }
         assertFalse(provider.isAttached)
@@ -122,9 +118,12 @@ class GeometryProviderTest {
     @Test
     fun testIfAttachFails_matchIsRequiredBeforeReattach() {
         var attachAction: ((GridSpec, GeometryProps) -> Unit)? = null
-        val provider = createAdaptiveProvider(
-            onAttach = { gridSpec, geometryProps -> attachAction?.invoke(gridSpec, geometryProps) }
-        )
+        val provider =
+            createAdaptiveProvider(
+                onAttach = { gridSpec, geometryProps ->
+                    attachAction?.invoke(gridSpec, geometryProps)
+                }
+            )
 
         attachAction = { _, _ -> TEST_ERROR }
         provider.matches(mockGridSpec)
@@ -146,10 +145,10 @@ class GeometryProviderTest {
 
         try {
             assertFalse(provider.isAttached)
-            assertFailsWith<IllegalStateException> {
-                with(provider) { scope.provide() }
-            }
-        } finally { scope.dispose() }
+            assertFailsWith<IllegalStateException> { with(provider) { scope.provide() } }
+        } finally {
+            scope.dispose()
+        }
     }
 
     @Test
@@ -184,9 +183,7 @@ class GeometryProviderTest {
             provider.detach()
 
             assertFalse(provider.isAttached)
-            assertFailsWith<IllegalStateException> {
-                with(provider) { scope.provide() }
-            }
+            assertFailsWith<IllegalStateException> { with(provider) { scope.provide() } }
 
             provider.matches(attachedGridSpec)
             provider.attach(attachedGridSpec, props)
@@ -199,9 +196,7 @@ class GeometryProviderTest {
 
     @Test
     fun testIfOnDetachThrows_providerIsDetached() {
-        val provider = createAdaptiveProvider(
-            onDetach = { TEST_ERROR }
-        )
+        val provider = createAdaptiveProvider(onDetach = { TEST_ERROR })
         provider.matches(mockGridSpec)
         provider.attach(mockGridSpec, props)
         assertTrue(provider.isAttached)
@@ -247,14 +242,16 @@ class GeometryProviderTest {
     @Test
     fun testAdaptiveProvider_matches_acceptsOrRejectsBasedOnGridSpec() {
         val requiredRows = 5
-        val adaptiveProvider = createAdaptiveProvider(
-            doMatch = { gs ->
-                if (gs.rows == requiredRows) Consent.Accept
-                else Consent.Reject("requires $requiredRows rows")
-            }
-        )
+        val adaptiveProvider =
+            createAdaptiveProvider(
+                doMatch = { gs ->
+                    if (gs.rows == requiredRows) Consent.Accept
+                    else Consent.Reject("requires $requiredRows rows")
+                }
+            )
 
-        val consentAccept = adaptiveProvider.matches(createGridSpec(rows = 5, cols = 3, bricks = 13))
+        val consentAccept =
+            adaptiveProvider.matches(createGridSpec(rows = 5, cols = 3, bricks = 13))
         val consentReject = adaptiveProvider.matches(createGridSpec(rows = 3, cols = 3, bricks = 9))
 
         assertIs<Consent.Accept>(consentAccept)
@@ -264,9 +261,7 @@ class GeometryProviderTest {
     @Test
     fun testAdaptiveProvider_whenMatchIsRejected_returnsRejectionReason() {
         val reason = "not compatible"
-        val adaptiveProvider = createAdaptiveProvider(
-            doMatch = { Consent.Reject(reason) }
-        )
+        val adaptiveProvider = createAdaptiveProvider(doMatch = { Consent.Reject(reason) })
         val consent = adaptiveProvider.matches(mockGridSpec)
 
         assertIs<Consent.Reject>(consent)
@@ -318,9 +313,12 @@ class GeometryProviderTest {
         val predefinedGridSpec = mockGridSpec
         val fixedProvider = createFixedProvider(predefinedGridSpec)
 
-        val rowsDifferConsent = fixedProvider.matches(createGridSpec(rows = 6, cols = 3, bricks = 13))
-        val colsDifferConsent = fixedProvider.matches(createGridSpec(rows = 5, cols = 4, bricks = 20))
-        val bricksDifferConsent = fixedProvider.matches(createGridSpec(rows = 5, cols = 3, bricks = 15))
+        val rowsDifferConsent =
+            fixedProvider.matches(createGridSpec(rows = 6, cols = 3, bricks = 13))
+        val colsDifferConsent =
+            fixedProvider.matches(createGridSpec(rows = 5, cols = 4, bricks = 20))
+        val bricksDifferConsent =
+            fixedProvider.matches(createGridSpec(rows = 5, cols = 3, bricks = 15))
 
         assertIs<Consent.Reject>(rowsDifferConsent)
         assertIs<Consent.Reject>(colsDifferConsent)
@@ -331,10 +329,8 @@ class GeometryProviderTest {
     fun testFixedProvider_whenMatchIsRejected_returnsRejectionReason() {
         val reason = "extra condition failed"
         val predefinedGridSpec = mockGridSpec
-        val fixedProvider = createFixedProvider(
-            predefinedGridSpec,
-            doMatch = { Consent.Reject(reason) }
-        )
+        val fixedProvider =
+            createFixedProvider(predefinedGridSpec, doMatch = { Consent.Reject(reason) })
 
         val consent = fixedProvider.matches(predefinedGridSpec)
 

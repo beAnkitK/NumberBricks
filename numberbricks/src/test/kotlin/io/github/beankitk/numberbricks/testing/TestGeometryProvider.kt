@@ -11,8 +11,8 @@ import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 
 /**
- * Creates a [TestGeometryProvider] with a fixed [GridSpec]. Use [provideData] to
- * define the data returned by the provider.
+ * Creates a [TestGeometryProvider] with a fixed [GridSpec]. Use [provideData] to define the data
+ * returned by the provider.
  */
 fun <T : Any> FixedTestProvider(
     key: ProviderKey<T>,
@@ -22,19 +22,20 @@ fun <T : Any> FixedTestProvider(
     onAttach: ((GridSpec, GeometryProps) -> Unit)? = null,
     onDetach: (() -> Unit)? = null,
     provideData: ProviderScope.(GridSpec) -> List<T>,
-) = TestGeometryProvider<T>(
-    key = key,
-    dependsOn = dependsOn,
-    providerGridPolicy = FixedGridPolicy(gridSpec),
-    doMatch = doMatch,
-    onAttach = onAttach,
-    onDetach = onDetach,
-    provideData = provideData
-)
+) =
+    TestGeometryProvider<T>(
+        key = key,
+        dependsOn = dependsOn,
+        providerGridPolicy = FixedGridPolicy(gridSpec),
+        doMatch = doMatch,
+        onAttach = onAttach,
+        onDetach = onDetach,
+        provideData = provideData,
+    )
 
 /**
- * Creates a [TestGeometryProvider] with an adaptive grid policy. Use [provideData] to
- * define the data returned by the provider.
+ * Creates a [TestGeometryProvider] with an adaptive grid policy. Use [provideData] to define the
+ * data returned by the provider.
  */
 fun <T : Any> AdaptiveTestProvider(
     key: ProviderKey<T>,
@@ -43,15 +44,16 @@ fun <T : Any> AdaptiveTestProvider(
     onAttach: ((GridSpec, GeometryProps) -> Unit)? = null,
     onDetach: (() -> Unit)? = null,
     provideData: ProviderScope.(GridSpec) -> List<T>,
-) = TestGeometryProvider<T>(
-    key = key,
-    dependsOn = dependsOn,
-    providerGridPolicy = AdaptiveGridPolicy,
-    doMatch = doMatch,
-    onAttach = onAttach,
-    onDetach = onDetach,
-    provideData = provideData
-)
+) =
+    TestGeometryProvider<T>(
+        key = key,
+        dependsOn = dependsOn,
+        providerGridPolicy = AdaptiveGridPolicy,
+        doMatch = doMatch,
+        onAttach = onAttach,
+        onDetach = onDetach,
+        provideData = provideData,
+    )
 
 /** Configurable [BaseGeometryProvider] implementation for testing. */
 class TestGeometryProvider<T : Any>(
@@ -61,7 +63,7 @@ class TestGeometryProvider<T : Any>(
     private val doMatch: ((GridSpec) -> Consent)? = null,
     private val onAttach: ((GridSpec, GeometryProps) -> Unit)? = null,
     private val onDetach: (() -> Unit)? = null,
-    private val provideData: ProviderScope.(GridSpec) -> List<T>
+    private val provideData: ProviderScope.(GridSpec) -> List<T>,
 ) : BaseGeometryProvider<T>() {
 
     override fun doMatch(digitGridSpec: GridSpec): Consent {

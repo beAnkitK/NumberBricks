@@ -21,8 +21,7 @@ import kotlin.test.assertTrue
  * }
  * ```
  */
-fun dependencyGraph(block: DependencyGraph.() -> Unit) =
-    DependencyGraph().block()
+fun dependencyGraph(block: DependencyGraph.() -> Unit) = DependencyGraph().block()
 
 /** References a geometry provider created in a dependency graph. */
 @JvmInline
@@ -31,8 +30,8 @@ value class ProviderRef internal constructor(internal val index: Int) {
 }
 
 /**
- * Builds a provider dependency graph and lets you resolve the order and assert on it. Providers
- * are shuffled before resolution by default to ensure dependencies determine their order.
+ * Builds a provider dependency graph and lets you resolve the order and assert on it. Providers are
+ * shuffled before resolution by default to ensure dependencies determine their order.
  */
 class DependencyGraph internal constructor() {
     private var resolving = false
@@ -79,11 +78,7 @@ class DependencyGraph internal constructor() {
     }
 
     /** Resolves the graph and returns assertions for the provider execution order. */
-    fun resolve(
-        gridSpec: GridSpec,
-        props: GeometryProps,
-        digit: Int = 0,
-    ): ProviderOrderAssertion {
+    fun resolve(gridSpec: GridSpec, props: GeometryProps, digit: Int = 0): ProviderOrderAssertion {
         checkNotResolving()
         require(digit in 0..9 || digit == -1) {
             "Cannot resolve providers for digit $digit: requires 0 to 9 or -1"
@@ -94,18 +89,21 @@ class DependencyGraph internal constructor() {
             val executionIndex = IntArray(providerCount) { NOT_EXECUTED }
             var executionCount = 0
 
-            val providers = Array(providerCount) { index ->
-                val dependencies = dependencies[index]
+            val providers =
+                Array(providerCount) { index ->
+                    val dependencies = dependencies[index]
 
-                AdaptiveTestProvider(
-                    key = keys[index],
-                    dependsOn = dependencies?.mapTo(HashSet(dependencies.size)) { keys[it] } ?: emptySet(),
-                    provideData = { gs ->
-                        executionIndex[index] = executionCount++
-                        List(gs.brickCount) { it }
-                    },
-                )
-            }
+                    AdaptiveTestProvider(
+                        key = keys[index],
+                        dependsOn =
+                            dependencies?.mapTo(HashSet(dependencies.size)) { keys[it] }
+                                ?: emptySet(),
+                        provideData = { gs ->
+                            executionIndex[index] = executionCount++
+                            List(gs.brickCount) { it }
+                        },
+                    )
+                }
             if (shuffleProviders) providers.shuffle()
 
             TestDigitBuilder(providers.toList())
@@ -113,7 +111,9 @@ class DependencyGraph internal constructor() {
                 .buildBricks(digit)
 
             ProviderOrderAssertion(executionIndex)
-        } finally { resolving = false }
+        } finally {
+            resolving = false
+        }
     }
 
     private fun ensureCapacity() {
@@ -140,10 +140,11 @@ value class ProviderOrderAssertion internal constructor(private val orderIndex: 
         return position
     }
 
-    internal fun precedes(before: ProviderRef, after: ProviderRef) = assertTrue(
-        positionOf(before) < positionOf(after),
-        "Expected $before to resolve before $after",
-    )
+    internal fun precedes(before: ProviderRef, after: ProviderRef) =
+        assertTrue(
+            positionOf(before) < positionOf(after),
+            "Expected $before to resolve before $after",
+        )
 
     /** Asserts that [provider] resolves first. */
     fun assertFirst(provider: ProviderRef): ProviderOrderAssertion {
@@ -178,16 +179,12 @@ value class ProviderOrderAssertion internal constructor(private val orderIndex: 
 }
 
 /** Adds a provider that depends on [first] and returns its reference. */
-fun DependencyGraph.provider(first: ProviderRef) =
-    provider(setOf(first))
+fun DependencyGraph.provider(first: ProviderRef) = provider(setOf(first))
 
 /** Adds a provider that depends on [first] and [second] and returns its reference. */
 fun DependencyGraph.provider(first: ProviderRef, second: ProviderRef) =
     provider(setOf(first, second))
-    
+
 /** Adds a provider that depends on [first], [second], and [third] and returns its reference. */
-fun DependencyGraph.provider(
-    first: ProviderRef,
-    second: ProviderRef,
-    third: ProviderRef,
-) = provider(setOf(first, second, third))
+fun DependencyGraph.provider(first: ProviderRef, second: ProviderRef, third: ProviderRef) =
+    provider(setOf(first, second, third))

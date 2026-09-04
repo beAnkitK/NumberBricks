@@ -7,7 +7,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
-import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 private class TestMetaProvider : BaseGeometryProvider<Int>() {
@@ -32,17 +31,13 @@ class DefaultProviderScopeTest {
 
     @Test
     fun testWhenResultIsNotStored_hasResult_returnsFalse() {
-        DefaultProviderScope(digit = 5).use { scope ->
-            assertFalse(scope.hasResult(mockKey))
-        }
+        DefaultProviderScope(digit = 5).use { scope -> assertFalse(scope.hasResult(mockKey)) }
     }
 
     @Test
     fun testWhenResultIsNotStored_resultOf_throws() {
         DefaultProviderScope(digit = 5).use { scope ->
-            assertFailsWith<IllegalStateException> {
-                scope.resultOf(mockKey)
-            }
+            assertFailsWith<IllegalStateException> { scope.resultOf(mockKey) }
         }
     }
 
@@ -77,9 +72,7 @@ class DefaultProviderScopeTest {
 
     @Test
     fun testWhenResultIsNotStored_removeResult_returnsNull() {
-        DefaultProviderScope(digit = 5).use { scope ->
-            assertNull(scope.removeResult(mockKey))
-        }
+        DefaultProviderScope(digit = 5).use { scope -> assertNull(scope.removeResult(mockKey)) }
     }
 
     @Test
@@ -111,11 +104,7 @@ class DefaultProviderScopeTest {
     @Test
     fun testProvideMeta_storesMeta() {
         DefaultProviderScope(digit = 5).use { scope ->
-            with(scope) {
-                metaProvider.provideMeta {
-                    TestMetaProvider.IntMeta providedBy 42
-                }
-            }
+            with(scope) { metaProvider.provideMeta { TestMetaProvider.IntMeta providedBy 42 } }
 
             assertTrue(scope.hasMeta(TestMetaProvider.IntMeta))
             assertEquals(42, scope.metaOf(TestMetaProvider.IntMeta))
@@ -126,12 +115,8 @@ class DefaultProviderScopeTest {
     fun testWhenMetaIsAlreadyProvided_provideMeta_overwritesPreviousValue() {
         DefaultProviderScope(digit = 5).use { scope ->
             with(scope) {
-                metaProvider.provideMeta {
-                    TestMetaProvider.IntMeta providedBy 10
-                }
-                metaProvider.provideMeta {
-                    TestMetaProvider.IntMeta providedBy 20
-                }
+                metaProvider.provideMeta { TestMetaProvider.IntMeta providedBy 10 }
+                metaProvider.provideMeta { TestMetaProvider.IntMeta providedBy 20 }
             }
 
             assertEquals(20, scope.metaOf(TestMetaProvider.IntMeta))
@@ -143,11 +128,7 @@ class DefaultProviderScopeTest {
         val scope = DefaultProviderScope(digit = 5)
 
         scope.storeResult(mockKey, mockResult)
-        with(scope) {
-            metaProvider.provideMeta {
-                TestMetaProvider.IntMeta providedBy 42
-            }
-        }
+        with(scope) { metaProvider.provideMeta { TestMetaProvider.IntMeta providedBy 42 } }
         scope.dispose()
 
         assertFalse(scope.hasResult(mockKey))

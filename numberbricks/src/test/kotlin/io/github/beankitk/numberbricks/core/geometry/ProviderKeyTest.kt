@@ -57,10 +57,11 @@ class ProviderKeyTest {
     // as DigitBuilder and ProviderScope only resolve root family keys.
     @Test
     fun testProviderKeys_canReferenceAnotherProviderKeyAsFamily() {
-        val ChainedIntProviderKey = object : IntProviderKey {
-            override val family: IntProviderKey
-                get() = FirstIntProviderKey
-        }
+        val ChainedIntProviderKey =
+            object : IntProviderKey {
+                override val family: IntProviderKey
+                    get() = FirstIntProviderKey
+            }
 
         assertSame(FirstIntProviderKey, ChainedIntProviderKey.family)
         assertNotSame<IntProviderKey>(IntProviderKey, ChainedIntProviderKey.family)

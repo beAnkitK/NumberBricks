@@ -29,10 +29,7 @@ class CornerDetectorTest {
         assertProfiles(profiles, 3) {
             rect(1).all().shouldBe(Edge)
 
-            corners(
-                rect(0).right(),
-                rect(2).left()
-            ).shouldBe(Edge)
+            corners(rect(0).right(), rect(2).left()).shouldBe(Edge)
         }
     }
 
@@ -43,10 +40,7 @@ class CornerDetectorTest {
         assertProfiles(profiles, 3) {
             rect(1).all().shouldBe(Edge)
 
-            corners(
-                rect(0).bottom(),
-                rect(2).top()
-            ).shouldBe(Edge)
+            corners(rect(0).bottom(), rect(2).top()).shouldBe(Edge)
         }
     }
 
@@ -57,10 +51,7 @@ class CornerDetectorTest {
         assertProfiles(profiles, 2) {
             rects(0, 1).topRight().bottomLeft().shouldBe(CornerNeighbor)
 
-            corners(
-                rect(0).bottomRight(),
-                rect(1).topLeft()
-            ).shouldBe(Corner)
+            corners(rect(0).bottomRight(), rect(1).topLeft()).shouldBe(Corner)
         }
     }
 
@@ -71,10 +62,7 @@ class CornerDetectorTest {
         assertProfiles(profiles, 3) {
             rect(1).topRight().shouldBe(Joint)
 
-            corners(
-                rect(0).bottomRight(),
-                rect(2).topLeft()
-            ).shouldBe(JointInline)
+            corners(rect(0).bottomRight(), rect(2).topLeft()).shouldBe(JointInline)
         }
     }
 
@@ -84,11 +72,12 @@ class CornerDetectorTest {
 
         assertProfiles(profiles, 4) {
             corners(
-                rect(0).bottomRight(),
-                rect(1).bottomLeft(),
-                rect(2).topRight(),
-                rect(3).topLeft(),
-            ).shouldBe(Inner)
+                    rect(0).bottomRight(),
+                    rect(1).bottomLeft(),
+                    rect(2).topRight(),
+                    rect(3).topLeft(),
+                )
+                .shouldBe(Inner)
         }
     }
 
@@ -136,19 +125,11 @@ class CornerDetectorTest {
         val profiles = getCornerProfile(ShapeFixtures.DiagonalStaircase)
 
         assertProfiles(profiles, 4) {
-            corners(
-                rect(0).topLeft(),
-                rect(3).bottomRight()
-            ).shouldBe(Outer)
+            corners(rect(0).topLeft(), rect(3).bottomRight()).shouldBe(Outer)
 
-            eachRect {
-                it.topRight().bottomLeft().shouldBe(CornerNeighbor)
-            }
+            eachRect { it.topRight().bottomLeft().shouldBe(CornerNeighbor) }
 
-            corners(
-                rects(0, 1, 2).bottomRight(),
-                rects(1, 2, 3).topLeft()
-            ).shouldBe(Corner)
+            corners(rects(0, 1, 2).bottomRight(), rects(1, 2, 3).topLeft()).shouldBe(Corner)
         }
     }
 
@@ -177,15 +158,11 @@ class CornerDetectorTest {
         val profiles = getCornerProfile(ShapeFixtures.Donut)
 
         assertProfiles(profiles, 4) {
-            corners(
-                rect(0).top(), rect(1).left(),
-                rect(2).right(), rect(3).bottom()
-            ).shouldBe(CornerNeighbor)
+            corners(rect(0).top(), rect(1).left(), rect(2).right(), rect(3).bottom())
+                .shouldBe(CornerNeighbor)
 
-            corners(
-                rect(0).bottom(), rect(1).right(),
-                rect(2).left(), rect(3).top()
-            ).shouldBe(Corner)
+            corners(rect(0).bottom(), rect(1).right(), rect(2).left(), rect(3).top())
+                .shouldBe(Corner)
         }
     }
 
@@ -263,13 +240,16 @@ class CornerDetectorTest {
 
     @Test
     fun testModifyProfile_overridesProfileCorrectly() {
-        val profiles = getCornerProfile(ShapeFixtures.DiagonalRects) { index, profile ->
-            if (index == 0) {
-                profile.copy(bottomRight = Joint)
-            } else if (index == 1) {
-                profile.copy(topLeft = Joint)
-            } else { profile }
-        }
+        val profiles =
+            getCornerProfile(ShapeFixtures.DiagonalRects) { index, profile ->
+                if (index == 0) {
+                    profile.copy(bottomRight = Joint)
+                } else if (index == 1) {
+                    profile.copy(topLeft = Joint)
+                } else {
+                    profile
+                }
+            }
 
         assertProfiles(profiles, 2) {
             rect(0).shouldMatch(Outer, CornerNeighbor, Joint, CornerNeighbor)

@@ -8,8 +8,8 @@ import io.github.beankitk.numberbricks.core.geometry.Position
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 
 /**
- * Creates a [ProviderKey] for tests. Uses [family] when provided; otherwise,
- * the key is its own family.
+ * Creates a [ProviderKey] for tests. Uses [family] when provided; otherwise, the key is its own
+ * family.
  */
 fun <R : Any> createKey(family: ProviderKey<R>? = null): ProviderKey<R> {
     return object : ProviderKey<R> {

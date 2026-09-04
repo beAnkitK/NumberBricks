@@ -1,4 +1,3 @@
-
 package io.github.beankitk.numberbricks.core.geometry
 
 import io.github.beankitk.numberbricks.testing.createGridSpec
@@ -109,9 +108,7 @@ class ProviderOrderTest {
         val c = provider()
         val d = provider(c)
 
-        resolve(gridSpec, props)
-            .assertInOrder(setOf(a, b))
-            .assertInOrder(setOf(c, d))
+        resolve(gridSpec, props).assertInOrder(setOf(a, b)).assertInOrder(setOf(c, d))
     }
 
     @Test
