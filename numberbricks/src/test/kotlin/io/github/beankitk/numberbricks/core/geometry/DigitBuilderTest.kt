@@ -45,7 +45,7 @@ class BaseDigitBuilderTest {
     @Test
     fun testIfDuplicateProviderKeysFound_construct_throwsAndBuilderIsUnconstructed() {
         val provider =
-            AdaptiveTestProvider(key = mockKey, provideData = { gs -> List(gs.brickCount) { it } })
+            AdaptiveTestProvider(key = mockKey, provideData = { buildProviderData { it } })
         val digitBuilder = TestDigitBuilder(listOf(provider, provider))
 
         assertFailsWith<IllegalStateException> { digitBuilder.construct(gridSpec, props) }
@@ -58,7 +58,7 @@ class BaseDigitBuilderTest {
             AdaptiveTestProvider(
                 key = mockKey,
                 doMatch = { Consent.Reject("Incompatible") },
-                provideData = { gs -> List(gs.brickCount) { it } },
+                provideData = { buildProviderData { it } },
             )
         val digitBuilder = TestDigitBuilder(listOf(provider))
 
@@ -71,18 +71,18 @@ class BaseDigitBuilderTest {
         val providerA =
             AdaptiveTestProvider(
                 key = createKey<Int>(),
-                provideData = { gs -> List(gs.brickCount) { it } },
+                provideData = { buildProviderData { it } },
             )
         val providerB =
             AdaptiveTestProvider(
                 key = createKey<Int>(),
                 onAttach = { _, _ -> TEST_ERROR },
-                provideData = { gs -> List(gs.brickCount) { it } },
+                provideData = { buildProviderData { it } },
             )
         val providerC =
             AdaptiveTestProvider(
                 key = createKey<Int>(),
-                provideData = { gs -> List(gs.brickCount) { it } },
+                provideData = { buildProviderData { it } },
             )
         val digitBuilder = TestDigitBuilder(listOf(providerA, providerB, providerC))
 
@@ -106,12 +106,12 @@ class BaseDigitBuilderTest {
         val providerA =
             AdaptiveTestProvider(
                 key = createKey<Int>(),
-                provideData = { gs -> List(gs.brickCount) { it } },
+                provideData = { buildProviderData { it } },
             )
         val providerB =
             AdaptiveTestProvider(
                 key = createKey<Int>(),
-                provideData = { gs -> List(gs.brickCount) { it } },
+                provideData = { buildProviderData { it } },
             )
         val digitBuilder = TestDigitBuilder(listOf(providerA, providerB))
 
@@ -136,20 +136,6 @@ class BaseDigitBuilderTest {
     }
 
     @Test
-    fun testWhenConstructed_providesGridSpecToAllProviders() {
-        val positionProvider = UniformPosition(DEFAULT_POSITION)
-        val offsetProvider = UniformOffset(DEFAULT_OFFSET)
-        val sizeProvider = UniformSize(DEFAULT_SIZE)
-
-        val digitBuilder = TestDigitBuilder(listOf(positionProvider, offsetProvider, sizeProvider))
-        digitBuilder.construct(gridSpec, props)
-
-        assertEquals(gridSpec, positionProvider.providerGridSpec)
-        assertEquals(gridSpec, offsetProvider.providerGridSpec)
-        assertEquals(gridSpec, sizeProvider.providerGridSpec)
-    }
-
-    @Test
     fun testIfCircularProviderDependencyFound_construct_throwsAndBuilderIsUnconstructed() {
         val keyA = createKey<Int>()
         val keyB = createKey<Int>()
@@ -157,13 +143,13 @@ class BaseDigitBuilderTest {
             AdaptiveTestProvider(
                 key = keyA,
                 dependsOn = setOf(keyB),
-                provideData = { gs -> List(gs.brickCount) { it } },
+                provideData = { buildProviderData { it } },
             )
         val providerB =
             AdaptiveTestProvider(
                 key = keyB,
                 dependsOn = setOf(keyA),
-                provideData = { gs -> List(gs.brickCount) { it } },
+                provideData = { buildProviderData { it } },
             )
         val digitBuilder = TestDigitBuilder(listOf(providerA, providerB))
 
@@ -193,15 +179,6 @@ class BaseDigitBuilderTest {
         listOf(-2, -100, 10, 100).forEach { digit ->
             assertFailsWith<IllegalArgumentException> { digitBuilder.buildBricks(digit) }
         }
-    }
-
-    @Test
-    fun testIfProviderResultSizeMismatchesGridSpec_buildBricks_throws() {
-        val wrongSizeProvider =
-            AdaptiveTestProvider(key = mockKey, provideData = { _ -> emptyList<Int>() })
-        val digitBuilder = TestDigitBuilder(listOf(wrongSizeProvider))
-        digitBuilder.construct(gridSpec, props)
-        assertFailsWith<IllegalStateException> { digitBuilder.buildBricks(0) }
     }
 
     @Test
@@ -253,18 +230,18 @@ class BaseDigitBuilderTest {
             AdaptiveTestProvider(
                 key = createKey<Int>(),
                 onDetach = { TEST_ERROR },
-                provideData = { gs -> List(gs.brickCount) { it } },
+                provideData = { buildProviderData { it } },
             )
         val providerB =
             AdaptiveTestProvider(
                 key = createKey<Int>(),
                 onDetach = { TEST_ERROR },
-                provideData = { gs -> List(gs.brickCount) { it } },
+                provideData = { buildProviderData { it } },
             )
         val providerC =
             AdaptiveTestProvider(
                 key = createKey<Int>(),
-                provideData = { gs -> List(gs.brickCount) { it } },
+                provideData = { buildProviderData { it } },
             )
         val digitBuilder = TestDigitBuilder(listOf(providerA, providerB, providerC))
         digitBuilder.construct(gridSpec, props)

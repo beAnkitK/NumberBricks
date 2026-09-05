@@ -68,8 +68,7 @@ sealed class CornersProvider : BaseGeometryProvider<RectCorners>() {
  *
  * This allows specifying [RectCorners] for all blocks per digit using [DigitData], giving full
  * control over corner appearance during geometry composition. Subclasses define provider data as a
- * list of [RectCorners] for each digit, aligned with the provider's
- * [grid constraints][providerGridSpec].
+ * list of [RectCorners] for each digit, aligned with this provider [grid constraints][gridSpec].
  *
  * Predefined presets are provided to simplify common corner combinations based on the supplied
  * [cornerStyle].
@@ -155,7 +154,7 @@ abstract class AutoCornersProvider : CornersProvider.Adaptive() {
         val offsets = resultOf<Offset>(OffsetProvider.Key)
         val sizes = resultOf<Size>(SizeProvider.Key)
         val rects =
-            Array(providerGridSpec.brickCount) { index -> Rect(offsets[index], sizes[index]) }
+            Array(gridSpec.brickCount) { index -> Rect(offsets[index], sizes[index]) }
 
         val cornerProfileArray =
             getCornerProfile(

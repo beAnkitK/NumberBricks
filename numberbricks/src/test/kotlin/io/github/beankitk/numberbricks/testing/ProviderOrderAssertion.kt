@@ -2,6 +2,7 @@ package io.github.beankitk.numberbricks.testing
 
 import io.github.beankitk.numberbricks.core.geometry.GeometryProps
 import io.github.beankitk.numberbricks.core.geometry.GridSpec
+import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 import kotlin.test.assertTrue
 
 /**
@@ -98,9 +99,9 @@ class DependencyGraph internal constructor() {
                         dependsOn =
                             dependencies?.mapTo(HashSet(dependencies.size)) { keys[it] }
                                 ?: emptySet(),
-                        provideData = { gs ->
+                        provideData = {
                             executionIndex[index] = executionCount++
-                            List(gs.brickCount) { it }
+                            buildProviderData { it }
                         },
                     )
                 }

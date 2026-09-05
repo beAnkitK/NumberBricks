@@ -180,7 +180,7 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
             "DigitBuilder accepts digit values from 0 to 9 to construct bricks and -1 for default bricks, but got $digit"
         }
 
-        return ProviderScope(digit).use { providerScope ->
+        return ProviderScope(digit, digitGridSpec).use { providerScope ->
             resolvedProviders.forEach { provider -> executeProvider(provider, providerScope) }
             providerScope.assembleBricks()
         }
@@ -295,9 +295,6 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
     ) {
         providerScope.withProvider(provider) {
             val providerResult = providerScope.provide()
-            check(providerResult.size == digitGridSpec.brickCount) {
-                "Provider result must have ${digitGridSpec.brickCount} size, but was ${providerResult.size} for ${provider.key}"
-            }
             providerScope.storeResult<R>(key, providerResult)
         }
     }

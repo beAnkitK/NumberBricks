@@ -113,8 +113,8 @@ class VariableSize(
     }
 
     override fun onAttach(digitGridSpec: GridSpec, geometryProps: GeometryProps) {
-        eachColWidth = normalizeArray(eachColWidth, providerGridSpec.cols.toFloat())
-        eachRowHeight = normalizeArray(eachRowHeight, providerGridSpec.rows.toFloat())
+        eachColWidth = normalizeArray(eachColWidth, digitGridSpec.cols.toFloat())
+        eachRowHeight = normalizeArray(eachRowHeight, digitGridSpec.rows.toFloat())
     }
 
     override fun ProviderScope.provideData(): List<Size> {

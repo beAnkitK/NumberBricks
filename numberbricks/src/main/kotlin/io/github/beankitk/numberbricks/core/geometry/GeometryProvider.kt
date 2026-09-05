@@ -4,15 +4,15 @@ package io.github.beankitk.numberbricks.core.geometry
  * Defines a pluggable unit that produces geometry data for digit geometry composition.
  *
  * A [GeometryProvider] produces a single aspect of digit geometry (for example, `position`,`size`,
- * `offset`) for each brick. For a given digit, it returns a value of type [R] for every brick in
- * the current [ProviderScope]. Extend [BaseGeometryProvider] for creating new providers.
+ * `offset`) for each brick. For a given digit, it returns a value of type [R] for every brick
+ * defined by [ProviderScope.gridSpec]. Extend [BaseGeometryProvider] for creating new providers.
  *
  * Providers participate in the geometry composition pipeline coordinated by [DigitBuilder]. Each
  * provider contributes one dimension of geometry that is combined with the results of other
  * providers to produce the final brick model.
  *
  * Every provider is identified by a unique [ProviderKey] and may declare dependencies on other
- * providers using [dependsOn]. The [isAdaptive] and [providerGridSpec] properties define the grid
+ * providers using [dependsOn]. The [isAdaptive] and [providerGridPolicy] properties define the grid
  * on which this provider produces its result, either by adapting to the builder's grid constraints
  * or by using a predefined grid.
  *
@@ -21,15 +21,15 @@ package io.github.beankitk.numberbricks.core.geometry
  * If compatible, this provider is attached via [attach] with the resolved grid constraints and
  * shared [GeometryProps].
  *
- * Providers execute within a [ProviderScope], where they can access the current digit, results and
- * meta values of their dependencies. Dependencies are resolved and executed by the [DigitBuilder]
- * before this provider. Implementations must ensure that [provide] returns exactly
- * `providerGridSpec.brickCount` elements.
+ * Providers execute within a [ProviderScope], where they can access the current digit, grid
+ * constraints, results and meta values of their dependencies. Dependencies are resolved and executed
+ * by the [DigitBuilder] before this provider.
  *
  * @param R The type of result produced for each brick.
  * @see BaseGeometryProvider
  * @see ProviderScope
  * @see ProviderKey
+ * @see ProviderGridPolicy
  */
 sealed interface GeometryProvider<R : Any> {
 
@@ -51,15 +51,6 @@ sealed interface GeometryProvider<R : Any> {
     val isAdaptive: Boolean
 
     /**
-     * Returns the grid constraints this provider operates on.
-     *
-     * For adaptive providers, this is initialized when [attach] is called and represents the
-     * supplied grid constraints. For fixed providers, it is predefined and must match the incoming
-     * grid constraints.
-     */
-    val providerGridSpec: GridSpec
-
-    /**
      * Declares providers whose results and meta are required before this provider executes.
      *
      * All declared dependencies will be executed before this provider. Their results and meta can
@@ -68,6 +59,15 @@ sealed interface GeometryProvider<R : Any> {
      * from a specific provider; that meta is available only when that provider is registered.
      */
     val dependsOn: Set<ProviderKey<*>>
+
+    /**
+     * Specifies how this provider determines the grid constraints used to produce its result.
+     *
+     * The configured policy determines the value of [isAdaptive]. Return [AdaptiveGridPolicy] to
+     * adapt to the builder's grid constraints, or [FixedGridPolicy] to require a predefined grid
+     * for matching.
+     */
+    val providerGridPolicy: ProviderGridPolicy
 
     /**
      * Evaluates whether this provider is compatible with the given grid constraints or any
@@ -101,11 +101,11 @@ sealed interface GeometryProvider<R : Any> {
      * Computes and returns this provider's result for the current digit.
      *
      * Implementations execute within a [ProviderScope], which provides access to the current digit,
-     * results and meta values from providers declared as dependencies via [dependsOn] for use
-     * during result computation.
+     * grid constraints, results and meta values from providers declared as dependencies via [dependsOn]
+     * for use during result computation.
      *
      * Returns the provider result as a list of values of type [R], containing exactly
-     * `providerGridSpec.brickCount` elements, one for each brick in the current digit.
+     * [ProviderScope.gridSpec.brickCount] elements, one for each brick in the current digit.
      *
      * @receiver The [ProviderScope] that provides the execution context required to compute this
      *   provider's result.
@@ -147,20 +147,6 @@ sealed interface Consent {
 fun Consent.getRejectionReason(): String? = (this as? Consent.Reject)?.reason
 
 /**
- * Builds the provider result aligned with this provider's grid constraints.
- *
- * The returned list contain values of type [R] provided for each brick in [providerGridSpec] and
- * always contains exactly `providerGridSpec.brickCount` elements. Prefer this function when
- * constructing provider results.
- *
- * @param factory Provides the result for the specified brick index.
- * @receiver The provider whose grid constraints determine the output size.
- */
-inline fun <R : Any> GeometryProvider<R>.buildProviderData(factory: (Int) -> R): List<R> {
-    return List(providerGridSpec.brickCount) { factory(it) }
-}
-
-/**
  * Base implementation of [GeometryProvider] that manages the provider lifecycle and grid behavior.
  *
  * This class handles compatibility validation, attachment, detachment, and execution while tracking
@@ -180,20 +166,8 @@ abstract class BaseGeometryProvider<R : Any> : GeometryProvider<R> {
     internal var isAttached: Boolean = false
         private set
 
-    private var _providerGridSpec: GridSpec? = null
-
     final override val isAdaptive: Boolean
         get() = providerGridPolicy is AdaptiveGridPolicy
-
-    final override val providerGridSpec: GridSpec
-        get() {
-            val gridPolicy = providerGridPolicy
-            return if (gridPolicy is FixedGridPolicy) {
-                gridPolicy.gridSpec
-            } else {
-                _providerGridSpec ?: error("providerGridSpec accessed before attach() was called.")
-            }
-        }
 
     final override fun matches(digitGridSpec: GridSpec): Consent {
         check(!isAttached) {
@@ -228,13 +202,9 @@ abstract class BaseGeometryProvider<R : Any> : GeometryProvider<R> {
     final override fun attach(digitGridSpec: GridSpec, geometryProps: GeometryProps) {
         checkAttachable(isCompatible, isAttached)
         try {
-            if (providerGridPolicy is AdaptiveGridPolicy) {
-                _providerGridSpec = digitGridSpec
-            }
             isAttached = true
             onAttach(digitGridSpec, geometryProps)
         } catch (throwable: Throwable) {
-            _providerGridSpec = null
             isCompatible = null
             isAttached = false
             throw throwable
@@ -251,19 +221,10 @@ abstract class BaseGeometryProvider<R : Any> : GeometryProvider<R> {
         try {
             onDetach()
         } finally {
-            _providerGridSpec = null
             isCompatible = null
             isAttached = false
         }
     }
-
-    /**
-     * Specifies how this provider determines the grid constraints used to produce its result.
-     *
-     * The configured policy determines the value of [isAdaptive]. Return [AdaptiveGridPolicy] to
-     * adapt to the builder's grid constraints, or [FixedGridPolicy] to require a predefined grid.
-     */
-    protected abstract val providerGridPolicy: ProviderGridPolicy
 
     /**
      * Called by [matches] after the provider's grid constraints have been satisfied by
@@ -295,7 +256,7 @@ abstract class BaseGeometryProvider<R : Any> : GeometryProvider<R> {
      * during result computation.
      *
      * Returns the provider result as a list of values of type [R], containing exactly
-     * `providerGridSpec.brickCount` elements, one for each brick in the current digit.
+     * [ProviderScope.gridSpec.brickCount] elements, one for each brick in the current digit.
      *
      * @receiver The [ProviderScope] that provides the execution context required to compute this
      *   provider's result.
@@ -312,8 +273,8 @@ abstract class BaseGeometryProvider<R : Any> : GeometryProvider<R> {
 /**
  * Defines how a provider determines the grid constraints used to produce its result.
  *
- * Used by [BaseGeometryProvider] to determine whether a provider adapts to the builder's grid
- * constraints or operates on a predefined grid.
+ * Used by [GeometryProvider] to determine whether a provider adapts to the builder's grid constraints
+ * or operates on a predefined grid.
  *
  * @see AdaptiveGridPolicy
  * @see FixedGridPolicy

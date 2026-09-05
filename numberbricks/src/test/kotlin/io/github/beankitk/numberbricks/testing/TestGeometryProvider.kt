@@ -21,7 +21,7 @@ fun <T : Any> FixedTestProvider(
     doMatch: ((GridSpec) -> Consent)? = null,
     onAttach: ((GridSpec, GeometryProps) -> Unit)? = null,
     onDetach: (() -> Unit)? = null,
-    provideData: ProviderScope.(GridSpec) -> List<T>,
+    provideData: ProviderScope.() -> List<T>,
 ) =
     TestGeometryProvider<T>(
         key = key,
@@ -43,7 +43,7 @@ fun <T : Any> AdaptiveTestProvider(
     doMatch: ((GridSpec) -> Consent)? = null,
     onAttach: ((GridSpec, GeometryProps) -> Unit)? = null,
     onDetach: (() -> Unit)? = null,
-    provideData: ProviderScope.(GridSpec) -> List<T>,
+    provideData: ProviderScope.() -> List<T>,
 ) =
     TestGeometryProvider<T>(
         key = key,
@@ -63,8 +63,10 @@ class TestGeometryProvider<T : Any>(
     private val doMatch: ((GridSpec) -> Consent)? = null,
     private val onAttach: ((GridSpec, GeometryProps) -> Unit)? = null,
     private val onDetach: (() -> Unit)? = null,
-    private val provideData: ProviderScope.(GridSpec) -> List<T>,
+    provideData: ProviderScope.() -> List<T>,
 ) : BaseGeometryProvider<T>() {
+
+    val dataFactory: ProviderScope.() -> List<T> = provideData
 
     override fun doMatch(digitGridSpec: GridSpec): Consent {
         return doMatch?.invoke(digitGridSpec) ?: super.doMatch(digitGridSpec)
@@ -74,7 +76,10 @@ class TestGeometryProvider<T : Any>(
         onAttach?.invoke(digitGridSpec, geometryProps)
     }
 
-    override fun ProviderScope.provideData(): List<T> = provideData(providerGridSpec)
+    override fun ProviderScope.provideData(): List<T> {
+        val result = dataFactory()
+        return result
+    }
 
     override fun onDetach() {
         onDetach?.invoke()

@@ -16,7 +16,7 @@ import io.github.beankitk.numberbricks.data.DigitData
  * positions determine the row and column occupied by each block during geometry composition.
  *
  * Position values must be expressed in grid coordinates, where each position maps to a valid row
- * and column within the provider's [providerGridSpec].
+ * and column within the [ProviderScope.gridSpec].
  *
  * Extend one of the provided base classes to create a position provider:
  * - [Fixed] for providers that operate on a predefined grid.
@@ -58,14 +58,13 @@ sealed class PositionProvider : BaseGeometryProvider<Position>() {
  *
  * This allows specifying [Position] for all blocks per digit using [DigitData], giving full control
  * over block placement in grid during geometry composition. Subclasses define provider data as a
- * list of [Position] for each digit, aligned with the provider's
- * [grid constraints][providerGridSpec].
+ * list of [Position] for each digit, aligned with the provider's [grid constraints][gridSpec].
  *
- * @param providerGridSpec The [GridSpec] defining the grid constraints this provider is bound to
- *   and must align its position data with
+ * @param gridSpec The [GridSpec] defining the grid constraints this provider is bound to and must
+ *     align its position data with
  */
-abstract class CustomPositionProvider(providerGridSpec: GridSpec) :
-    PositionProvider.Fixed(providerGridSpec), DigitData<List<Position>> {
+abstract class CustomPositionProvider(gridSpec: GridSpec) :
+    PositionProvider.Fixed(gridSpec), DigitData<List<Position>> {
 
     final override val dependsOn = emptySet<ProviderKey<*>>()
 
