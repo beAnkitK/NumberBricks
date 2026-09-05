@@ -41,7 +41,7 @@ inline fun <R : Any> ProviderScope.buildProviderData(factory: (Int) -> R): List<
  *
  * Otherwise, required data may be unavailable and access will fail with runtime errors.
  */
-interface ProviderScope {
+sealed interface ProviderScope {
 
     /**
      * Represents the digit for which this scope is created and associated, used by all providers to
