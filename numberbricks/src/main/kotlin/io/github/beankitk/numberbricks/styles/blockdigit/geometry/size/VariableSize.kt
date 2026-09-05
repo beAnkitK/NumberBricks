@@ -11,7 +11,7 @@ import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 import io.github.beankitk.numberbricks.core.geometry.buildProviderData
 import io.github.beankitk.numberbricks.core.geometry.defineMeta
-import kotlin.math.abs
+import io.github.beankitk.numberbricks.utils.approxEquals
 
 /**
  * Provides variable [Size] values for blocks based on row and column dimensions.
@@ -178,14 +178,12 @@ fun normalizeRowHeights(input: FloatArray, rowCount: Int): FloatArray =
 fun normalizeColWidths(input: FloatArray, colCount: Int): FloatArray =
     normalizeArray(input, colCount.toFloat())
 
-private const val epsilon = 0.001f
-
 private fun normalizeArray(input: FloatArray, target: Float): FloatArray {
     val size = input.size
     var sum = input.sum()
 
-    if (!sum.isNaN() && abs(sum - target) < epsilon) {
-        return input
+    if (!sum.isNaN() && sum.approxEquals(target)) {
+        return input.copyOf()
     }
 
     if (sum <= 0f || sum.isNaN()) {

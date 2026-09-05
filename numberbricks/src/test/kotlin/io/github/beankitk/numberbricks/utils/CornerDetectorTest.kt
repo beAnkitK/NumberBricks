@@ -17,14 +17,14 @@ class CornerDetectorTest {
 
     @Test
     fun testDetectOuterCorners_onSingleRect() {
-        val profiles = getCornerProfile(ShapeFixtures.SingleRect)
+        val profiles = detectCorners(ShapeFixtures.SingleRect)
 
         assertProfiles(profiles, 1) { rect(0).all().shouldBe(Outer) }
     }
 
     @Test
     fun testDetectEdgeCorners_onHorizontalLine() {
-        val profiles = getCornerProfile(ShapeFixtures.HLine)
+        val profiles = detectCorners(ShapeFixtures.HLine)
 
         assertProfiles(profiles, 3) {
             rect(1).all().shouldBe(Edge)
@@ -35,7 +35,7 @@ class CornerDetectorTest {
 
     @Test
     fun testDetectEdgeCorners_onVerticalLine() {
-        val profiles = getCornerProfile(ShapeFixtures.VLine)
+        val profiles = detectCorners(ShapeFixtures.VLine)
 
         assertProfiles(profiles, 3) {
             rect(1).all().shouldBe(Edge)
@@ -46,7 +46,7 @@ class CornerDetectorTest {
 
     @Test
     fun testDetectCornerAndCornerNeighborCorners_onDiagonalRects() {
-        val profiles = getCornerProfile(ShapeFixtures.DiagonalRects)
+        val profiles = detectCorners(ShapeFixtures.DiagonalRects)
 
         assertProfiles(profiles, 2) {
             rects(0, 1).topRight().bottomLeft().shouldBe(CornerNeighbor)
@@ -57,7 +57,7 @@ class CornerDetectorTest {
 
     @Test
     fun testDetectJointAndJointInlineCorners_onLShape() {
-        val profiles = getCornerProfile(ShapeFixtures.LShape)
+        val profiles = detectCorners(ShapeFixtures.LShape)
 
         assertProfiles(profiles, 3) {
             rect(1).topRight().shouldBe(Joint)
@@ -68,7 +68,7 @@ class CornerDetectorTest {
 
     @Test
     fun testDetectInnerCorners_onGrid2x2() {
-        val profiles = getCornerProfile(ShapeFixtures.Grid2x2)
+        val profiles = detectCorners(ShapeFixtures.Grid2x2)
 
         assertProfiles(profiles, 4) {
             corners(
@@ -83,14 +83,14 @@ class CornerDetectorTest {
 
     @Test
     fun testDetectCornersType_onSparseGrid() {
-        val profiles = getCornerProfile(ShapeFixtures.SparseGrid)
+        val profiles = detectCorners(ShapeFixtures.SparseGrid)
 
         assertProfiles(profiles, 4) { eachRect { it.all().shouldBe(Outer) } }
     }
 
     @Test
     fun testDetectCornersType_onGrid3x3() {
-        val profiles = getCornerProfile(ShapeFixtures.Grid3x3)
+        val profiles = detectCorners(ShapeFixtures.Grid3x3)
 
         assertProfiles(profiles, 9) {
             rect(0).shouldMatch(Outer, Edge, Inner, Edge)
@@ -109,7 +109,7 @@ class CornerDetectorTest {
 
     @Test
     fun testDetectCornersType_onPlusShape() {
-        val profiles = getCornerProfile(ShapeFixtures.PlusShape)
+        val profiles = detectCorners(ShapeFixtures.PlusShape)
 
         assertProfiles(profiles, 5) {
             rect(0).shouldMatch(Outer, Outer, JointInline, JointInline)
@@ -122,7 +122,7 @@ class CornerDetectorTest {
 
     @Test
     fun testDetectCornersType_onDiagonalStaircase() {
-        val profiles = getCornerProfile(ShapeFixtures.DiagonalStaircase)
+        val profiles = detectCorners(ShapeFixtures.DiagonalStaircase)
 
         assertProfiles(profiles, 4) {
             corners(rect(0).topLeft(), rect(3).bottomRight()).shouldBe(Outer)
@@ -135,7 +135,7 @@ class CornerDetectorTest {
 
     @Test
     fun testDetectCornersType_onStairCase() {
-        val profiles = getCornerProfile(ShapeFixtures.StairCase)
+        val profiles = detectCorners(ShapeFixtures.StairCase)
 
         assertProfiles(profiles, 10) {
             rect(0).shouldMatch(Outer, Outer, JointInline, Edge)
@@ -155,7 +155,7 @@ class CornerDetectorTest {
 
     @Test
     fun testDetectCornersType_onDonut() {
-        val profiles = getCornerProfile(ShapeFixtures.Donut)
+        val profiles = detectCorners(ShapeFixtures.Donut)
 
         assertProfiles(profiles, 4) {
             corners(rect(0).top(), rect(1).left(), rect(2).right(), rect(3).bottom())
@@ -168,7 +168,7 @@ class CornerDetectorTest {
 
     @Test
     fun testDetectCornersType_onUShape() {
-        val profiles = getCornerProfile(ShapeFixtures.UShape)
+        val profiles = detectCorners(ShapeFixtures.UShape)
 
         assertProfiles(profiles, 7) {
             rects(0, 1).shouldMatch(Outer, Outer, Edge, Edge)
@@ -182,7 +182,7 @@ class CornerDetectorTest {
 
     @Test
     fun testDetectCornersType_onSnakePath() {
-        val profiles = getCornerProfile(ShapeFixtures.SnakePath)
+        val profiles = detectCorners(ShapeFixtures.SnakePath)
 
         assertProfiles(profiles, 6) {
             rect(0).shouldMatch(Outer, Edge, JointInline, Outer)
@@ -196,7 +196,7 @@ class CornerDetectorTest {
 
     @Test
     fun testDetectCornersType_onHollowRectangle() {
-        val profiles = getCornerProfile(ShapeFixtures.HollowRectangle)
+        val profiles = detectCorners(ShapeFixtures.HollowRectangle)
 
         assertProfiles(profiles, 8) {
             rect(0).shouldMatch(Outer, Edge, Joint, Edge)
@@ -215,7 +215,7 @@ class CornerDetectorTest {
     @Test
     fun testDetectCornersType_onZeroSizedRects() {
         val rects = arrayOf(cell(0, 0, width = 0f), cell(5, 5, height = 0f))
-        val profiles = getCornerProfile(rects)
+        val profiles = detectCorners(rects)
 
         assertProfiles(profiles, 2) {
             rect(0).all().shouldBe(Outer)
@@ -227,7 +227,7 @@ class CornerDetectorTest {
     fun testDetectCornersType_onDegenerateRectBesideNeighbor() {
         // Self-overlaps must be ignored while a real neighboring rectangle is still detected.
         val rects = arrayOf(cell(0, 0), cell(0, 1, width = 0f))
-        val profiles = getCornerProfile(rects)
+        val profiles = detectCorners(rects)
 
         assertProfiles(profiles, 2) {
             rect(0).shouldMatch(Outer, Edge, Edge, Outer)
@@ -241,7 +241,7 @@ class CornerDetectorTest {
     @Test
     fun testModifyProfile_overridesProfileCorrectly() {
         val profiles =
-            getCornerProfile(ShapeFixtures.DiagonalRects) { index, profile ->
+            detectCorners(ShapeFixtures.DiagonalRects) { index, profile ->
                 if (index == 0) {
                     profile.copy(bottomRight = Joint)
                 } else if (index == 1) {
@@ -259,7 +259,7 @@ class CornerDetectorTest {
 
     @Test
     fun testEmptyArray_returnsEmptyProfiles() {
-        val profiles = getCornerProfile(emptyArray())
+        val profiles = detectCorners(emptyArray())
         assertProfiles(profiles, 0)
     }
 }
