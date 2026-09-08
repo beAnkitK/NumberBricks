@@ -165,7 +165,9 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
             _digitGridSpec = digitGridSpec
             _geometryProps = geometryProps
             resolvedProviders = resolveProviders()
-            resolvedProviders.forEach { it.attach(digitGridSpec, geometryProps) }
+            resolvedProviders.forEach {
+                if (it is LifecycleProvider<*>) it.attach(digitGridSpec, geometryProps)
+            }
             isConstructed = true
             onConstructed()
         } catch (throwable: Throwable) {
@@ -271,12 +273,14 @@ abstract class BaseDigitBuilder<B : Brick<B>> : DigitBuilder<B> {
                 "Cannot register provider '$key': another provider already registered for family '$familyKey'"
             }
 
-            val consent = provider.matches(digitGridSpec)
-            if (consent.hasRejected()) {
-                error(
-                    consent.getRejectionReason()
-                        ?: "Cannot register provider '$key': incompatible with this DigitBuilder"
-                )
+            if (provider is LifecycleProvider<*>) {
+                val consent = provider.matches(digitGridSpec)
+                if (consent.hasRejected()) {
+                    error(
+                        consent.getRejectionReason()
+                            ?: "Cannot register provider '$key': incompatible with this DigitBuilder"
+                    )
+                }
             }
 
             providersByKey[key] = provider
@@ -341,7 +345,7 @@ private fun List<GeometryProvider<*>>.detachAll() {
     var failure: Throwable? = null
     forEach { provider ->
         try {
-            provider.detach()
+            if (provider is LifecycleProvider<*>) provider.detach()
         } catch (throwable: Throwable) {
             failure = throwable
         }

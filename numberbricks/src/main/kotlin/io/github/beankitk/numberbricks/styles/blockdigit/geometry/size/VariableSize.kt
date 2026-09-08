@@ -117,7 +117,7 @@ class VariableSize(
         eachRowHeight = normalizeArray(eachRowHeight, digitGridSpec.rows.toFloat())
     }
 
-    override fun ProviderScope.provideData(): List<Size> {
+    override fun ProviderScope.provide(): List<Size> {
         val positions = resultOf<Position>(PositionProvider.Key)
         var colWidths = eachColWidth.copyOf()
         var rowHeights = eachRowHeight.copyOf()

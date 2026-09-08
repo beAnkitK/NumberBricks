@@ -9,12 +9,11 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-private class TestMetaProvider : BaseGeometryProvider<Int>() {
+private class TestMetaProvider : AdaptiveProvider<Int>() {
     override val key = createKey<Int>()
     override val dependsOn = emptySet<ProviderKey<*>>()
-    override val providerGridPolicy = AdaptiveGridPolicy
 
-    override fun ProviderScope.provideData(): List<Int> = buildProviderData { it }
+    override fun ProviderScope.provide(): List<Int> = buildProviderData { it }
 
     companion object {
         val IntMeta = defineMeta<TestMetaProvider, Int>()

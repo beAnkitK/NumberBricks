@@ -1,9 +1,9 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry.size
 
 import androidx.compose.ui.geometry.Size
-import io.github.beankitk.numberbricks.core.geometry.AdaptiveGridPolicy
-import io.github.beankitk.numberbricks.core.geometry.BaseGeometryProvider
-import io.github.beankitk.numberbricks.core.geometry.FixedGridPolicy
+import io.github.beankitk.numberbricks.core.geometry.AdaptiveProvider
+import io.github.beankitk.numberbricks.core.geometry.FixedProvider
+import io.github.beankitk.numberbricks.core.geometry.GeometryProvider
 import io.github.beankitk.numberbricks.core.geometry.GridSpec
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 
@@ -21,23 +21,27 @@ import io.github.beankitk.numberbricks.core.geometry.ProviderKey
  * - [Fixed] for providers that operate on a predefined grid.
  * - [Adaptive] for providers that adapt to the builder's grid constraints.
  */
-sealed class SizeProvider : BaseGeometryProvider<Size>() {
+sealed interface SizeProvider {
 
-    abstract override val key: SizeProvider.Key
+    /** Provides access to the underlying [GeometryProvider] represented by this provider family. */
+    val delegate: GeometryProvider<Size>
+        get() = when (this) {
+            is Fixed -> this
+            is Adaptive -> this
+        }
+
+    /** Identifies this provider within the [SizeProvider] family. */
+    abstract val key: SizeProvider.Key
 
     /**
      * Base class for [SizeProvider]s that operate on a predefined grid.
      *
      * @param gridSpec The fixed grid constraints for this provider.
      */
-    abstract class Fixed(gridSpec: GridSpec) : SizeProvider() {
-        final override val providerGridPolicy = FixedGridPolicy(gridSpec)
-    }
+    abstract class Fixed(gridSpec: GridSpec) : FixedProvider<Size>(gridSpec), SizeProvider
 
     /** Base class for [SizeProvider]s that adapt to the builder's grid constraints. */
-    abstract class Adaptive : SizeProvider() {
-        final override val providerGridPolicy = AdaptiveGridPolicy
-    }
+    abstract class Adaptive : AdaptiveProvider<Size>(), SizeProvider
 
     /**
      * Defines the key type for [SizeProvider]s and the family key for the [SizeProvider] family.

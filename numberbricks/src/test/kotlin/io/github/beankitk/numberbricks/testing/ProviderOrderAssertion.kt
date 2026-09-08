@@ -99,7 +99,7 @@ class DependencyGraph internal constructor() {
                         dependsOn =
                             dependencies?.mapTo(HashSet(dependencies.size)) { keys[it] }
                                 ?: emptySet(),
-                        provideData = {
+                        provide = {
                             executionIndex[index] = executionCount++
                             buildProviderData { it }
                         },

@@ -42,7 +42,7 @@ class GridOffset(
 
     override val dependsOn: Set<ProviderKey<*>> = setOf(PositionProvider.Key, VariableSize.Key)
 
-    override fun ProviderScope.provideData(): List<Offset> {
+    override fun ProviderScope.provide(): List<Offset> {
         val positions = resultOf<Position>(PositionProvider.Key)
         val eachColWidth = metaOf<FloatArray>(VariableSize.ColWidths)
         val eachRowHeight = metaOf<FloatArray>(VariableSize.RowHeights)

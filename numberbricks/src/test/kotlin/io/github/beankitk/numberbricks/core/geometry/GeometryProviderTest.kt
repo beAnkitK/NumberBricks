@@ -32,7 +32,7 @@ class GeometryProviderTest {
             doMatch = doMatch,
             onAttach = onAttach,
             onDetach = onDetach,
-            provideData = { buildProviderData { it } },
+            provide = { buildProviderData { it } },
         )
 
     private fun createFixedProvider(
@@ -47,21 +47,12 @@ class GeometryProviderTest {
             doMatch = doMatch,
             onAttach = onAttach,
             onDetach = onDetach,
-            provideData = { buildProviderData { it } },
+            provide = { buildProviderData { it } },
         )
 
     // endregion
 
-    // region Common provider behavior
-
-    @Test
-    fun testIsAdaptive_matchesGridPolicy() {
-        val adaptiveProvider = createAdaptiveProvider()
-        assertTrue(adaptiveProvider.isAdaptive)
-
-        val fixedProvider = createFixedProvider()
-        assertFalse(fixedProvider.isAdaptive)
-    }
+    // region Lifecycle provider common behavior
 
     @Test
     fun testWhenAlreadyAttached_providerCannotBeMatched() {
@@ -140,19 +131,6 @@ class GeometryProviderTest {
     }
 
     @Test
-    fun testWhenNotAttached_providerCannotProvideResult() {
-        val provider = createAdaptiveProvider()
-        val scope = DefaultProviderScope(digit = 0, mockGridSpec)
-
-        try {
-            assertFalse(provider.isAttached)
-            assertFailsWith<IllegalStateException> { with(provider) { scope.provide() } }
-        } finally {
-            scope.dispose()
-        }
-    }
-
-    @Test
     fun testWhenNotAttached_detach_doesNothing() {
         val provider = createAdaptiveProvider()
         provider.detach()
@@ -184,7 +162,6 @@ class GeometryProviderTest {
             provider.detach()
 
             assertFalse(provider.isAttached)
-            assertFailsWith<IllegalStateException> { with(provider) { scope.provide() } }
 
             provider.matches(attachedGridSpec)
             provider.attach(attachedGridSpec, props)
@@ -252,21 +229,6 @@ class GeometryProviderTest {
         assertEquals(reason, consent.reason)
     }
 
-    @Test
-    fun testAdaptiveProvider_ifAttachedToDifferentBuilder_provideData_returnsResultMatchingBuilderGridSpec() {
-        fun adaptiveProvider() = createAdaptiveProvider()
-
-        val gridSpec1 = createGridSpec(6, 4, 20)
-        val digitBuilder1 = TestDigitBuilder(listOf(adaptiveProvider()))
-        digitBuilder1.construct(gridSpec1, props)
-        assertEquals(gridSpec1.brickCount, digitBuilder1.buildBricks(0).size)
-
-        val gridSpec2 = createGridSpec(7, 9, 56)
-        val digitBuilder2 = TestDigitBuilder(listOf(adaptiveProvider()))
-        digitBuilder2.construct(gridSpec2, props)
-        assertEquals(gridSpec2.brickCount, digitBuilder2.buildBricks(0).size)
-    }
-
     // endregion
 
     // region Fixed provider behavior
@@ -312,6 +274,3 @@ class GeometryProviderTest {
 
     // endregion
 }
-
-internal val GeometryProvider<*>.isAttached: Boolean
-    get() = (this as BaseGeometryProvider<*>).isAttached

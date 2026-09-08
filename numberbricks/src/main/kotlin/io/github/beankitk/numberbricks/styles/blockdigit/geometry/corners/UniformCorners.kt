@@ -51,7 +51,7 @@ class UniformCorners(private val rectCorners: RectCorners) : CornersProvider.Ada
 
     override val dependsOn = emptySet<ProviderKey<*>>()
 
-    override fun ProviderScope.provideData(): List<RectCorners> {
+    override fun ProviderScope.provide(): List<RectCorners> {
         return cachedRectCorners
             ?: buildProviderData { rectCorners }.also { cachedRectCorners = it }
     }

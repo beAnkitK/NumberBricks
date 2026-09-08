@@ -35,7 +35,7 @@ class UniformPosition(private val position: Position) : PositionProvider.Adaptiv
 
     override val dependsOn = emptySet<ProviderKey<*>>()
 
-    override fun ProviderScope.provideData(): List<Position> {
+    override fun ProviderScope.provide(): List<Position> {
         return cachedPositions ?: buildProviderData { position }.also { cachedPositions = it }
     }
 

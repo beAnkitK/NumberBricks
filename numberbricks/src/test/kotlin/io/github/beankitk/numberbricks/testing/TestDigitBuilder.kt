@@ -21,7 +21,7 @@ class TestDigitBuilder(providers: List<TestGeometryProvider<*>>? = null) :
         sizeProvider: TestGeometryProvider<Size>,
     ) : this(listOf(positionProvider, offsetProvider, sizeProvider))
 
-    private val declaredProviders = providers
+    private val declaredProviders = providers?.map { it.delegate }
 
     var onConstructed: (() -> Unit)? = null
     var onDestroying: (() -> Unit)? = null

@@ -27,7 +27,7 @@ class DirectOffset : OffsetProvider.Adaptive() {
 
     override val dependsOn: Set<ProviderKey<*>> = setOf(PositionProvider.Key)
 
-    override fun ProviderScope.provideData(): List<Offset> {
+    override fun ProviderScope.provide(): List<Offset> {
         val positions = resultOf<Position>(PositionProvider.Key)
         return buildProviderData { index ->
             val position = positions[index]

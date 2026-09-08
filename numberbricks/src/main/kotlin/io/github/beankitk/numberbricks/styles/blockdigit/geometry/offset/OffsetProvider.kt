@@ -1,9 +1,9 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry.offset
 
 import androidx.compose.ui.geometry.Offset
-import io.github.beankitk.numberbricks.core.geometry.AdaptiveGridPolicy
-import io.github.beankitk.numberbricks.core.geometry.BaseGeometryProvider
-import io.github.beankitk.numberbricks.core.geometry.FixedGridPolicy
+import io.github.beankitk.numberbricks.core.geometry.AdaptiveProvider
+import io.github.beankitk.numberbricks.core.geometry.FixedProvider
+import io.github.beankitk.numberbricks.core.geometry.GeometryProvider
 import io.github.beankitk.numberbricks.core.geometry.GridSpec
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 
@@ -21,23 +21,27 @@ import io.github.beankitk.numberbricks.core.geometry.ProviderKey
  * - [Fixed] for providers that operate on a predefined grid.
  * - [Adaptive] for providers that adapt to the builder's grid constraints.
  */
-sealed class OffsetProvider : BaseGeometryProvider<Offset>() {
+sealed interface OffsetProvider {
 
-    abstract override val key: OffsetProvider.Key
+    /** Provides access to the underlying [GeometryProvider] represented by this provider family. */
+    val delegate: GeometryProvider<Offset>
+        get() = when (this) {
+            is Fixed -> this
+            is Adaptive -> this
+        }
+
+    /** Identifies this provider within the [OffsetProvider] family. */
+    abstract val key: OffsetProvider.Key
 
     /**
      * Base class for [OffsetProvider]s that operate on a predefined grid.
      *
      * @param gridSpec The fixed grid constraints for this provider.
      */
-    abstract class Fixed(gridSpec: GridSpec) : OffsetProvider() {
-        final override val providerGridPolicy = FixedGridPolicy(gridSpec)
-    }
+    abstract class Fixed(gridSpec: GridSpec) : FixedProvider<Offset>(gridSpec), OffsetProvider
 
     /** Base class for [OffsetProvider]s that adapt to the builder's grid constraints. */
-    abstract class Adaptive : OffsetProvider() {
-        final override val providerGridPolicy = AdaptiveGridPolicy
-    }
+    abstract class Adaptive : AdaptiveProvider<Offset>(), OffsetProvider
 
     /**
      * Defines the key type for [OffsetProvider]s and the family key for the [OffsetProvider]

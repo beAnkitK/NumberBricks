@@ -37,7 +37,7 @@ class UniformOffset(private val offset: Offset) : OffsetProvider.Adaptive() {
 
     override val dependsOn = emptySet<ProviderKey<*>>()
 
-    override fun ProviderScope.provideData(): List<Offset> {
+    override fun ProviderScope.provide(): List<Offset> {
         return cachedOffsets ?: buildProviderData { offset }.also { cachedOffsets = it }
     }
 

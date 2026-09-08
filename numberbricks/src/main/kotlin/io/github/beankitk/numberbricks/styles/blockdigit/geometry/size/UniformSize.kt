@@ -36,7 +36,7 @@ class UniformSize(private val size: Size) : SizeProvider.Adaptive() {
 
     override val dependsOn = emptySet<ProviderKey<*>>()
 
-    override fun ProviderScope.provideData(): List<Size> {
+    override fun ProviderScope.provide(): List<Size> {
         return cachedSize ?: buildProviderData { size }.also { cachedSize = it }
     }
 
