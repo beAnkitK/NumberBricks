@@ -16,12 +16,9 @@ import io.github.beankitk.numberbricks.data.RectCorners
  * defined in grid-relative fractional units, where `1f` represents the maximum radius constrained
  * by the block size.
  *
- * The computed result is cached after the first invocation and reused on subsequent calls to avoid
- * redundant computation.
- *
  * @param rectCorners The uniform corner styling applied to all blocks
  */
-class UniformCorners(private val rectCorners: RectCorners) : CornersProvider.Adaptive() {
+class UniformCorners(private val rectCorners: RectCorners) : CornersProvider.Computed() {
 
     /**
      * Creates a [UniformCorners] provider with the given [CornerStyle].
@@ -43,27 +40,21 @@ class UniformCorners(private val rectCorners: RectCorners) : CornersProvider.Ada
         radiusY: Float = radius,
     ) : this(CornerStyle(CornerRadius(radius, radiusY), shape))
 
-    // Safe without synchronization because providers are evaluated sequentially.
-    private var cachedRectCorners: List<RectCorners>? = null
-
     override val key: CornersProvider.Key
         get() = UniformCorners.Key
 
     override val dependsOn = emptySet<ProviderKey<*>>()
 
-    override fun ProviderScope.provide(): List<RectCorners> {
-        return cachedRectCorners
-            ?: buildProviderData { rectCorners }.also { cachedRectCorners = it }
-    }
+    override fun ProviderScope.provide(): List<RectCorners> = buildProviderData { rectCorners }
 
     companion object {
         /** Creates a [UniformCorners] provider that provides sharp corners for all blocks. */
-        fun sharp() = UniformCorners(RectCorners.Sharp)
+        val Sharp = UniformCorners(RectCorners.Sharp)
 
         /**
          * Creates a [UniformCorners] provider that provides fully rounded corners for all blocks.
          */
-        fun round() = UniformCorners(RectCorners(1f, CornerShape.Round))
+        val Round = UniformCorners(RectCorners(1f, CornerShape.Round))
     }
 
     /** Key identifying the [UniformCorners] provider within the [CornersProvider] family. */

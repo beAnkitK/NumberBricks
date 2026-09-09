@@ -12,12 +12,9 @@ import io.github.beankitk.numberbricks.core.geometry.buildProviderData
  * geometry where all blocks share identical dimensions. The provided [Size] must be defined in
  * grid-relative fractional units, where `1f` represents the size of a single grid cell.
  *
- * The computed result is cached after the first invocation and reused on subsequent calls to avoid
- * redundant computation.
- *
  * @param size The uniform block size in grid-relative units (1f = one grid cell)
  */
-class UniformSize(private val size: Size) : SizeProvider.Adaptive() {
+class UniformSize(private val size: Size) : SizeProvider.Computed() {
 
     /**
      * Creates a [UniformSize] provider with uniform dimensions.
@@ -28,21 +25,16 @@ class UniformSize(private val size: Size) : SizeProvider.Adaptive() {
      */
     constructor(width: Float, height: Float = width) : this(Size(width, height))
 
-    // Safe without synchronization because providers are evaluated sequentially.
-    private var cachedSize: List<Size>? = null
-
     override val key: SizeProvider.Key
         get() = UniformSize.Key
 
     override val dependsOn = emptySet<ProviderKey<*>>()
 
-    override fun ProviderScope.provide(): List<Size> {
-        return cachedSize ?: buildProviderData { size }.also { cachedSize = it }
-    }
+    override fun ProviderScope.provide(): List<Size> = buildProviderData { size }
 
     companion object {
         /** Creates a [UniformSize] provider that provides zero size for all blocks. */
-        fun zero() = UniformSize(Size.Zero)
+        val Zero = UniformSize(Size.Zero)
     }
 
     /** Key identifying the [UniformSize] provider within the [SizeProvider] family. */

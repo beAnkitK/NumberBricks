@@ -94,7 +94,7 @@ class DependencyGraph internal constructor() {
                 Array(providerCount) { index ->
                     val dependencies = dependencies[index]
 
-                    AdaptiveTestProvider(
+                    ComputedTestProvider(
                         key = keys[index],
                         dependsOn =
                             dependencies?.mapTo(HashSet(dependencies.size)) { keys[it] }

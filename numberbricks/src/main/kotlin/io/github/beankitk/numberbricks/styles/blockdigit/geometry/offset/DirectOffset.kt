@@ -20,7 +20,7 @@ import io.github.beankitk.numberbricks.core.geometry.buildProviderData
  *
  * @see Block for details on grid-relative offset representation
  */
-class DirectOffset : OffsetProvider.Adaptive() {
+object DirectOffset : OffsetProvider.Computed() {
 
     override val key: OffsetProvider.Key
         get() = DirectOffset.Key

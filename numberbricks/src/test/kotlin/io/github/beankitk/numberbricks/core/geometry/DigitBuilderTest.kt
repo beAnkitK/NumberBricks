@@ -6,9 +6,6 @@ import io.github.beankitk.numberbricks.testing.DEFAULT_POSITION
 import io.github.beankitk.numberbricks.testing.DEFAULT_SIZE
 import io.github.beankitk.numberbricks.testing.TEST_ERROR
 import io.github.beankitk.numberbricks.testing.TestDigitBuilder
-import io.github.beankitk.numberbricks.testing.UniformOffset
-import io.github.beankitk.numberbricks.testing.UniformPosition
-import io.github.beankitk.numberbricks.testing.UniformSize
 import io.github.beankitk.numberbricks.testing.createGridSpec
 import io.github.beankitk.numberbricks.testing.createKey
 import io.github.beankitk.numberbricks.testing.createProps
@@ -123,16 +120,22 @@ class BaseDigitBuilderTest {
 
     @Test
     fun testWhenConstructed_allProvidersAreAttached() {
-        val positionProvider = UniformPosition(DEFAULT_POSITION)
-        val offsetProvider = UniformOffset(DEFAULT_OFFSET)
-        val sizeProvider = UniformSize(DEFAULT_SIZE)
+        val providerA =
+            AdaptiveTestProvider(
+                key = createKey<Int>(),
+                provide = { buildProviderData { it } },
+            )
+        val providerB =
+            AdaptiveTestProvider(
+                key = createKey<String>(),
+                provide = { buildProviderData { "$it" } },
+            )
 
-        val digitBuilder = TestDigitBuilder(listOf(positionProvider, offsetProvider, sizeProvider))
+        val digitBuilder = TestDigitBuilder(listOf(providerA, providerB))
         digitBuilder.construct(gridSpec, props)
 
-        assertTrue(positionProvider.isAttached)
-        assertTrue(offsetProvider.isAttached)
-        assertTrue(sizeProvider.isAttached)
+        assertTrue(providerA.isAttached)
+        assertTrue(providerB.isAttached)
     }
 
     @Test

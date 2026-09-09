@@ -21,7 +21,7 @@ fun UniformPosition(row: Int, col: Int) = UniformPosition(Position(row, col))
 
 /** Creates a test provider returning [position] for every brick. */
 fun UniformPosition(position: Position) =
-    AdaptiveTestProvider<Position>(
+    ComputedTestProvider<Position>(
         key = UniformPositionKey,
         provide = { buildProviderData { position } },
     )
@@ -41,7 +41,7 @@ fun UniformOffset(x: Float, y: Float) = UniformOffset(Offset(x, y))
 
 /** Creates a test provider returning [offset] for every brick. */
 fun UniformOffset(offset: Offset) =
-    AdaptiveTestProvider<Offset>(
+    ComputedTestProvider<Offset>(
         key = UniformOffsetKey,
         provide = { buildProviderData { offset } },
     )
@@ -61,4 +61,4 @@ fun UniformSize(width: Float, height: Float = width) = UniformSize(Size(width, h
 
 /** Creates a test provider returning [size] for every brick. */
 fun UniformSize(size: Size) =
-    AdaptiveTestProvider<Size>(key = UniformSizeKey, provide = { buildProviderData { size } })
+    ComputedTestProvider<Size>(key = UniformSizeKey, provide = { buildProviderData { size } })
