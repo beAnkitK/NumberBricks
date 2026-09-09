@@ -2,6 +2,7 @@ package io.github.beankitk.numberbricks.blockdigit.geometry.size
 
 import androidx.compose.ui.geometry.Size
 import io.github.beankitk.numberbricks.core.geometry.AdaptiveProvider
+import io.github.beankitk.numberbricks.core.geometry.ComputedProvider
 import io.github.beankitk.numberbricks.core.geometry.FixedProvider
 import io.github.beankitk.numberbricks.core.geometry.GeometryProvider
 import io.github.beankitk.numberbricks.core.geometry.GridSpec
@@ -28,6 +29,7 @@ sealed interface SizeProvider {
         get() = when (this) {
             is Fixed -> this
             is Adaptive -> this
+            is Computed -> this
         }
 
     /** Identifies this provider within the [SizeProvider] family. */
@@ -42,6 +44,12 @@ sealed interface SizeProvider {
 
     /** Base class for [SizeProvider]s that adapt to the builder's grid constraints. */
     abstract class Adaptive : AdaptiveProvider<Size>(), SizeProvider
+
+    /**
+     * Base class for [SizeProvider]s that computes its result independently of the [GridSpec]
+     * and can be shared across different [DigitBuilder].
+     */
+    abstract class Computed : ComputedProvider<Size>(), SizeProvider
 
     /**
      * Defines the key type for [SizeProvider]s and the family key for the [SizeProvider] family.

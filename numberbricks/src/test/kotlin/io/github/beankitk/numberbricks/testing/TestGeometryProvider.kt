@@ -1,6 +1,7 @@
 package io.github.beankitk.numberbricks.testing
 
 import io.github.beankitk.numberbricks.core.geometry.AdaptiveProvider
+import io.github.beankitk.numberbricks.core.geometry.ComputedProvider
 import io.github.beankitk.numberbricks.core.geometry.Consent
 import io.github.beankitk.numberbricks.core.geometry.FixedProvider
 import io.github.beankitk.numberbricks.core.geometry.GeometryProps
@@ -16,6 +17,7 @@ sealed interface TestGeometryProvider<T : Any> {
         get() = when (this) {
             is FixedTestProvider -> this
             is AdaptiveTestProvider -> this
+            is ComputedTestProvider -> this
         }
 }
 
@@ -83,5 +85,24 @@ class AdaptiveTestProvider<T : Any>(
 
     override fun onDetach() {
         onDetach?.invoke()
+    }
+}
+
+/**
+ * Creates a [TestGeometryProvider] that computes its result independently of the [GridSpec] and
+ * can be shared across different [DigitBuilder]. Use [provide] to define the data returned by
+ * the provider.
+ */
+class ComputedTestProvider<T : Any>(
+    override val key: ProviderKey<T>,
+    override val dependsOn: Set<ProviderKey<*>> = emptySet(),
+    provide: ProviderScope.() -> List<T>,
+): ComputedProvider<T>(), TestGeometryProvider<T> {
+
+    private val dataFactory: ProviderScope.() -> List<T> = provide
+
+    override fun ProviderScope.provide(): List<T> {
+        val result = dataFactory()
+        return result
     }
 }

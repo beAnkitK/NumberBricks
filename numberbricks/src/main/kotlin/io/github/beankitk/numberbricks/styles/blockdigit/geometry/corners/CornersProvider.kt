@@ -6,6 +6,7 @@ import androidx.compose.ui.geometry.Size
 import io.github.beankitk.numberbricks.blockdigit.geometry.offset.OffsetProvider
 import io.github.beankitk.numberbricks.blockdigit.geometry.size.SizeProvider
 import io.github.beankitk.numberbricks.core.geometry.AdaptiveProvider
+import io.github.beankitk.numberbricks.core.geometry.ComputedProvider
 import io.github.beankitk.numberbricks.core.geometry.FixedProvider
 import io.github.beankitk.numberbricks.core.geometry.GeometryProvider
 import io.github.beankitk.numberbricks.core.geometry.GridSpec
@@ -39,6 +40,7 @@ sealed interface CornersProvider {
         get() = when (this) {
             is Fixed -> this
             is Adaptive -> this
+            is Computed -> this
         }
 
     /** Identifies this provider within the [CornersProvider] family. */
@@ -53,6 +55,12 @@ sealed interface CornersProvider {
 
     /** Base class for [CornersProvider]s that adapt to the builder's grid constraints. */
     abstract class Adaptive : AdaptiveProvider<RectCorners>(), CornersProvider
+
+    /**
+     * Base class for [CornersProvider]s that computes its result independently of the [GridSpec]
+     * and can be shared across different [DigitBuilder].
+     */
+    abstract class Computed : ComputedProvider<RectCorners>(), CornersProvider
 
     /**
      * Defines the key type for [CornersProvider]s and the family key for the [CornersProvider]

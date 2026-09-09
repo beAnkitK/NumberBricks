@@ -1,6 +1,7 @@
 package io.github.beankitk.numberbricks.blockdigit.geometry.position
 
 import io.github.beankitk.numberbricks.core.geometry.AdaptiveProvider
+import io.github.beankitk.numberbricks.core.geometry.ComputedProvider
 import io.github.beankitk.numberbricks.core.geometry.FixedProvider
 import io.github.beankitk.numberbricks.core.geometry.GeometryProvider
 import io.github.beankitk.numberbricks.core.geometry.GridSpec
@@ -29,6 +30,7 @@ sealed interface PositionProvider {
         get() = when (this) {
             is Fixed -> this
             is Adaptive -> this
+            is Computed -> this
         }
 
     /** Identifies this provider within the [PositionProvider] family. */
@@ -43,6 +45,12 @@ sealed interface PositionProvider {
 
     /** Base class for [PositionProvider]s that adapt to the builder's grid constraints. */
     abstract class Adaptive : AdaptiveProvider<Position>(), PositionProvider
+
+    /**
+     * Base class for [PositionProvider]s that computes its result independently of the [GridSpec]
+     * and can be shared across different [DigitBuilder].
+     */
+    abstract class Computed : ComputedProvider<Position>(), PositionProvider
 
     /**
      * Defines the key type for [PositionProvider]s and the family key for the [PositionProvider]

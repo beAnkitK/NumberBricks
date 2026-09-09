@@ -1,6 +1,7 @@
 package io.github.beankitk.numberbricks.core.geometry
 
 import io.github.beankitk.numberbricks.testing.AdaptiveTestProvider
+import io.github.beankitk.numberbricks.testing.ComputedTestProvider
 import io.github.beankitk.numberbricks.testing.FixedTestProvider
 import io.github.beankitk.numberbricks.testing.TestDigitBuilder
 import io.github.beankitk.numberbricks.testing.TEST_ERROR
@@ -21,6 +22,12 @@ class GeometryProviderTest {
     private val props = createProps()
 
     // Test helpers
+
+    private fun createComputedProvider() =
+        ComputedTestProvider(
+            key = mockKey,
+            provide =  { buildProviderData { it } },
+        )
 
     private fun createAdaptiveProvider(
         doMatch: ((GridSpec) -> Consent)? = null,
@@ -49,6 +56,25 @@ class GeometryProviderTest {
             onDetach = onDetach,
             provide = { buildProviderData { it } },
         )
+
+    // endregion
+
+    // region Computed provider behavior
+
+    @Test
+    fun testComputedProvider_ifGivenToDifferentBuilder_provide_returnsResultMatchingBuilderGridSpec() {
+        val provider = createComputedProvider()
+
+        val gridSpec1 = createGridSpec(6, 4, 20)
+        val digitBuilder1 = TestDigitBuilder(listOf(provider))
+        digitBuilder1.construct(gridSpec1, props)
+        assertEquals(gridSpec1.brickCount, digitBuilder1.buildBricks(0).size)
+
+        val gridSpec2 = createGridSpec(7, 9, 56)
+        val digitBuilder2 = TestDigitBuilder(listOf(provider))
+        digitBuilder2.construct(gridSpec2, props)
+        assertEquals(gridSpec2.brickCount, digitBuilder2.buildBricks(0).size)
+    }
 
     // endregion
 

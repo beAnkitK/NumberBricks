@@ -17,6 +17,8 @@ package io.github.beankitk.numberbricks.core.geometry
  * [DigitBuilder] before this provider.
  *
  * To create a provider, extend any of the following:
+ * - [ComputedProvider] for a provider that computes its result independently of the [GridSpec] and
+ *     can be shared across different [DigitBuilder]
  * - [AdaptiveProvider] for a provider that works with any [GridSpec] supplied by the [DigitBuilder].
  * - [FixedProvider] for a provider that works only with one specific [GridSpec].
  *
@@ -47,6 +49,7 @@ package io.github.beankitk.numberbricks.core.geometry
  * Use [delegate] to access the underlying [GeometryProvider] represented by this provider family.
  *
  * @param R The type of result produced for each brick.
+ * @see ComputedProvider
  * @see AdaptiveProvider
  * @see FixedProvider
  * @see ProviderScope
@@ -292,6 +295,27 @@ abstract class AdaptiveProvider<R : Any> : LifecycleProvider<R>()
  * @see GeometryProvider
  */
 abstract class FixedProvider<R : Any>(val gridSpec: GridSpec) : LifecycleProvider<R>()
+
+/**
+ * A [GeometryProvider] that produces its result independently of the [GridSpec] and can be shared
+ * across different [DigitBuilder] instances.
+ *
+ * The provider can produce its result for different grid specs, either by computing the result
+ * based on [ProviderScope.gridSpec] or by deriving it from the results of its dependencies.
+ *
+ * Unlike [AdaptiveProvider], a computed provider has no lifecycle of its own and is not attached to
+ * any [DigitBuilder]. Its provider instance can therefore be shared safely across multiple builders,
+ * provided it does not hold builder-specific state or caches.
+ *
+ * Use this provider when its result can be dynamically computed for any grid spec without requiring
+ * builder-specific lifecycle management or state.
+ *
+ * @param R The type of result produced for each brick.
+ * @see AdaptiveProvider
+ * @see FixedProvider
+ * @see GeometryProvider
+ */
+abstract class ComputedProvider<R : Any> : GeometryProvider<R>
 
 private fun checkAttachable(isCompatible: Boolean?, isAttached: Boolean) {
     when {
