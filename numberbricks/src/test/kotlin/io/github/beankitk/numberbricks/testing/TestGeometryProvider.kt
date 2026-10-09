@@ -56,7 +56,7 @@ class FixedTestProvider<T : Any>(
 }
 
 /**
- * Creates a [TestGeometryProvider] that adpat to any [GridSpec]. Use [provide] to define the
+ * Creates a [TestGeometryProvider] that adapts to any [GridSpec]. Use [provide] to define the
  * data returned by the provider.
  */
 class AdaptiveTestProvider<T : Any>(

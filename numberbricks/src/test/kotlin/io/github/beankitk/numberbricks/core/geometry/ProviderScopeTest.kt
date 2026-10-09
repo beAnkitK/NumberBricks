@@ -81,7 +81,7 @@ class DefaultProviderScopeTest {
             val key2 = createKey<Int>()
             val result2 = List(gs.brickCount) { it }
             scope.storeResult(key2, result2)
-            assertTrue(scope.hasResult(key1))
+            assertTrue(scope.hasResult(key2))
 
             val key3 = createKey<Int>()
             val result3 = scope.buildProviderData { it }

@@ -31,6 +31,7 @@ package io.github.beankitk.numberbricks.core.geometry
  *         get() = when (this) {
  *             is Fixed -> this
  *             is Adaptive -> this
+ *             is Computed -> this
  *         }
  *
  *     interface Key : ProviderKey<Offset> {
@@ -43,6 +44,7 @@ package io.github.beankitk.numberbricks.core.geometry
  *     abstract val key: OffsetProvider.Key
  *     abstract class Adaptive : AdaptiveProvider<Offset>(), OffsetProvider
  *     abstract class Fixed(gridSpec: GridSpec) : FixedProvider<Offset>(gridSpec), OffsetProvider
+ *     abstract class Computed : ComputedProvider<Offset>(), OffsetProvider
  * }
  * ```
  *
