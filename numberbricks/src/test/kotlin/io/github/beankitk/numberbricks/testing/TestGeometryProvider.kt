@@ -1,70 +1,41 @@
 package io.github.beankitk.numberbricks.testing
 
-import io.github.beankitk.numberbricks.core.geometry.AdaptiveGridPolicy
-import io.github.beankitk.numberbricks.core.geometry.BaseGeometryProvider
+import io.github.beankitk.numberbricks.core.geometry.AdaptiveProvider
+import io.github.beankitk.numberbricks.core.geometry.ComputedProvider
 import io.github.beankitk.numberbricks.core.geometry.Consent
-import io.github.beankitk.numberbricks.core.geometry.FixedGridPolicy
+import io.github.beankitk.numberbricks.core.geometry.FixedProvider
 import io.github.beankitk.numberbricks.core.geometry.GeometryProps
+import io.github.beankitk.numberbricks.core.geometry.GeometryProvider
 import io.github.beankitk.numberbricks.core.geometry.GridSpec
-import io.github.beankitk.numberbricks.core.geometry.ProviderGridPolicy
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.core.geometry.ProviderScope
 
+/** Configurable [GeometryProvider] implementation for testing. */
+sealed interface TestGeometryProvider<T : Any> {
+
+    val delegate: GeometryProvider<T>
+        get() = when (this) {
+            is FixedTestProvider -> this
+            is AdaptiveTestProvider -> this
+            is ComputedTestProvider -> this
+        }
+}
+
 /**
- * Creates a [TestGeometryProvider] with a fixed [GridSpec]. Use [provideData] to define the data
+ * Creates a [TestGeometryProvider] with a fixed [GridSpec]. Use [provide] to define the data
  * returned by the provider.
  */
-fun <T : Any> FixedTestProvider(
-    key: ProviderKey<T>,
-    gridSpec: GridSpec,
-    dependsOn: Set<ProviderKey<*>> = emptySet(),
-    doMatch: ((GridSpec) -> Consent)? = null,
-    onAttach: ((GridSpec, GeometryProps) -> Unit)? = null,
-    onDetach: (() -> Unit)? = null,
-    provideData: ProviderScope.(GridSpec) -> List<T>,
-) =
-    TestGeometryProvider<T>(
-        key = key,
-        dependsOn = dependsOn,
-        providerGridPolicy = FixedGridPolicy(gridSpec),
-        doMatch = doMatch,
-        onAttach = onAttach,
-        onDetach = onDetach,
-        provideData = provideData,
-    )
-
-/**
- * Creates a [TestGeometryProvider] with an adaptive grid policy. Use [provideData] to define the
- * data returned by the provider.
- */
-fun <T : Any> AdaptiveTestProvider(
-    key: ProviderKey<T>,
-    dependsOn: Set<ProviderKey<*>> = emptySet(),
-    doMatch: ((GridSpec) -> Consent)? = null,
-    onAttach: ((GridSpec, GeometryProps) -> Unit)? = null,
-    onDetach: (() -> Unit)? = null,
-    provideData: ProviderScope.(GridSpec) -> List<T>,
-) =
-    TestGeometryProvider<T>(
-        key = key,
-        dependsOn = dependsOn,
-        providerGridPolicy = AdaptiveGridPolicy,
-        doMatch = doMatch,
-        onAttach = onAttach,
-        onDetach = onDetach,
-        provideData = provideData,
-    )
-
-/** Configurable [BaseGeometryProvider] implementation for testing. */
-class TestGeometryProvider<T : Any>(
+class FixedTestProvider<T : Any>(
     override val key: ProviderKey<T>,
-    override val dependsOn: Set<ProviderKey<*>>,
-    override val providerGridPolicy: ProviderGridPolicy,
+    gridSpec: GridSpec,
+    override val dependsOn: Set<ProviderKey<*>> = emptySet(),
     private val doMatch: ((GridSpec) -> Consent)? = null,
     private val onAttach: ((GridSpec, GeometryProps) -> Unit)? = null,
     private val onDetach: (() -> Unit)? = null,
-    private val provideData: ProviderScope.(GridSpec) -> List<T>,
-) : BaseGeometryProvider<T>() {
+    provide: ProviderScope.() -> List<T>,
+) : FixedProvider<T>(gridSpec), TestGeometryProvider<T> {
+
+    private val dataFactory: ProviderScope.() -> List<T> = provide
 
     override fun doMatch(digitGridSpec: GridSpec): Consent {
         return doMatch?.invoke(digitGridSpec) ?: super.doMatch(digitGridSpec)
@@ -74,9 +45,64 @@ class TestGeometryProvider<T : Any>(
         onAttach?.invoke(digitGridSpec, geometryProps)
     }
 
-    override fun ProviderScope.provideData(): List<T> = provideData(providerGridSpec)
+    override fun ProviderScope.provide(): List<T> {
+        val result = dataFactory()
+        return result
+    }
 
     override fun onDetach() {
         onDetach?.invoke()
+    }
+}
+
+/**
+ * Creates a [TestGeometryProvider] that adapts to any [GridSpec]. Use [provide] to define the
+ * data returned by the provider.
+ */
+class AdaptiveTestProvider<T : Any>(
+    override val key: ProviderKey<T>,
+    override val dependsOn: Set<ProviderKey<*>> = emptySet(),
+    private val doMatch: ((GridSpec) -> Consent)? = null,
+    private val onAttach: ((GridSpec, GeometryProps) -> Unit)? = null,
+    private val onDetach: (() -> Unit)? = null,
+    provide: ProviderScope.() -> List<T>,
+): AdaptiveProvider<T>(), TestGeometryProvider<T> {
+
+    private val dataFactory: ProviderScope.() -> List<T> = provide
+
+    override fun doMatch(digitGridSpec: GridSpec): Consent {
+        return doMatch?.invoke(digitGridSpec) ?: super.doMatch(digitGridSpec)
+    }
+
+    override fun onAttach(digitGridSpec: GridSpec, geometryProps: GeometryProps) {
+        onAttach?.invoke(digitGridSpec, geometryProps)
+    }
+
+    override fun ProviderScope.provide(): List<T> {
+        val result = dataFactory()
+        return result
+    }
+
+    override fun onDetach() {
+        onDetach?.invoke()
+    }
+}
+
+/**
+ * Creates a [TestGeometryProvider] that computes its result independently of the [GridSpec] and
+ * can be shared across different [DigitBuilder]. Use [provide] to define the data returned by
+ * the provider.
+ */
+class ComputedTestProvider<T : Any>(
+    override val key: ProviderKey<T>,
+    override val dependsOn: Set<ProviderKey<*>> = emptySet(),
+    provide: ProviderScope.() -> List<T>,
+): ComputedProvider<T>(), TestGeometryProvider<T> {
+
+    private val dataFactory: ProviderScope.() -> List<T> = provide
+
+    override fun ProviderScope.provide(): List<T> {
+        val result = dataFactory()
+        return result
     }
 }

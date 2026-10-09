@@ -3,6 +3,20 @@ package io.github.beankitk.numberbricks.core.geometry
 import androidx.collection.MutableScatterMap
 
 /**
+ * Builds the provider result aligned with the grid constraints for this [ProviderScope].
+ *
+ * The returned list contains one value of type [R] produced for each brick defined by
+ * [ProviderScope.gridSpec] and always contains exactly `gridSpec.brickCount` elements.
+ * Use this function when constructing provider results.
+ *
+ * @param factory Produces the result for the specified brick index.
+ * @receiver The [ProviderScope] whose grid constraints determine the result size.
+ */
+inline fun <R : Any> ProviderScope.buildProviderData(factory: (Int) -> R): List<R> {
+    return List(gridSpec.brickCount) { factory(it) }
+}
+
+/**
  * Provides the digit-scoped environment for provider execution and inter-provider data exchange.
  *
  * A [ProviderScope] is created and owned by [DigitBuilder] for each digit during geometry
@@ -27,7 +41,7 @@ import androidx.collection.MutableScatterMap
  *
  * Otherwise, required data may be unavailable and access will fail with runtime errors.
  */
-interface ProviderScope {
+sealed interface ProviderScope {
 
     /**
      * Represents the digit for which this scope is created and associated, used by all providers to
@@ -35,6 +49,9 @@ interface ProviderScope {
      * bricks.
      */
     val digit: Int
+
+    /** Represents the grid constraints used to construct brick model of current [digit]. */
+    val gridSpec: GridSpec
 
     /**
      * Returns whether a result for the given provider key or family key is available in this scope.
@@ -117,12 +134,13 @@ interface MutableProviderScope : ProviderScope {
     /**
      * Stores a provider's result in this scope for the given provider key or family key.
      *
-     * The result is stored using the provider's family key and must contain one value for each
-     * brick defined by the [NumberComposer.digitGridSpec]
+     * The result is stored using the provider's family key and should always contains exactly
+     * [gridSpec.brickCount] elements.
      *
      * @param R The type of the provider result.
      * @param key The provider key or family key identifying the result.
      * @param result The provider result, with one value for each brick.
+     * @throws IllegalArgumentException if [result] size does not match with [gridSpec.brickCount]
      */
     fun <R : Any> storeResult(key: ProviderKey<R>, result: List<R>)
 
@@ -151,21 +169,23 @@ interface MutableProviderScope : ProviderScope {
     fun dispose()
 }
 
-/**
- * Factory function that creates a default [ProviderScope] implementation for the given [digit].
- *
- * @return a new [DefaultProviderScope] instance, which acts as the mutable scope
- */
+/** Returns a new [DefaultProviderScope] for the given [digit] and [gridSpec]. */
 @Suppress("NOTHING_TO_INLINE")
-inline fun ProviderScope(digit: Int): DefaultProviderScope = DefaultProviderScope(digit)
+inline fun ProviderScope(
+    digit: Int,
+    gridSpec: GridSpec
+): DefaultProviderScope = DefaultProviderScope(digit, gridSpec)
 
 /**
- * Default implementation of [MutableProviderScope].
+ * Default implementation of [ProviderScope].
  *
  * Manages provider results and meta values for a single digit during geometry composition. This
  * scope is created by the [DigitBuilder] per digit and disposed once computation completes.
  */
-class DefaultProviderScope(override val digit: Int) : MutableProviderScope, AutoCloseable {
+class DefaultProviderScope(
+    override val digit: Int,
+    override val gridSpec: GridSpec,
+) : MutableProviderScope, AutoCloseable {
 
     private val resultStore = MutableScatterMap<ProviderKey<*>, List<*>>(5)
     private val metaStore = MutableScatterMap<MetaKey<*, *>, Any?>(5)
@@ -198,6 +218,9 @@ class DefaultProviderScope(override val digit: Int) : MutableProviderScope, Auto
     }
 
     override fun <R : Any> storeResult(key: ProviderKey<R>, result: List<R>) {
+        require(result.size == gridSpec.brickCount) {
+            "Provider result must have ${gridSpec.brickCount} size, but was ${result.size} for $key"
+        }
         resultStore[key.family] = result
     }
 

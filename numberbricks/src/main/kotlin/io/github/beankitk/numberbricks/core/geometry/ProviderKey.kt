@@ -15,18 +15,20 @@ package io.github.beankitk.numberbricks.core.geometry
  *
  * Example:
  * ```kotlin
- * abstract class OffsetProvider : BaseGeometryProvider<Offset> {
- *     abstract override val key: Key
- *
+ * sealed interface OffsetProvider {
  *     interface Key : ProviderKey<Offset> {
  *         override val family: Key
  *             get() = OffsetProvider.Key
  *
  *         companion object : Key
  *     }
+ *
+ *     abstract class Adaptive : AdaptiveProvider<Offset>(), OffsetProvider {
+ *        abstract override val key: OffsetProvider.Key
+ *     }
  * }
  *
- * class UniformOffset : OffsetProvider() {
+ * class UniformOffset : OffsetProvider.Adaptive() {
  *     override val key: OffsetProvider.Key
  *         get() = Key
  *

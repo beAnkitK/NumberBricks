@@ -40,7 +40,12 @@ class BlockDigitBuilder(
 ) : BaseDigitBuilder<Block>() {
 
     override val providers: List<GeometryProvider<*>>
-        get() = listOf(positionProvider, offsetProvider, sizeProvider, cornersProvider)
+        get() = listOf(
+            positionProvider.delegate,
+            offsetProvider.delegate,
+            sizeProvider.delegate,
+            cornersProvider.delegate
+        )
 
     override fun ProviderScope.assembleBricks(): List<Block> {
         val positions = resultOf<Position>(positionProvider.key)

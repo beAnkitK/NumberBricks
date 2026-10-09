@@ -5,9 +5,10 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import io.github.beankitk.numberbricks.blockdigit.geometry.offset.OffsetProvider
 import io.github.beankitk.numberbricks.blockdigit.geometry.size.SizeProvider
-import io.github.beankitk.numberbricks.core.geometry.AdaptiveGridPolicy
-import io.github.beankitk.numberbricks.core.geometry.BaseGeometryProvider
-import io.github.beankitk.numberbricks.core.geometry.FixedGridPolicy
+import io.github.beankitk.numberbricks.core.geometry.AdaptiveProvider
+import io.github.beankitk.numberbricks.core.geometry.ComputedProvider
+import io.github.beankitk.numberbricks.core.geometry.FixedProvider
+import io.github.beankitk.numberbricks.core.geometry.GeometryProvider
 import io.github.beankitk.numberbricks.core.geometry.GridSpec
 import io.github.beankitk.numberbricks.core.geometry.ProviderKey
 import io.github.beankitk.numberbricks.core.geometry.ProviderScope
@@ -32,23 +33,34 @@ import io.github.beankitk.numberbricks.utils.detectCorners
  * - [Fixed] for providers that operate on a predefined grid.
  * - [Adaptive] for providers that adapt to the builder's grid constraints.
  */
-sealed class CornersProvider : BaseGeometryProvider<RectCorners>() {
+sealed interface CornersProvider {
 
-    abstract override val key: CornersProvider.Key
+    /** Provides access to the underlying [GeometryProvider] represented by this provider family. */
+    val delegate: GeometryProvider<RectCorners>
+        get() = when (this) {
+            is Fixed -> this
+            is Adaptive -> this
+            is Computed -> this
+        }
+
+    /** Identifies this provider within the [CornersProvider] family. */
+    abstract val key: CornersProvider.Key
 
     /**
      * Base class for [CornersProvider]s that operate on a predefined grid.
      *
      * @param gridSpec The fixed grid constraints for this provider.
      */
-    abstract class Fixed(gridSpec: GridSpec) : CornersProvider() {
-        final override val providerGridPolicy = FixedGridPolicy(gridSpec)
-    }
+    abstract class Fixed(gridSpec: GridSpec) : FixedProvider<RectCorners>(gridSpec), CornersProvider
 
     /** Base class for [CornersProvider]s that adapt to the builder's grid constraints. */
-    abstract class Adaptive : CornersProvider() {
-        final override val providerGridPolicy = AdaptiveGridPolicy
-    }
+    abstract class Adaptive : AdaptiveProvider<RectCorners>(), CornersProvider
+
+    /**
+     * Base class for [CornersProvider]s that computes its result independently of the [GridSpec]
+     * and can be shared across different [DigitBuilder].
+     */
+    abstract class Computed : ComputedProvider<RectCorners>(), CornersProvider
 
     /**
      * Defines the key type for [CornersProvider]s and the family key for the [CornersProvider]
@@ -68,8 +80,7 @@ sealed class CornersProvider : BaseGeometryProvider<RectCorners>() {
  *
  * This allows specifying [RectCorners] for all blocks per digit using [DigitData], giving full
  * control over corner appearance during geometry composition. Subclasses define provider data as a
- * list of [RectCorners] for each digit, aligned with the provider's
- * [grid constraints][providerGridSpec].
+ * list of [RectCorners] for each digit, aligned with this provider [grid constraints][gridSpec].
  *
  * Predefined presets are provided to simplify common corner combinations based on the supplied
  * [cornerStyle].
@@ -119,7 +130,7 @@ abstract class CustomCornersProvider(gridSpec: GridSpec, protected val cornerSty
 
     final override val dependsOn = emptySet<ProviderKey<*>>()
 
-    final override fun ProviderScope.provideData() = this@CustomCornersProvider[digit]
+    final override fun ProviderScope.provide() = this@CustomCornersProvider[digit]
 }
 
 /**
@@ -151,11 +162,11 @@ abstract class AutoCornersProvider : CornersProvider.Adaptive() {
 
     final override val dependsOn: Set<ProviderKey<*>> = setOf(OffsetProvider.Key, SizeProvider.Key)
 
-    final override fun ProviderScope.provideData(): List<RectCorners> {
+    final override fun ProviderScope.provide(): List<RectCorners> {
         val offsets = resultOf<Offset>(OffsetProvider.Key)
         val sizes = resultOf<Size>(SizeProvider.Key)
         val rects =
-            Array(providerGridSpec.brickCount) { index -> Rect(offsets[index], sizes[index]) }
+            Array(gridSpec.brickCount) { index -> Rect(offsets[index], sizes[index]) }
 
         val cornerProfileArray =
             detectCorners(

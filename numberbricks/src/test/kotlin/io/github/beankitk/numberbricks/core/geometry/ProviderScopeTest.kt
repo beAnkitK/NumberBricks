@@ -9,12 +9,11 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-private class TestMetaProvider : BaseGeometryProvider<Int>() {
+private class TestMetaProvider : AdaptiveProvider<Int>() {
     override val key = createKey<Int>()
     override val dependsOn = emptySet<ProviderKey<*>>()
-    override val providerGridPolicy = AdaptiveGridPolicy
 
-    override fun ProviderScope.provideData(): List<Int> = buildProviderData { it }
+    override fun ProviderScope.provide(): List<Int> = buildProviderData { it }
 
     companion object {
         val IntMeta = defineMeta<TestMetaProvider, Int>()
@@ -29,21 +28,24 @@ class DefaultProviderScopeTest {
 
     private val metaProvider = TestMetaProvider()
 
+    private fun ProviderScope(digit: Int = 5, gridSpec: GridSpec = mockGridSpec): DefaultProviderScope
+        = DefaultProviderScope(digit, gridSpec)
+
     @Test
     fun testWhenResultIsNotStored_hasResult_returnsFalse() {
-        DefaultProviderScope(digit = 5).use { scope -> assertFalse(scope.hasResult(mockKey)) }
+        ProviderScope().use { scope -> assertFalse(scope.hasResult(mockKey)) }
     }
 
     @Test
     fun testWhenResultIsNotStored_resultOf_throws() {
-        DefaultProviderScope(digit = 5).use { scope ->
+        ProviderScope().use { scope ->
             assertFailsWith<IllegalStateException> { scope.resultOf(mockKey) }
         }
     }
 
     @Test
     fun testWhenResultIsNotStored_storeResult_storesResult() {
-        DefaultProviderScope(digit = 5).use { scope ->
+        ProviderScope().use { scope ->
             scope.storeResult(mockKey, mockResult)
 
             assertTrue(scope.hasResult(mockKey))
@@ -52,8 +54,45 @@ class DefaultProviderScopeTest {
     }
 
     @Test
+    fun testIfProviderResultSizeMismatchesGridSpec_storeResult_throws() {
+        val gs = createGridSpec(7, 6, 27)
+        ProviderScope(gridSpec = gs).use { scope ->
+
+            val result1 = emptyList<Int>()
+            assertFailsWith<IllegalArgumentException> { scope.storeResult(mockKey, result1) }
+            assertFalse(scope.hasResult(mockKey))
+
+            val result2 = List(30) { it }
+            assertFailsWith<IllegalArgumentException> { scope.storeResult(mockKey, result2) }
+            assertFalse(scope.hasResult(mockKey))
+        }
+    }
+
+    @Test
+    fun testIfProviderResultSizeMatchesGridSpec_storeResult_storesResult() {
+        val gs = createGridSpec(7, 6, 27)
+        ProviderScope(gridSpec = gs).use { scope ->
+
+            val key1 = createKey<Int>()
+            val result1 = List(scope.gridSpec.brickCount) { it }
+            scope.storeResult(key1, result1)
+            assertTrue(scope.hasResult(key1))
+
+            val key2 = createKey<Int>()
+            val result2 = List(gs.brickCount) { it }
+            scope.storeResult(key2, result2)
+            assertTrue(scope.hasResult(key2))
+
+            val key3 = createKey<Int>()
+            val result3 = scope.buildProviderData { it }
+            scope.storeResult(key3, result3)
+            assertTrue(scope.hasResult(key3))
+        }
+    }
+
+    @Test
     fun testWhenResultIsStored_resultOf_returnsStoredResult() {
-        DefaultProviderScope(digit = 5).use { scope ->
+        ProviderScope().use { scope ->
             scope.storeResult(mockKey, mockResult)
             assertEquals(mockResult, scope.resultOf(mockKey))
         }
@@ -61,7 +100,7 @@ class DefaultProviderScopeTest {
 
     @Test
     fun testWhenResultIsStored_removeResult_returnsResultAndRemovesIt() {
-        DefaultProviderScope(digit = 5).use { scope ->
+        ProviderScope().use { scope ->
             scope.storeResult(mockKey, mockResult)
             val removedResult = scope.removeResult(mockKey)
 
@@ -72,12 +111,12 @@ class DefaultProviderScopeTest {
 
     @Test
     fun testWhenResultIsNotStored_removeResult_returnsNull() {
-        DefaultProviderScope(digit = 5).use { scope -> assertNull(scope.removeResult(mockKey)) }
+        ProviderScope().use { scope -> assertNull(scope.removeResult(mockKey)) }
     }
 
     @Test
     fun testWhenResultIsStored_storeResult_replacesPreviousResult() {
-        DefaultProviderScope(digit = 5).use { scope ->
+        ProviderScope().use { scope ->
             val firstResult = List(mockGridSpec.brickCount) { it }
             val secondResult = List(mockGridSpec.brickCount) { it * 2 }
 
@@ -89,21 +128,21 @@ class DefaultProviderScopeTest {
 
     @Test
     fun testWhenMetaIsNotProvided_hasMeta_returnsFalse() {
-        DefaultProviderScope(digit = 5).use { scope ->
+        ProviderScope().use { scope ->
             assertFalse(scope.hasMeta(TestMetaProvider.IntMeta))
         }
     }
 
     @Test
     fun testWhenMetaIsNotProvided_metaOf_returnsNull() {
-        DefaultProviderScope(digit = 5).use { scope ->
+        ProviderScope().use { scope ->
             assertNull(scope.metaOf(TestMetaProvider.IntMeta))
         }
     }
 
     @Test
     fun testProvideMeta_storesMeta() {
-        DefaultProviderScope(digit = 5).use { scope ->
+        ProviderScope().use { scope ->
             with(scope) { metaProvider.provideMeta { TestMetaProvider.IntMeta providedBy 42 } }
 
             assertTrue(scope.hasMeta(TestMetaProvider.IntMeta))
@@ -113,7 +152,7 @@ class DefaultProviderScopeTest {
 
     @Test
     fun testWhenMetaIsAlreadyProvided_provideMeta_overwritesPreviousValue() {
-        DefaultProviderScope(digit = 5).use { scope ->
+        ProviderScope().use { scope ->
             with(scope) {
                 metaProvider.provideMeta { TestMetaProvider.IntMeta providedBy 10 }
                 metaProvider.provideMeta { TestMetaProvider.IntMeta providedBy 20 }
@@ -125,7 +164,7 @@ class DefaultProviderScopeTest {
 
     @Test
     fun testDispose_clearsAllResults_andMeta() {
-        val scope = DefaultProviderScope(digit = 5)
+        val scope = ProviderScope()
 
         scope.storeResult(mockKey, mockResult)
         with(scope) { metaProvider.provideMeta { TestMetaProvider.IntMeta providedBy 42 } }

@@ -82,7 +82,7 @@ open class ClassicPosition : BaseBlockPosition() {
 
     override val digit9 = listOf(g1, g2, g3, g4, g6, g7, g8, g9, g13, g12, g13, g14, g15)
 
-    override val default = buildProviderData { g8 }
+    override val default = listOf(g8, g8, g8, g8, g8, g8, g8, g8, g8, g8, g8, g8 , g8)
 
     /** Key identifying the [ClassicPosition] provider within the [PositionProvider] family. */
     object Key : PositionProvider.Key {
